@@ -5,17 +5,23 @@ import profileInput from '../../src/data/profile.json' with { type: 'json' };
 import expertiseInput from '../../src/content/expertise.json' with { type: 'json' };
 import projectsInput from '../../src/content/case-studies.json' with { type: 'json' };
 import skillsInput from '../../src/content/skills.json' with { type: 'json' };
+import interfaceInput from '../../src/data/interface.json' with { type: 'json' };
+import mediaInput from '../../src/data/media.json' with { type: 'json' };
 import {
   caseStudySchema,
   expertiseSchema,
   profileSchema,
   skillSchema,
+  interfaceSchema,
+  mediaSchema,
 } from '../../src/lib/content';
 
 const profileSource = profileSchema.parse(profileInput);
 const expertiseSource = expertiseSchema.array().parse(expertiseInput);
 const projectsSource = caseStudySchema.array().parse(projectsInput);
 const skillsSource = skillSchema.array().parse(skillsInput);
+const ui = interfaceSchema.parse(interfaceInput);
+const mediaSource = mediaSchema.parse(mediaInput);
 
 const published = (record: { status: string; visible: boolean }) =>
   record.status === 'published' && record.visible;
@@ -33,13 +39,9 @@ const analyticsEnabled =
   process.env['CLARITY_ENABLED'] === 'true' &&
   /^[a-z0-9]{6,20}$/i.test(process.env['CLARITY_PROJECT_ID']?.trim() ?? '');
 
-const navigation = [
-  ['About', 'about'],
-  ['Expertise', 'expertise'],
-  ['Projects', 'projects'],
-  ['Experience', 'experience'],
-  ['Contact', 'contact'],
-] as const;
+const navigation = ui.navigation.map(
+  ({ label, href }) => [label, href.slice(1)] as const,
+);
 
 async function openPreview(page: Page) {
   const response = await page.goto('./');
@@ -65,13 +67,19 @@ test('preview has meaningful landmarks, navigation, and honest indexing metadata
     'content',
     indexable ? 'index, follow' : 'noindex, nofollow',
   );
-  await expect(
-    page.getByText('Design preview', { exact: true }).first(),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/content verification pending/i).first(),
-  ).toBeVisible();
-  for (const id of ['home', 'highlights', ...navigation.map(([, id]) => id)]) {
+  if (mediaSource.portrait.temporary)
+    await expect(page.locator('.portrait-note')).toHaveText(
+      ui.common.portraitNote,
+    );
+  for (const id of [
+    'home',
+    'highlights',
+    'expertise',
+    'projects',
+    'experience',
+    'about',
+    'contact',
+  ]) {
     await expect(page.locator(`#${id}`)).toHaveCount(1);
   }
 
@@ -243,7 +251,10 @@ test('mobile disclosure supports keyboard, Escape, and anchored navigation', asy
   });
   await expect(closeToggle).toHaveAttribute('aria-expanded', 'true');
 
-  const firstLink = nav.getByRole('link', { name: 'About', exact: true });
+  const firstLink = nav.getByRole('link', {
+    name: navigation[0]![0],
+    exact: true,
+  });
   await page.keyboard.press('Tab');
   await expect(firstLink).toBeFocused();
   await page.keyboard.press('Escape');
@@ -252,13 +263,16 @@ test('mobile disclosure supports keyboard, Escape, and anchored navigation', asy
 
   await page.keyboard.press('Space');
   await expect(nav).toBeVisible();
-  await nav.getByRole('link', { name: 'Projects', exact: true }).click();
-  await expect(page).toHaveURL(/#projects$/);
+  const destination =
+    ui.navigation.find((link) => link.href === '#projects') ??
+    ui.navigation.at(-1)!;
+  await nav.getByRole('link', { name: destination.label, exact: true }).click();
+  await expect(page).toHaveURL(new RegExp(`${destination.href}$`));
   await expect(nav).toBeHidden();
   await expect(toggle).toHaveAttribute('aria-expanded', 'false');
 });
 
-test('active navigation clears when returning from Experience to the hero', async ({
+test('active navigation clears when returning from a configured section to the hero', async ({
   page,
 }) => {
   await page.setViewportSize({ width: 1440, height: 1000 });
@@ -267,25 +281,22 @@ test('active navigation clears when returning from Experience to the hero', asyn
     name: 'Main navigation',
     exact: true,
   });
-  const projects = navigation.getByRole('link', {
-    name: 'Projects',
-    exact: true,
-  });
-  await projects.click();
-  await expect(projects).toHaveAttribute('aria-current', 'location');
-  const experience = navigation.getByRole('link', {
-    name: 'Experience',
-    exact: true,
-  });
-  await experience.click();
-  await expect(experience).toHaveAttribute('aria-current', 'location');
-  await page
-    .getByRole('banner')
-    .getByRole('link', { name: 'FOLIO home', exact: true })
-    .click();
+  const observedLinks = navigation.locator(
+    'a[href$="#projects"], a[href$="#experience"]',
+  );
+  for (const link of await observedLinks.all()) {
+    await link.click();
+    await expect(link).toHaveAttribute('aria-current', 'location');
+  }
+  await page.getByRole('banner').locator('a.brand').click();
   await expect(page).toHaveURL(/#home$/);
   await expect(page.locator('#home')).toBeInViewport();
-  await expect(navigation.locator('[aria-current]')).toHaveCount(0);
+  if (ui.navigation.some((link) => link.href === '#home'))
+    await expect(navigation.locator('[aria-current]')).toHaveAttribute(
+      'href',
+      /#home$/,
+    );
+  else await expect(navigation.locator('[aria-current]')).toHaveCount(0);
 });
 
 test('expertise tabs switch distinct content and implement keyboard navigation', async ({
@@ -296,9 +307,7 @@ test('expertise tabs switch distinct content and implement keyboard navigation',
   const tablist = expertise.getByRole('tablist');
   if (categoryCount === 0) {
     await expect(tablist).toHaveCount(0);
-    await expect(expertise).toContainText(
-      'Expertise details are being updated.',
-    );
+    await expect(expertise).toContainText(ui.expertise.emptyMessage);
     return;
   }
   await expect(tablist).toHaveCount(1);
@@ -323,9 +332,7 @@ test('expertise tabs switch distinct content and implement keyboard navigation',
     await expect(panel.locator('.skill-row')).toHaveCount(skills.length);
     for (const skill of skills) await expect(panel).toContainText(skill.name);
     if (skills.length === 0)
-      await expect(panel).toContainText(
-        'Skills for this category will appear after review and publication.',
-      );
+      await expect(panel).toContainText(ui.expertise.emptySkillsMessage);
     content.add(panelText);
     await expect(expertise.getByRole('tabpanel')).toHaveCount(1);
     for (let other = 0; other < (await tabs.count()); other += 1) {
@@ -369,7 +376,10 @@ test('case studies disclose real challenges, contributions and limitations with 
     const project = publicProjects[index]!;
     await expect(disclosure).toContainText(project.challenge);
     await expect(disclosure).toContainText(project.contribution);
-    for (const name of ['The challenge', 'My contribution']) {
+    for (const name of [
+      ui.projects.challengeHeading,
+      ui.projects.contributionHeading,
+    ]) {
       await expect(
         disclosure.getByRole('heading', { name, exact: true }),
       ).toBeVisible();
@@ -377,7 +387,7 @@ test('case studies disclose real challenges, contributions and limitations with 
     if (project.limitations.length > 0)
       await expect(
         disclosure.getByRole('heading', {
-          name: 'Context & limitations',
+          name: ui.projects.limitationsHeading,
           exact: true,
         }),
       ).toBeVisible();
@@ -419,17 +429,22 @@ test('CV, translation and contact controls use their real available destinations
     contact: { email: string | null };
   };
   if (currentProfile.cv) {
-    const cv = page.getByRole('link', { name: /^Download CV/ });
+    const cv = page.locator('a[data-analytics-event="cv_download"]');
     expect(await cv.count()).toBeGreaterThanOrEqual(2);
-    for (const link of await cv.all())
+    for (const link of await cv.all()) {
+      await expect(link).toHaveRole('link');
+      await expect(link).toContainText(ui.actions.cvDownloadLabel);
       await expect(link).toHaveAttribute(
         'download',
         currentProfile.cv.filename,
       );
+    }
   } else if (currentProfile.cvPreviewUrl) {
-    const previewCV = page.getByRole('link', { name: /^View CV/ });
+    const previewCV = page.locator('a[data-analytics-event="cv_view"]');
     expect(await previewCV.count()).toBeGreaterThanOrEqual(2);
     for (const link of await previewCV.all()) {
+      await expect(link).toHaveRole('link');
+      await expect(link).toContainText(ui.actions.cvViewLabel);
       await expect(link).toHaveAttribute('href', currentProfile.cvPreviewUrl);
       await expect(link).toHaveAttribute('target', '_blank');
       await expect(link).toHaveAttribute('rel', /noopener/);
@@ -437,13 +452,27 @@ test('CV, translation and contact controls use their real available destinations
     await expect(page.locator('a[download]')).toHaveCount(0);
   } else
     await expect(
-      page.getByRole('button', { name: 'CV pending', exact: true }).first(),
+      page
+        .getByRole('button', { name: ui.actions.cvPendingLabel, exact: true })
+        .first(),
     ).toBeDisabled();
   const email = page.locator(
     `#contact a[href="mailto:${currentProfile.contact.email}"]`,
   );
-  expect(await email.count()).toBeGreaterThanOrEqual(1);
-  await expect(email.first()).toBeVisible();
+  if (currentProfile.contact.email) {
+    expect(await email.count()).toBeGreaterThanOrEqual(1);
+    await expect(email.first()).toBeVisible();
+    const addressLink = page.locator(
+      '#contact .contact-list a[href^="mailto:"]',
+    );
+    await expect(addressLink).toHaveAttribute(
+      'aria-label',
+      currentProfile.contact.email,
+    );
+    expect(
+      await addressLink.evaluate((element) => element.textContent?.trim()),
+    ).toBe(currentProfile.contact.email);
+  } else await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
   const languageControl = page.getByLabel(/^Language:.*English/);
   await expect(languageControl).toHaveJSProperty('tagName', 'SUMMARY');
@@ -549,9 +578,14 @@ test('navigation remains usable without JavaScript', async ({
     await expect(
       page.getByRole('button', { name: 'Open menu', exact: true }),
     ).toBeHidden();
-    await nav.getByRole('link', { name: 'Contact', exact: true }).click();
-    await expect(page).toHaveURL(/#contact$/);
-    await expect(page.locator('#contact')).toBeInViewport();
+    const destination =
+      ui.navigation.find((link) => link.href === '#contact') ??
+      ui.navigation.at(-1)!;
+    await nav
+      .getByRole('link', { name: destination.label, exact: true })
+      .click();
+    await expect(page).toHaveURL(new RegExp(`${destination.href}$`));
+    await expect(page.locator(destination.href)).toBeInViewport();
     const overflow = await page.evaluate(
       () =>
         document.documentElement.scrollWidth -
@@ -593,7 +627,7 @@ test('404 footer navigation returns home with the deployment base', async ({
     './#home',
     testInfo.project.use.baseURL as string,
   );
-  for (const name of ['FOLIO', 'Back to top']) {
+  for (const name of [ui.brand, ui.footer.backToTopLabel]) {
     await page.goto('./404.html');
     const footer = page.getByRole('contentinfo');
     const link = footer.getByRole('link', { name, exact: true });
@@ -624,7 +658,7 @@ test('optional analytics stays off without consent and privacy preferences remai
   await expect(page.locator('#consent-banner')).toBeHidden();
   const opener = page
     .getByRole('contentinfo')
-    .getByRole('button', { name: 'Privacy preferences', exact: true });
+    .getByRole('button', { name: ui.footer.preferencesLabel, exact: true });
   await opener.click();
   const dialog = page.getByRole('dialog', {
     name: 'Privacy preferences',
@@ -669,7 +703,7 @@ test('privacy page has useful content, working home navigation and WCAG 2.2 AA s
   await openPreview(page);
   await page
     .getByRole('contentinfo')
-    .getByRole('link', { name: 'Privacy policy', exact: true })
+    .getByRole('link', { name: ui.footer.privacyLabel, exact: true })
     .click();
   await expect(page).toHaveURL(/\/privacy\/$/);
   await expect(
@@ -709,9 +743,7 @@ test('privacy page has useful content, working home navigation and WCAG 2.2 AA s
         .analyze()
     ).violations,
   ).toEqual([]);
-  await page
-    .getByRole('link', { name: '← Back to FOLIO', exact: true })
-    .click();
+  await page.locator('.privacy-page > a.text-link').click();
   await expect(page.locator('#home')).toBeVisible();
 });
 

@@ -11,7 +11,7 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 
 <header class="header-shell" data-header>
   <Container class="header-inner">
-    <a href={`${homeURL}#home`} class="brand" aria-label="FOLIO home">
+    <a href={`${homeURL}#home`} class="brand" aria-label={`${site.brand} home`}>
       {media.logo ? (
         <Image
           src={media.logo}
@@ -23,7 +23,7 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
       ) : (
         <Icon name="feather" />
       )}
-      {site.brand}
+      <span class="brand-wordmark">{site.brand}</span>
     </a>
     <button
       class="menu-toggle"
@@ -66,13 +66,23 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
   const nav = document.querySelector<HTMLElement>('#main-navigation');
   if (header && toggle && nav) {
     const compact = window.matchMedia('(width < 56.25rem)');
+    // CMS labels can wrap. Anchor spacing follows the actual sticky height.
+    const updateHeaderHeight = () => {
+      document.documentElement.style.setProperty(
+        '--header-height',
+        `${header.getBoundingClientRect().height}px`,
+      );
+    };
     const setOpen = (open: boolean) => {
       toggle.setAttribute('aria-expanded', String(open));
       toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
       nav.hidden = compact.matches && !open;
+      updateHeaderHeight();
     };
     setOpen(false);
     header.dataset['enhanced'] = '';
+    new ResizeObserver(updateHeaderHeight).observe(header);
+    updateHeaderHeight();
     toggle.addEventListener('click', () =>
       setOpen(toggle.getAttribute('aria-expanded') !== 'true'),
     );
@@ -130,6 +140,40 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 </script>
 
 <style>
+  .brand {
+    min-width: 0;
+    max-width: 12rem;
+  }
+  .main-nav {
+    min-width: 0;
+    flex-wrap: wrap;
+    row-gap: var(--space-1);
+  }
+  .main-nav a {
+    min-width: 0;
+    max-width: 100%;
+    overflow-wrap: anywhere;
+  }
+  .header-actions {
+    min-width: 0;
+    flex-shrink: 0;
+    max-width: 45%;
+  }
+  .header-actions :global(.header-cv) {
+    min-width: 0;
+    max-width: 12rem;
+    overflow-wrap: anywhere;
+  }
+  @media (width < 56.25rem) {
+    .brand {
+      max-width: 45%;
+    }
+  }
+
+  .brand-wordmark {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .brand-logo {
     width: 2rem;
     height: 2rem;

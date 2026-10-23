@@ -1,60 +1,70 @@
-# FOLIO — Task 4 launch handoff
+# FOLIO — Task 4 release status and owner handoff
 
-Task 3 prepares a static production candidate; it does not publish the site. Keep analytics and indexing disabled until the launch gates below are completed. Existing verified career facts, owner-confirmed ≈2 hours → 3 minutes improvement, approved contact channels and all nine sections remain intact.
+The production candidate is prepared for `https://amarok90.github.io/folio/`. Public launch is **BLOCKED**, not certified live: the actual HTTPS endpoint returns 404, GitHub Pages requires an eligible repository, and Pages CMS is at its sign-in screen. The repository remains private. No visibility, plan, account authorization or public deployment was changed without owner approval. Microsoft Clarity is explicitly outside this release and stays disabled.
 
-## Release gates
+## Hosting prerequisite and publication
 
-| Deliverable                                                                          | Task 3 classification              | Required next action                                     |
-| ------------------------------------------------------------------------------------ | ---------------------------------- | -------------------------------------------------------- |
-| Typed content, Pages CMS configuration and six isolated edit/build/restore workflows | PASS locally                       | Authenticate and verify real CMS saves/history           |
-| CV/media rendering and replacement paths                                             | PASS locally                       | Supply current PDF and original portrait/logo            |
-| Consent and Clarity failure resilience                                               | PASS with intercepted local vendor | Activate real project and inspect live traffic/dashboard |
-| Root and `/folio/` output, metadata, privacy, automated/browser checks               | PASS locally                       | Repeat against actual HTTPS host                         |
-| GitHub Pages hosting eligibility                                                     | BLOCKED externally                 | Owner chooses an eligible repository visibility/plan     |
-| Public launch, HTTPS and live external integrations                                  | READY FOR TASK 4 after eligibility | Follow the ordered procedure below                       |
+1. The owner must explicitly authorize making `Amarok90/folio` public to use the requested free GitHub Pages hosting. This exposes repository source, assets and Git history as well as the website. The pre-launch audit found no actual credentials or confidential files, but a scan is not a guarantee about all possible sensitive information. GitHub **Settings → Pages** currently displays **“Upgrade or make this repository public to enable Pages.”** A paid plan is outside the requested scope; no upgrade was purchased.
+2. Once hosting is eligible, select **Settings → Pages → Build and deployment → Source → GitHub Actions**. Review the `github-pages` environment and main-branch rules. Do not bypass a failing quality gate.
+3. Review the temporary portrait and illustrative images. They remain visibly identified and owner-authorized; replace them through **02 · Images & branding** whenever originals are available. Keep unconfirmed languages empty. The existing real **View CV** action opens LinkedIn's Featured document and may require a LinkedIn session. A real local PDF is needed for a direct download; do not publish a synthetic CV to satisfy a test.
+4. Set repository variables `SITE_ORIGIN=https://amarok90.github.io` and `SITE_BASE_PATH=/folio/` only if overriding the identical workflow defaults. Production builds default to indexable; set `SITE_INDEXABLE=false` to defer indexing while content is being reviewed. Local `make` candidates always stay noindex. Review the launch artifact and its intended robots policy.
+5. Set **`PAGES_DEPLOY_ENABLED=true`** only when publication is approved and Pages is eligible. The flag currently stays off. Run **Pages production** on `main` with `publish=true`, origin `https://amarok90.github.io`, base `/folio/`. A manual run with `publish=false` validates and uploads an artifact without publishing.
+6. Thereafter each push to `main`, including CMS commits, runs the full quality pipeline and publishes the same verified `dist/` artifact. The deploy job depends on the successful build, has isolated Pages/OIDC permissions, rejects a stale main commit and shares a cancelable deployment concurrency group. Failed validation never reaches publication. The separate Quality workflow also validates pushes and pull requests.
+7. Verify the real public URL returns the intended page over valid HTTPS. Check `/folio/privacy/`, unknown-route 404 recovery, all fonts/images/CSS/JavaScript, anchors, CV destinations, canonical/OpenGraph, Person JSON-LD, `robots.txt` and sitemap. A green artifact build or skipped deploy is not evidence that the URL is live.
 
-## Hosting and HTTPS
+For a future `.com`, configure the custom domain/DNS and HTTPS in GitHub Pages, then set `SITE_ORIGIN` to the new HTTPS origin and `SITE_BASE_PATH=/`. The same centralized URL authority produces every deployment URL; components need no migration.
 
-1. Resolve the external prerequisite first. On 2026-10-23 actual GitHub **Settings → Pages** displayed **“Upgrade or make this repository public to enable Pages.”** The repository is private and Pages is unavailable on the current plan. No plan, visibility or repository permission was changed. The owner must choose an eligible option; do not silently make the repository public.
-2. Once eligible, select **GitHub Actions** as the Pages source. Review the `github-pages` environment and main-branch protection/ruleset; require the Quality check. Grant only the deploy job Pages write/OIDC, retaining read-only quality permissions.
-3. Approve launch content and assets before enabling indexing. Replace the temporary portrait through **Images & branding**, set its temporary flag false, select the approved logo and sharing image, and review illustrations. Confirm languages or retain the explicit missing-data state. Supply a current PDF; verify it agrees with the owner-confirmed loan metric. The old LinkedIn CV has a different measurement, so it must not silently override the confirmed website claim.
-4. Run **Pages readiness (manual)** on `main` with `site_origin=https://amarok90.github.io`, `base_path=/folio/`, **publish=false**. Inspect every quality gate and the generated static artifact. Missing `CLARITY_ENABLED`/`SITE_INDEXABLE` variables default to false. This dry run does not require automatic Pages-settings mutation.
-5. Set `SITE_INDEXABLE=true` only after final content/asset approval. If Clarity is not ready, leave it disabled and launch without it. Rerun the manual workflow and set **publish=true** only for the intentional Task 4 publication. Confirm deployment completion and the actual URL `https://amarok90.github.io/folio/`.
-6. Verify a valid HTTPS certificate, HTTPS redirects/enforcement, `/folio/` assets, `/folio/privacy/`, 404 recovery, canonical/OG absolute URLs, Person JSON-LD, `robots.txt`, sitemap and no accidental preview/test/private files. Confirm the intended launch build is indexable; nonpublic candidates remain noindex/disallow.
-7. For a future `.com`, configure DNS and the GitHub Pages custom domain, verify HTTPS, rebuild using its HTTPS origin and `/` base, and recheck every URL and redirect. Change one central origin/base pair, never hardcode replacements in components.
+## Pages CMS owner access and routine edits
 
-## Pages CMS live owner acceptance
+Open [Pages CMS](https://app.pagescms.org/). The live site currently requests sign-in and acceptance of its Terms/Privacy Policy. The owner must complete that acceptance and authorize access to the intended repository; no new app grant was made during this task. Select `Amarok90/folio` and the production branch `main`. The root `.pages.yml` supplies ten labeled editors:
 
-Authenticate the owner at [Pages CMS](https://app.pagescms.org/) and authorize only the intended repository/branch. No live authentication, save, upload or publish was claimed in Task 3. `.pages.yml` is already in the repository; no backend needs provisioning.
+- **Profile, contact, CV & SEO**: professional introduction, biography, availability, approved contact channels, PDF metadata and search/social metadata.
+- **Images & branding**: shared Hero/About portrait, alt text, temporary flag, Alpine/contact imagery, optional logo and social image.
+- **Highlights**, **Expertise categories**, **Skills**, **Case studies**, **Career**, **Education**, **Languages**: repeated professional records, stable IDs, ordering, publication and visibility.
+- **Website labels & actions**: section headings/intros, navigation labels/order, supported anchor destinations, CTAs, CV action labels and footer wording.
 
-Use a nonpublic review branch and temporary content, preserving original file bytes/commit IDs:
+Lower **Display order** appears first. New records default to draft/hidden; both publication controls must allow a record before it appears. Do not change a referenced ID without updating its references. Add an expertise category before using its ID in skills. Keep professional facts source-backed and proficiency levels unpopulated unless actually assessed.
 
-1. Edit a short hero sentence, save through CMS, confirm the Git commit and Quality result, then inspect the rendered artifact.
-2. Upload/select a portrait or project image, edit alt text, confirm optimized rendering, stable layout and the selected image after reordering records. Replacing the shared portrait updates both Hero and About.
-3. Upload a safe test PDF through **Public CV documents** and fill the profile’s PDF metadata. Confirm the exact `/folio/documents/…pdf` destination, correct MIME/PDF bytes and filename download action. Restore the real CV state afterward; the current candidate truthfully opens LinkedIn View CV.
-4. Edit a case title/order, save and confirm the correct ordered card/details/image. Test draft and visibility controls. Keep stable IDs and valid category/skill references.
-5. Restore the original content using GitHub file history/revert, confirm another successful Quality build and the original rendered output. Keep the edit and rollback in Git history.
-6. Attempt invalid required/URL/date/reference/media data. CMS field validation should reject what it can; build-time validation must fail closed for cross-field/file rules. A saved invalid commit must never publish. Restore the prior valid commit and verify Quality again.
+Upload raster images through **Website images**, select their path and give meaningful alt text. Shared portrait changes update Hero and About together. The build validates media files and Astro produces responsive optimized output. Project images follow their record when ordering changes. Clear optional image fields together when removing an asset; file and cross-field validation prevent broken output.
 
-The local six-workflow suite makes isolated copies and real builds, including byte-identical restoration and invalid-output prevention. It is evidence for the integration contract, not authenticated live CMS behavior. Routine edits and uploads require no code changes; build/deployment settings remain release controls.
+Upload the owner's actual current PDF through **Public CV documents**, then set the profile's **CV PDF** path, title, download filename and accessible label. Uploading alone does not select it. The build checks path, existence and PDF signature; controls become genuine downloads. Clear PDF metadata to restore the actual external **View CV** action. Reconcile the CV's older measurement with the confirmed website loan metric of approximately 2 hours → 3 minutes before using a new local document.
 
-## Microsoft Clarity
+Save through CMS, inspect GitHub Actions for that exact commit, and wait for successful deployment before checking the public result. CMS writes ordinary versioned files; it cannot bypass content validation or deployment gates. Privacy/consent policy and accessibility operating instructions remain code-governed so routine marketing edits cannot assert unsupported legal or language functionality.
 
-- Authenticate with the owner's Microsoft account and select or create the real Clarity project for `https://amarok90.github.io/folio/`. Task 3 used a local mock only; no live project, session, recording or heatmap was verified.
-- Before activation, configure the Clarity project to require cookie consent and use strict masking. Retain the site's `data-clarity-mask="true"` protection, review project access, retention and Microsoft processing/transfers, and reconcile `/privacy/` with the actual settings. Follow Microsoft's [Consent V2](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-consent-api-v2), [cookie](https://learn.microsoft.com/en-us/clarity/setup-and-installation/clarity-cookies) and [privacy disclosure](https://learn.microsoft.com/en-us/clarity/setup-and-installation/privacy-disclosure) documentation.
-- Set GitHub repository variables `CLARITY_PROJECT_ID` to the real public project ID and `CLARITY_ENABLED=true` only after that review. These are build settings; rebuild and explicitly publish the verified Pages artifact. Preserve `SITE_URL=https://amarok90.github.io` and `BASE_PATH=/folio/`. Never use the test ID `folio1234` for publication.
-- In a clean browser profile, inspect the live Network and Storage panels before any choice and after **Reject analytics**: there must be no Clarity script, collection requests or newly created Clarity cookies. Check navigation, tabs, projects, CV, LinkedIn and email still work with rejection, JavaScript disabled and a Clarity script blocked.
-- Accept analytics and verify exactly one Clarity script loads. Confirm `consentv2` signals `analytics_Storage: granted` and `ad_Storage: denied`; advertising storage must remain denied. Verify actual vendor behaviour rather than inferring it from the signal alone.
-- Check each eligible action produces one named event: `cv_view`, `cv_download`, `linkedin_click`, `email_click`, `explore_work`, `contact_cta`. `cv_download` applies only when a real local PDF exists. Custom calls must contain only the fixed event name, with no email, link URL, text, custom identifier or other personal-data payload. Clarity's own technical/session telemetry is separate and must be reviewed in live traces and recordings.
-- Verify Privacy preferences with keyboard, touch and mouse in Opera on desktop, tablet and mobile. Withdraw acceptance: denial must be signalled, accessible first-party `_clck`/`_clsk` cookies cleared, and the page refreshed to terminate the active recorder. Confirm no tracking resumes after reload, internal navigation or rejection in another tab. Recheck storage-denied and failed-write reset behaviour.
-- Do not describe withdrawal as erasing previously collected data or third-party cookies: this site cannot delete another origin's cookies or Microsoft's existing records. Confirm the published policy and applicable data-request process describe those limits accurately.
-- Verify clean and query-bearing entry URLs. The source pauses startup for query strings, unknown fragments and query-bearing referrers; this is an entry-time guard, not a guarantee that an already running vendor cannot observe later URL changes. Review any future code that changes URLs or introduces forms before enabling recording there.
-- After consenting test visits, verify real events, session recordings and heatmaps in the authenticated Clarity dashboard, including masking and absence of custom personal-data payloads. Save dated evidence and distinguish this live verification from Task 3's simulated tests. Keep `CLARITY_ENABLED=false` and rebuild/redeploy if any release check fails; change the consent version when processing purposes change.
+## Mandatory live CMS acceptance — still pending
 
-## Production verification and rollback
+Local integration tests use isolated copies and actual builds. They are **not** authenticated live CMS evidence. After the owner signs in and hosting is active:
 
-- Run `npm ci` with Node 24, install Playwright Chromium, then `npm run validate`. Inspect the GitHub Quality run for the exact launch commit. Local evidence never substitutes for that run.
-- In actual Opera, inspect all nine sections, privacy, preferences, navigation/menu, expertise tabs, project and role disclosures, English availability, CV, LinkedIn and email. Verify desktop/tablet/mobile, keyboard/Escape/focus, reduced motion, 320–1920 widths, loaded media and zero overflow. Email verification opens the correct mail handler/destination; it does not send a message.
-- Repeat automated axe checks and Lighthouse against the public HTTPS URL. Local Lighthouse uses an indexable isolated candidate, gzip text and a 10-minute asset cache: mobile 99 and desktop 100 Performance in the first passing run, Accessibility/Best Practices/SEO 100 on both. Check real host compression/cache and rerun instead of assuming equal scores. Field Core Web Vitals require real traffic and time.
-- Keep dated native Opera screenshots and test/Lighthouse reports outside the published artifact. Confirm no application console errors; a deliberately blocked optional script may report a network failure while all core actions still work.
-- For rollback, revert the offending content/code commit through Git, wait for Quality, and intentionally redeploy the last verified version using the same origin/base. Disable Clarity and rebuild/redeploy if vendor privacy or resilience checks fail. Do not rewrite history or bypass a failing gate.
+1. Edit a short sentence through CMS → save → inspect the Git commit → successful CI/build/deploy → verify changed text on the public HTTPS page.
+2. Upload/select an approved replacement image, update alt text and verify the actual optimized image and stable responsive composition publicly. Restore the intended asset afterward.
+3. Upload/select the real current owner PDF and verify public PDF bytes, MIME type, URL, filename and download behavior. This cannot be certified with a fake CV.
+4. Change a project order and label, verify card/details/image coherence on the public site, then restore the intended ordering.
+5. Revert the temporary edit commit using GitHub history or a normal Git revert; verify successful CI/deploy and restored public content. Preserve history, do not reset or force-push.
+6. On a nonproduction review branch, attempt invalid required/URL/date/reference/media data. CMS validates supported fields and the build must reject unsafe or inconsistent content. Confirm no deployment occurred and the last healthy public site remains available. Restore valid source before merging.
+
+Keep dated commit/run/deployment URLs and public screenshots for every step. Complete local workflows and a healthy public URL alone do not satisfy this live chain.
+
+## Local commands and verification
+
+With Node 24 and locked dependencies installed (`nvm use`, `npm ci`), use:
+
+```sh
+make folio.run      # foreground dev, prints http://127.0.0.1:4321/folio/
+make folio.check    # complete quality pipeline, including real browser checks
+make folio.build    # validated static /folio/ build
+make folio.preview  # rebuild, then foreground static /folio/ preview
+```
+
+The launcher finds an already installed compatible Node via the current runtime, nvm or Homebrew. `FOLIO_NODE=/absolute/path/to/node` selects one explicitly; `FOLIO_PORT=4328` changes the local serving port. It installs nothing automatically, keeps Clarity disabled and prints actionable errors. Stop serving commands with Ctrl+C before a build/check shares the Astro workspace cache. Install Playwright Chromium once with `npx playwright install chromium`, or on this Mac use `PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH='/Applications/Google Chrome.app/Contents/MacOS/Google Chrome' make folio.check`. Browser installation/audit needs network access.
+
+The four commands are tested on the owner's macOS. Native Opera inspection and screenshots are independent from Chromium E2E. Local Lighthouse audits use an isolated indexable candidate with gzip text and a 10-minute static cache. They do not establish live host caching, public scores or field Core Web Vitals.
+
+## Production verification and recovery
+
+After hosting is unblocked, repeat all nine sections and interactions in actual Opera at desktop/tablet/mobile widths, including 320px. Check keyboard menu/Escape, tabs, project/role disclosures, CV, email/LinkedIn, privacy preferences, reduced motion, images and overflow. Supplement with available Safari/Chrome; report only actual browser coverage. Run axe and Lighthouse against the real public page, targeting at least 95 in all four categories. Field Core Web Vitals require traffic and time.
+
+Clarity remains hard-disabled in both release workflows (`CLARITY_ENABLED=false`, empty project ID), irrespective of repository variables. No vendor script, event, recording or heatmap is expected or certified. Preserved consent/privacy functionality and isolated mock tests support a separately authorized future integration; do not activate it as part of this release.
+
+For recovery, use a normal revert of the offending source/content commit, wait for the full quality gates, and let the enabled main workflow deploy the resulting verified artifact. A validation failure leaves the previous Pages deployment intact. `PAGES_DEPLOY_ENABLED=false` pauses subsequent publication while diagnosis proceeds; it does not remove an existing deployment. Local byte-identical restoration is tested; actual public rollback remains pending the live CMS acceptance above.
+
+See [design-qa.md](design-qa.md) for dated verification evidence and honest coverage boundaries.

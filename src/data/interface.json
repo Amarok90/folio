@@ -1,0 +1,125 @@
+{
+  "brand": "FOLIO",
+  "navigation": [
+    {
+      "label": "About",
+      "href": "#about"
+    },
+    {
+      "label": "Expertise",
+      "href": "#expertise"
+    },
+    {
+      "label": "Projects",
+      "href": "#projects"
+    },
+    {
+      "label": "Experience",
+      "href": "#experience"
+    },
+    {
+      "label": "Contact",
+      "href": "#contact"
+    }
+  ],
+  "actions": {
+    "cvViewLabel": "View CV",
+    "cvDownloadLabel": "Download CV",
+    "cvPendingLabel": "CV pending"
+  },
+  "common": {
+    "portraitNote": "Temporary portrait",
+    "relocationLabel": "Open to Relocation",
+    "pendingLabel": "Details pending",
+    "ongoingLabel": "In progress",
+    "locationLabel": "Location",
+    "emailLabel": "Email",
+    "linkedInLabel": "LinkedIn profile",
+    "availabilityLabel": "Availability",
+    "unconfirmedLabel": "To be confirmed"
+  },
+  "hero": {
+    "primaryAction": {
+      "label": "Explore My Work",
+      "href": "#projects"
+    },
+    "locationPrefix": "Based in",
+    "signature": ["Ideas", "Analysis", "Solutions", "Impact"]
+  },
+  "highlights": {
+    "title": "Professional highlights",
+    "emptyMessage": "Professional highlights are being updated."
+  },
+  "expertise": {
+    "eyebrow": "Expertise",
+    "titleLines": ["Skills &", "Technologies"],
+    "description": "Business analysis, from understanding the need to shaping the solution.",
+    "action": {
+      "label": "Explore case studies",
+      "href": "#projects"
+    },
+    "emptyMessage": "Expertise details are being updated.",
+    "emptySkillsMessage": "Skills for this category will appear after review and publication.",
+    "footnote": "Selected skills from my professional experience.",
+    "proficiencyNote": "Proficiency levels are not specified.",
+    "partialProficiencyNote": "Proficiency is shown only where specified; no level is implied for other skills."
+  },
+  "projects": {
+    "eyebrow": "Featured projects",
+    "titleLines": ["Selected", "Case Studies"],
+    "description": "Real projects. Clear challenges. Thoughtful solutions.",
+    "emptyDescription": "The context. The challenge. The contribution. The result.",
+    "action": {
+      "label": "Explore the journey",
+      "href": "#experience"
+    },
+    "detailsLabel": "View project details",
+    "challengeHeading": "The challenge",
+    "contributionHeading": "My contribution",
+    "limitationsHeading": "Context & limitations",
+    "linkedInSourceLabel": "Source: LinkedIn",
+    "sourceLabel": "Supporting source",
+    "illustrativeCaption": "Illustrative image",
+    "emptyMessage": "Case studies are being updated. Explore the professional journey for current experience."
+  },
+  "journey": {
+    "eyebrow": "Career experience",
+    "titleLines": ["Professional", "Journey"],
+    "description": "From engineering to senior business analysis — connecting business needs with systems that work.",
+    "emptyDescription": "The experience behind the work. A detailed career history is being prepared for this portfolio.",
+    "earlierLabel": "Earlier experience",
+    "detailsLabel": "Role highlights",
+    "presentLabel": "Present",
+    "emptyMessage": "Career details are being updated."
+  },
+  "about": {
+    "eyebrow": "About me",
+    "titleLines": ["More Than Just", "a Professional"],
+    "action": {
+      "label": "Let’s connect",
+      "href": "#contact"
+    },
+    "approachTitle": "My Approach",
+    "educationTitle": "Education",
+    "languagesTitle": "Languages",
+    "emptyDescription": "A personal introduction will be shared here soon."
+  },
+  "contact": {
+    "eyebrow": "Let’s connect",
+    "titleLines": ["Let’s Build Something", "Great Together"],
+    "descriptionLines": [
+      "Open to my next Senior IT Business Analyst opportunity.",
+      "Let’s discuss how my banking expertise and technical experience can contribute to your team."
+    ],
+    "primaryActionLabel": "Get in Touch",
+    "preferredChannel": "email",
+    "linkedInActionLabel": "Connect on LinkedIn",
+    "missingMessage": "Contact details are being confirmed. Please check back for a direct email address and professional profile links."
+  },
+  "footer": {
+    "copyrightNotice": "All rights reserved.",
+    "backToTopLabel": "Back to top",
+    "privacyLabel": "Privacy policy",
+    "preferencesLabel": "Privacy preferences"
+  }
+}

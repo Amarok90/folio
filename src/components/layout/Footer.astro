@@ -1,4 +1,5 @@
 ---
+import { interfaceContent as ui } from '../../data/interface';
 import Container from './Container.astro';
 import Icon from '../ui/Icon.astro';
 import { Image } from 'astro:assets';
@@ -27,7 +28,7 @@ const linkedIn = profile.contact.links.find((link) =>
         ) : (
           <Icon name="feather" />
         )}
-        {site.brand}
+        <span class="brand-wordmark">{site.brand}</span>
       </a>
       <p>
         <strong>{site.identity.name}</strong>
@@ -54,7 +55,7 @@ const linkedIn = profile.contact.links.find((link) =>
       {profile.contact.email && (
         <a
           href={`mailto:${profile.contact.email}`}
-          aria-label="Email Konstantin"
+          aria-label={`${ui.common.emailLabel} ${profile.identity.name}`}
           data-analytics-event="email_click"
         >
           <Icon name="mail" />
@@ -63,24 +64,28 @@ const linkedIn = profile.contact.links.find((link) =>
     </div>
     <div class="footer-privacy">
       <a href={withBasePath('/privacy/', import.meta.env.BASE_URL)}>
-        Privacy policy
+        {ui.footer.privacyLabel}
       </a>
       <button type="button" data-consent-open hidden>
-        Privacy preferences
+        {ui.footer.preferencesLabel}
       </button>
     </div>
     <p class="copyright">
       © {new Date().getUTCFullYear()} {site.identity.name}
-      <span>All rights reserved.</span>
+      <span>{ui.footer.copyrightNotice}</span>
     </p>
     <a href={`${homeURL}#home`} class="footer-top">
-      Back to top
+      {ui.footer.backToTopLabel}
       <Icon name="up" />
     </a>
   </Container>
 </footer>
 
 <style>
+  .brand-wordmark {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .brand-logo {
     width: 2rem;
     height: 2rem;

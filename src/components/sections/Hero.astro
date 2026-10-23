@@ -1,4 +1,8 @@
 ---
+import {
+  interfaceContent as ui,
+  usesSignatureFont,
+} from '../../data/interface';
 import { Image } from 'astro:assets';
 import { profile } from '../../data/profile';
 import { media } from '../../config/media';
@@ -49,39 +53,58 @@ const approach = profile.hero.approach.map((text, index) => ({
       decoding="async"
     />
     {media.portraitTemporary && (
-      <span class="portrait-note">Temporary portrait</span>
+      <span class="portrait-note">{ui.common.portraitNote}</span>
     )}
-    <p class="hero-signature" aria-hidden="true">
-      Ideas
-      <br />
-      <span>Analysis</span>
-      <br />
-      <span>Solutions</span>
-      <br />
-      <span>Impact</span>
+    <p
+      class:list={[
+        'hero-signature',
+        { 'hero-signature--custom': !usesSignatureFont(ui.hero.signature) },
+      ]}
+      aria-hidden="true"
+    >
+      {ui.hero.signature.map((word, index) =>
+        index === 0 ? (
+          word
+        ) : (
+          <>
+            <br />
+            <span>{word}</span>
+          </>
+        ),
+      )}
     </p>
   </div>
   <div class="hero-actions">
-    <Button href="#projects" icon="arrow" data-analytics-event="explore_work">
-      Explore My Work
+    <Button
+      href={ui.hero.primaryAction.href}
+      icon="arrow"
+      data-analytics-event="explore_work"
+    >
+      {ui.hero.primaryAction.label}
     </Button>
     <CVAction />
   </div>
   <ul class="hero-availability" aria-label="Location and availability">
-    <li>
-      <Icon name="location" />
-      <span>Based in {profile.contact.location}</span>
-    </li>
+    {profile.contact.location && (
+      <li>
+        <Icon name="location" />
+        <span>
+          {ui.hero.locationPrefix} {profile.contact.location}
+        </span>
+      </li>
+    )}
     {profile.contact.openToRelocation && (
       <li>
         <Icon name="globe" />
-        <span>Open to Relocation</span>
+        <span>{ui.common.relocationLabel}</span>
       </li>
     )}
-    <li>
-      <Icon name="briefcase" />
-      <span>{profile.contact.availability}</span>
-    </li>
+    {profile.contact.availability && (
+      <li>
+        <Icon name="briefcase" />
+        <span>{profile.contact.availability}</span>
+      </li>
+    )}
   </ul>
   <div class="hero-approach" aria-label="Business analysis approach">
     {approach.map((item) => (
@@ -382,5 +405,12 @@ const approach = profile.hero.approach.map((text, index) => ({
       top: var(--space-6);
       right: var(--space-2);
     }
+  }
+  .hero-signature--custom {
+    font-family: var(--font-body);
+    font-size: clamp(1.2rem, 2.2vw, 1.8rem);
+    line-height: 1.1;
+    max-width: 12rem;
+    overflow-wrap: anywhere;
   }
 </style>

@@ -1,4 +1,5 @@
 ---
+import { interfaceContent as ui } from '../../data/interface';
 import { getCollection } from 'astro:content';
 import { publishedEntries } from '../../lib/content';
 import Icon, { type IconName } from '../ui/Icon.astro';
@@ -8,7 +9,7 @@ const icons: IconName[] = ['clipboard', 'briefcase', 'workflow', 'building'];
 
 <section id="highlights" class="highlights" aria-labelledby="highlights-title">
   <h2 id="highlights-title" class="sr-only">
-    Professional highlights
+    {ui.highlights.title}
   </h2>
   {entries.length > 0 ? (
     <dl>
@@ -31,7 +32,7 @@ const icons: IconName[] = ['clipboard', 'briefcase', 'workflow', 'building'];
       ))}
     </dl>
   ) : (
-    <p>Professional highlights are being updated.</p>
+    <p>{ui.highlights.emptyMessage}</p>
   )}
 </section>
 <style>

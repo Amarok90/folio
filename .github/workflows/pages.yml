@@ -1,6 +1,8 @@
-name: Pages readiness (manual)
+name: Pages production
 
 on:
+  push:
+    branches: [main]
   workflow_dispatch:
     inputs:
       site_origin:
@@ -14,7 +16,7 @@ on:
         required: true
         default: /folio/
       publish:
-        description: Publish the verified artifact (Task 4 launch only)
+        description: Publish after validation (requires PAGES_DEPLOY_ENABLED repository variable)
         type: boolean
         required: true
         default: false
@@ -23,8 +25,8 @@ permissions:
   contents: read
 
 concurrency:
-  group: pages
-  cancel-in-progress: false
+  group: pages-production
+  cancel-in-progress: true
 
 jobs:
   build:
@@ -35,11 +37,11 @@ jobs:
       contents: read
     env:
       ASTRO_TELEMETRY_DISABLED: '1'
-      SITE_URL: ${{ inputs.site_origin }}
-      BASE_PATH: ${{ inputs.base_path }}
-      CLARITY_ENABLED: ${{ vars.CLARITY_ENABLED || 'false' }}
-      CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID }}
-      SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE || 'false' }}
+      SITE_URL: ${{ inputs.site_origin || vars.SITE_ORIGIN || 'https://amarok90.github.io' }}
+      BASE_PATH: ${{ inputs.base_path || vars.SITE_BASE_PATH || '/folio/' }}
+      CLARITY_ENABLED: 'false'
+      CLARITY_PROJECT_ID: ''
+      SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE || 'true' }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -83,18 +85,34 @@ jobs:
           retention-days: 1
 
   deploy:
-    name: Explicit Pages publication
-    if: inputs.publish && github.ref == format('refs/heads/{0}', github.event.repository.default_branch)
+    name: Publish current verified production commit
+    if: >-
+      github.ref == 'refs/heads/main' &&
+      vars.PAGES_DEPLOY_ENABLED == 'true' &&
+      (github.event_name == 'push' || inputs.publish)
     needs: build
     runs-on: ubuntu-24.04
     timeout-minutes: 10
     permissions:
+      contents: read
       pages: write
       id-token: write
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - name: Refuse stale deployment after a newer production commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node --input-type=module <<'NODE'
+          const response = await fetch(`${process.env.GITHUB_API_URL}/repos/${process.env.GITHUB_REPOSITORY}/git/ref/heads/main`, {
+            headers: { Authorization: `Bearer ${process.env.GH_TOKEN}`, Accept: 'application/vnd.github+json' },
+          });
+          if (!response.ok) throw new Error(`Cannot verify current production commit: HTTP ${response.status}`);
+          const ref = await response.json();
+          if (ref.object?.sha !== process.env.GITHUB_SHA) throw new Error('A newer production commit exists. Publish its verified artifact instead.');
+          NODE
       - name: Deploy verified artifact
         id: deployment
         uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1

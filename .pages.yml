@@ -703,6 +703,609 @@ content:
       - name: proficiency
         label: Confirmed proficiency (optional)
         type: string
+  - name: interface
+    label: 10 · Website wording, navigation & buttons
+    type: file
+    path: src/data/interface.json
+    format: json
+    fields:
+      - name: brand
+        label: FOLIO wordmark text
+        required: true
+        type: string
+        options:
+          maxlength: 24
+      - name: navigation
+        label: Header and footer navigation
+        required: true
+        type: object
+        list:
+          min: 1
+          max: 5
+          collapsible:
+            collapsed: true
+            summary: '{label}'
+        fields:
+          - name: label
+            label: Link label
+            required: true
+            type: string
+            options:
+              maxlength: 28
+          - name: href
+            label: Destination section
+            required: true
+            type: select
+            options:
+              values: &a1
+                - name: '#home'
+                  label: Hero / top
+                - name: '#highlights'
+                  label: Statistics
+                - name: '#expertise'
+                  label: Expertise
+                - name: '#projects'
+                  label: Case studies
+                - name: '#experience'
+                  label: Professional journey
+                - name: '#about'
+                  label: About
+                - name: '#contact'
+                  label: Contact
+            description:
+              Only existing website sections are allowed. Contact destinations use the verified email
+              and LinkedIn profile.
+        description:
+          Reorder entries here. Every destination must be unique; up to five links preserves the
+          responsive header.
+      - name: actions
+        label: CV action labels
+        required: true
+        type: object
+        fields:
+          - name: cvViewLabel
+            label: External CV view label
+            required: true
+            type: string
+            options:
+              maxlength: 60
+            description:
+              Used for the external CV viewer. Do not call this a download; validation rejects
+              misleading Download labels.
+          - name: cvDownloadLabel
+            label: PDF download label
+            required: true
+            type: string
+            options:
+              maxlength: 60
+          - name: cvPendingLabel
+            label: Unavailable CV label
+            required: true
+            type: string
+            options:
+              maxlength: 60
+      - name: common
+        label: Shared labels
+        required: true
+        type: object
+        fields:
+          - name: portraitNote
+            label: Temporary portrait caption
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: relocationLabel
+            label: Relocation label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: pendingLabel
+            label: Missing information label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: ongoingLabel
+            label: In-progress education label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: locationLabel
+            label: Location label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: emailLabel
+            label: Email label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: linkedInLabel
+            label: LinkedIn label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: availabilityLabel
+            label: Availability label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: unconfirmedLabel
+            label: Unconfirmed availability label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+      - name: hero
+        label: Hero labels and primary button
+        required: true
+        type: object
+        fields:
+          - name: primaryAction
+            label: Primary button
+            required: true
+            type: object
+            fields:
+              - name: label
+                label: Link label
+                required: true
+                type: string
+                options:
+                  maxlength: 60
+              - name: href
+                label: Destination section
+                required: true
+                type: select
+                options:
+                  values: *a1
+                description:
+                  Only existing website sections are allowed. Contact destinations use the verified email
+                  and LinkedIn profile.
+          - name: locationPrefix
+            label: Prefix before current location
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: signature
+            label: Four decorative signature words
+            required: true
+            type: string
+            list:
+              min: 4
+              max: 4
+            options:
+              maxlength: 30
+            description:
+              Four short decorative words; these are not professional achievements. The approved
+              Ideas / Analysis / Solutions / Impact wording uses the handwriting font. Custom words
+              use the primary site font so every glyph renders consistently.
+      - name: highlights
+        label: Statistics section
+        required: true
+        type: object
+        fields:
+          - name: title
+            label: Section title
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: emptyMessage
+            label: Message when no records are published
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+      - name: expertise
+        label: Expertise section
+        required: true
+        type: object
+        fields:
+          - name: eyebrow
+            label: Small section label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: titleLines
+            label: Heading lines
+            required: true
+            type: string
+            list:
+              min: 1
+              max: 3
+            options:
+              maxlength: 120
+            description:
+              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+              automatic.
+          - name: description
+            label: Introduction
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: action
+            label: Section link
+            required: true
+            type: object
+            fields:
+              - name: label
+                label: Link label
+                required: true
+                type: string
+                options:
+                  maxlength: 60
+              - name: href
+                label: Destination section
+                required: true
+                type: select
+                options:
+                  values: *a1
+                description:
+                  Only existing website sections are allowed. Contact destinations use the verified email
+                  and LinkedIn profile.
+          - name: emptyMessage
+            label: Message when no records are published
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: emptySkillsMessage
+            label: Message for an empty skill category
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: footnote
+            label: Skills section footer
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: proficiencyNote
+            label: Screen-reader proficiency note
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: partialProficiencyNote
+            label: Screen-reader note for partly specified skill levels
+            type: text
+            required: true
+            options:
+              maxlength: 1200
+            description: Used only when some visible skills have an explicit level and others have none.
+      - name: projects
+        label: Case studies section
+        required: true
+        type: object
+        fields:
+          - name: eyebrow
+            label: Small section label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: titleLines
+            label: Heading lines
+            required: true
+            type: string
+            list:
+              min: 1
+              max: 3
+            options:
+              maxlength: 120
+            description:
+              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+              automatic.
+          - name: description
+            label: Introduction
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: emptyDescription
+            label: Introduction when no records are published
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: action
+            label: Section link
+            required: true
+            type: object
+            fields:
+              - name: label
+                label: Link label
+                required: true
+                type: string
+                options:
+                  maxlength: 60
+              - name: href
+                label: Destination section
+                required: true
+                type: select
+                options:
+                  values: *a1
+                description:
+                  Only existing website sections are allowed. Contact destinations use the verified email
+                  and LinkedIn profile.
+          - name: detailsLabel
+            label: Details disclosure label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: challengeHeading
+            label: Challenge heading
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: contributionHeading
+            label: Contribution heading
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: limitationsHeading
+            label: Context and limitations heading
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: linkedInSourceLabel
+            label: LinkedIn source link label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: sourceLabel
+            label: Other source link label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: illustrativeCaption
+            label: Illustrative image caption
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: emptyMessage
+            label: Message when no records are published
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+      - name: journey
+        label: Professional journey section
+        required: true
+        type: object
+        fields:
+          - name: eyebrow
+            label: Small section label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: titleLines
+            label: Heading lines
+            required: true
+            type: string
+            list:
+              min: 1
+              max: 3
+            options:
+              maxlength: 120
+            description:
+              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+              automatic.
+          - name: description
+            label: Introduction
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: emptyDescription
+            label: Introduction when no records are published
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+          - name: earlierLabel
+            label: Earlier experience disclosure
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: detailsLabel
+            label: Details disclosure label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: presentLabel
+            label: Current role end-date label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: emptyMessage
+            label: Message when no records are published
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+      - name: about
+        label: About section
+        required: true
+        type: object
+        fields:
+          - name: eyebrow
+            label: Small section label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: titleLines
+            label: Heading lines
+            required: true
+            type: string
+            list:
+              min: 1
+              max: 3
+            options:
+              maxlength: 120
+            description:
+              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+              automatic.
+          - name: action
+            label: Section link
+            required: true
+            type: object
+            fields:
+              - name: label
+                label: Link label
+                required: true
+                type: string
+                options:
+                  maxlength: 60
+              - name: href
+                label: Destination section
+                required: true
+                type: select
+                options:
+                  values: *a1
+                description:
+                  Only existing website sections are allowed. Contact destinations use the verified email
+                  and LinkedIn profile.
+          - name: approachTitle
+            label: Working approach heading
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: educationTitle
+            label: Education heading
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: languagesTitle
+            label: Languages heading
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: emptyDescription
+            label: Introduction when no records are published
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+      - name: contact
+        label: Contact section
+        required: true
+        type: object
+        fields:
+          - name: eyebrow
+            label: Small section label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: titleLines
+            label: Heading lines
+            required: true
+            type: string
+            list:
+              min: 1
+              max: 3
+            options:
+              maxlength: 120
+            description:
+              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+              automatic.
+          - name: descriptionLines
+            label: Introduction lines
+            required: true
+            type: string
+            list:
+              min: 1
+              max: 3
+            options:
+              maxlength: 1200
+            description:
+              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+              automatic.
+          - name: primaryActionLabel
+            label: Contact button label
+            required: true
+            type: string
+            options:
+              maxlength: 60
+          - name: preferredChannel
+            label: Preferred contact button action
+            required: true
+            type: select
+            options:
+              values:
+                - name: email
+                  label: Email
+                - name: linkedin
+                  label: LinkedIn
+            description: Uses the selected verified contact channel, with the other as a fallback if missing.
+          - name: linkedInActionLabel
+            label: LinkedIn link label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: missingMessage
+            label: Message when contact details are missing
+            required: true
+            type: text
+            options:
+              maxlength: 1200
+      - name: footer
+        label: Footer wording
+        required: true
+        type: object
+        fields:
+          - name: copyrightNotice
+            label: Copyright notice
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: backToTopLabel
+            label: Back to top link label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: privacyLabel
+            label: Privacy policy link label
+            required: true
+            type: string
+            options:
+              maxlength: 120
+          - name: preferencesLabel
+            label: Privacy preferences button label
+            required: true
+            type: string
+            options:
+              maxlength: 120
 settings:
   content:
     merge: true

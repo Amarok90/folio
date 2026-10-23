@@ -1,4 +1,5 @@
 ---
+import { interfaceContent as ui } from '../../data/interface';
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import { profile } from '../../data/profile';
@@ -17,6 +18,16 @@ const professionalLink = contact?.links.find((link) => {
   const hostname = new URL(link.url).hostname;
   return hostname === 'linkedin.com' || hostname.endsWith('.linkedin.com');
 });
+const preferredLinkedIn =
+  ui.contact.preferredChannel === 'linkedin' && professionalLink;
+const primaryAction = preferredLinkedIn
+  ? { href: preferredLinkedIn.url, external: true }
+  : contact?.email
+    ? { href: `mailto:${contact.email}`, external: false }
+    : professionalLink
+      ? { href: professionalLink.url, external: true }
+      : null;
+const [emailLocal, emailDomain] = contact?.email?.split('@') ?? [];
 ---
 
 <section id="contact" aria-labelledby="contact-title" class="contact-section">
@@ -32,45 +43,39 @@ const professionalLink = contact?.links.find((link) => {
   <div class="contact-section__shade" aria-hidden="true" />
 
   <div class="contact-section__content">
-    <p class="eyebrow">Let’s connect</p>
+    <p class="eyebrow">{ui.contact.eyebrow}</p>
     <h2 id="contact-title">
-      Let’s Build Something
-      <br />
-      Great Together
+      {ui.contact.titleLines.map((line, index) => (
+        <>
+          {index > 0 && <br />}
+          {line}
+        </>
+      ))}
     </h2>
     <p class="contact-section__intro">
-      Open to my next Senior IT Business Analyst opportunity.
-      <br />
-      Let’s discuss how my banking expertise and technical experience can
-      contribute to your team.
+      {ui.contact.descriptionLines.map((line, index) => (
+        <>
+          {index > 0 && <br />}
+          {line}
+        </>
+      ))}
     </p>
     <div class="contact-actions">
-      {contact?.email ? (
+      {primaryAction ? (
         <Button
-          href={`mailto:${contact.email}`}
+          href={primaryAction.href}
+          external={primaryAction.external}
           icon="arrow"
           data-analytics-event="contact_cta"
         >
-          Get in Touch
-        </Button>
-      ) : professionalLink ? (
-        <Button
-          href={professionalLink.url}
-          external
-          icon="arrow"
-          data-analytics-event="contact_cta"
-        >
-          Get in Touch
+          {ui.contact.primaryActionLabel}
         </Button>
       ) : (
         <details id="contact-details" class="contact-disclosure">
           <summary class="button button--primary">
-            Get in Touch <Icon name="arrow" />
+            {ui.contact.primaryActionLabel} <Icon name="arrow" />
           </summary>
-          <p>
-            Contact details are being confirmed. Please check back for a direct
-            email address and professional profile links.
-          </p>
+          <p>{ui.contact.missingMessage}</p>
         </details>
       )}
       <CVAction variant="secondary" />
@@ -83,18 +88,19 @@ const professionalLink = contact?.links.find((link) => {
         <span class="contact-item__icon">
           <Icon name="mail" />
         </span>
-        Email
+        {ui.common.emailLabel}
       </dt>
       <dd>
         {contact?.email ? (
           <a
             href={`mailto:${contact.email}`}
+            aria-label={contact.email}
             data-analytics-event="email_click"
           >
-            <span>{contact.email}</span>
+            <span>{[emailLocal, <wbr />, `@${emailDomain}`]}</span>
           </a>
         ) : (
-          'Details pending'
+          ui.common.pendingLabel
         )}
       </dd>
     </div>
@@ -104,7 +110,7 @@ const professionalLink = contact?.links.find((link) => {
           <span class="contact-item__icon">
             <Icon name="linkedin" />
           </span>
-          LinkedIn profile
+          {ui.common.linkedInLabel}
         </dt>
         <dd>
           <a
@@ -113,7 +119,7 @@ const professionalLink = contact?.links.find((link) => {
             target="_blank"
             rel="noopener noreferrer"
           >
-            Connect on LinkedIn
+            {ui.contact.linkedInActionLabel}
             <Icon name="external" />
             <span class="sr-only"> (opens in a new tab)</span>
           </a>
@@ -125,9 +131,9 @@ const professionalLink = contact?.links.find((link) => {
           <span class="contact-item__icon">
             <Icon name="linkedin" />
           </span>
-          LinkedIn profile
+          {ui.common.linkedInLabel}
         </dt>
-        <dd>Details pending</dd>
+        <dd>{ui.common.pendingLabel}</dd>
       </div>
     )}
     <div class="contact-item">
@@ -135,18 +141,18 @@ const professionalLink = contact?.links.find((link) => {
         <span class="contact-item__icon">
           <Icon name="location" />
         </span>
-        Location
+        {ui.common.locationLabel}
       </dt>
-      <dd>{contact?.location ?? 'Details pending'}</dd>
+      <dd>{contact?.location ?? ui.common.pendingLabel}</dd>
     </div>
     <div class="contact-item">
       <dt>
         <span class="contact-item__icon">
           <Icon name="globe" />
         </span>
-        Availability
+        {ui.common.availabilityLabel}
       </dt>
-      <dd>{contact?.availability ?? 'To be confirmed'}</dd>
+      <dd>{contact?.availability ?? ui.common.unconfirmedLabel}</dd>
     </div>
   </dl>
 </section>

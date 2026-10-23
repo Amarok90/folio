@@ -1,5 +1,9 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import interfaceInput from '../../src/data/interface.json' with { type: 'json' };
+import { interfaceSchema } from '../../src/lib/content';
+const ui = interfaceSchema.parse(interfaceInput);
+const heroDestination = new RegExp(`${ui.hero.primaryAction.href}$`);
 
 const scriptURL = 'https://www.clarity.ms/tag/folio1234';
 const storageKey = 'folio.consent.v1';
@@ -65,7 +69,7 @@ test('first visit and explicit rejection never load optional analytics', async (
   await expect(banner(page)).toBeVisible();
   await expect(page.locator('#folio-clarity-script')).toHaveCount(0);
   await page.locator('[data-analytics-event="explore_work"]').first().click();
-  await expect(page).toHaveURL(/#projects$/);
+  await expect(page).toHaveURL(heroDestination);
   expect(requests).toBe(0);
   expect(await calls(page)).toEqual([]);
   await banner(page)
@@ -205,7 +209,7 @@ test('withdrawal resets the active recorder, clears its cookies and persists rej
   expect(cookies.some((cookie) => cookie.name === 'unrelated')).toBe(true);
   expect(requests).toBe(1);
   await page.locator('[data-analytics-event="explore_work"]').first().click();
-  await expect(page).toHaveURL(/#projects$/);
+  await expect(page).toHaveURL(heroDestination);
   expect(await calls(page)).toEqual([]);
 });
 
@@ -249,7 +253,7 @@ test('blocked Clarity scripts and throwing analytics cannot break core actions',
     'failed',
   );
   await page.locator('[data-analytics-event="explore_work"]').first().click();
-  await expect(page).toHaveURL(/#projects$/);
+  await expect(page).toHaveURL(heroDestination);
   await preventExternalNavigation(page);
   await page.locator('[data-analytics-event="cv_view"]').first().click();
   await page.locator('[data-analytics-event="email_click"]').first().click();
@@ -271,7 +275,7 @@ test('a loaded analytics function throwing does not cancel navigation or contact
   await open(page);
   await accept(page);
   await page.locator('[data-analytics-event="explore_work"]').first().click();
-  await expect(page).toHaveURL(/#projects$/);
+  await expect(page).toHaveURL(heroDestination);
   await expect(
     page
       .locator('#contact a[href="mailto:konstantin.arutjunov@gmail.com"]')
@@ -303,7 +307,7 @@ test('events are not queued while the optional script is still loading', async (
     'loading',
   );
   await page.locator('[data-analytics-event="explore_work"]').first().click();
-  await expect(page).toHaveURL(/#projects$/);
+  await expect(page).toHaveURL(heroDestination);
   release?.();
   await expect(page.locator('#folio-clarity-script')).toHaveAttribute(
     'data-status',

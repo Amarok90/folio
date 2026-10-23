@@ -7,6 +7,15 @@ import {
   resolveDeployment,
   resolveIndexability,
 } from '../src/config/deployment.ts';
+import { interfaceSchema } from '../src/lib/content.ts';
+
+const escapeText = (value) =>
+  value
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 
 export function verifyBuild(
   directory,
@@ -21,6 +30,14 @@ export function verifyBuild(
   const output = resolve(directory);
   const profile = JSON.parse(
     readFileSync(new URL('../src/data/profile.json', import.meta.url), 'utf8'),
+  );
+  const ui = interfaceSchema.parse(
+    JSON.parse(
+      readFileSync(
+        new URL('../src/data/interface.json', import.meta.url),
+        'utf8',
+      ),
+    ),
   );
   const walk = (folder) =>
     readdirSync(folder).flatMap((name) => {
@@ -121,8 +138,6 @@ export function verifyBuild(
     }
   }
   const index = readFileSync(join(output, 'index.html'), 'utf8');
-  assert.match(index, /Design preview/);
-  assert.match(index, /Content verification pending/);
   assert.ok(
     !/Foundation preview/i.test(index),
     'Task 1 scaffolding leaked into portfolio',
@@ -145,17 +160,17 @@ export function verifyBuild(
   }
   assert.match(index, /Skip to content/);
   if (profile.cv) {
-    assert.match(index, /Download CV/);
+    assert.ok(index.includes(escapeText(ui.actions.cvDownloadLabel)));
     assert.ok(index.includes(`href="${base}${profile.cv.path.slice(1)}"`));
     assert.ok(index.includes(`download="${profile.cv.filename}"`));
   } else if (profile.cvPreviewUrl) {
-    assert.match(index, /View CV/);
+    assert.ok(index.includes(escapeText(ui.actions.cvViewLabel)));
     assert.ok(index.includes(profile.cvPreviewUrl.replaceAll('&', '&amp;')));
     assert.ok(
       !/<a\b[^>]*\bdownload(?:=|[\s>])/.test(index),
       'External CV preview must not expose a fake local download',
     );
-  } else assert.match(index, /CV pending/);
+  } else assert.ok(index.includes(escapeText(ui.actions.cvPendingLabel)));
   assert.ok(
     !/International Bank|konstantin@example\.com/.test(index),
     'Unverified reference placeholders leaked into portfolio',

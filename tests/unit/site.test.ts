@@ -4,6 +4,8 @@ import {
   resolveIndexability,
 } from '../../src/config/deployment';
 import { site } from '../../src/config/site';
+import { interfaceContent } from '../../src/data/interface';
+import { interfaceSchema } from '../../src/lib/content';
 import {
   canonicalURL,
   serializeJsonLd,
@@ -77,15 +79,39 @@ describe('site contracts', () => {
     expect(site.navigation.every((item) => /^#[a-z-]+$/.test(item.href))).toBe(
       true,
     );
-    expect(site.navigation).toEqual([
-      { label: 'About', href: '#about' },
-      { label: 'Expertise', href: '#expertise' },
-      { label: 'Projects', href: '#projects' },
-      { label: 'Experience', href: '#experience' },
-      { label: 'Contact', href: '#contact' },
-    ]);
+    expect(site.navigation).toEqual(interfaceContent.navigation);
+    expect(site.brand).toBe(interfaceContent.brand);
     expect(site.title).toContain(site.identity.name);
     expect(site.description).not.toMatch(/foundation preview/i);
+  });
+  it('lets CMS edit website wording while preserving safe destinations and truthful CV actions', () => {
+    const edited = {
+      ...interfaceContent,
+      navigation: [{ label: 'My work', href: '#projects' }],
+      actions: {
+        ...interfaceContent.actions,
+        cvViewLabel: 'Open CV on LinkedIn',
+      },
+    };
+    expect(interfaceSchema.safeParse(edited).success).toBe(true);
+    expect(
+      interfaceSchema.safeParse({
+        ...edited,
+        navigation: [{ label: 'Unsafe', href: 'javascript:alert(1)' }],
+      }).success,
+    ).toBe(false);
+    expect(
+      interfaceSchema.safeParse({
+        ...edited,
+        navigation: [edited.navigation[0], edited.navigation[0]],
+      }).success,
+    ).toBe(false);
+    expect(
+      interfaceSchema.safeParse({
+        ...edited,
+        actions: { ...edited.actions, cvViewLabel: 'Download CV' },
+      }).success,
+    ).toBe(false);
   });
   it('prefixes assets once and prevents local traversal', () => {
     expect(withBasePath('/fonts/inter.woff2', '/folio/')).toBe(

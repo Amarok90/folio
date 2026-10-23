@@ -81,6 +81,7 @@
   --button-height: 2.875rem;
   --touch-target: 2.75rem;
   --nav-height: 4.5rem;
+  --header-height: var(--nav-height);
   --icon-size: 1.25rem;
   --image-ratio: 3 / 2;
   --duration-fast: 150ms;

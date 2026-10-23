@@ -1,4 +1,8 @@
 import { describe, expect, it } from 'vitest';
+import { readFileSync } from 'node:fs';
+import interfaceSource from '../../src/data/interface.json';
+import { usesSignatureFont } from '../../src/data/interface';
+import { validateCMSConfiguration } from '../../scripts/validate-content.mjs';
 import { profile } from '../../src/data/profile';
 import mediaSource from '../../src/data/media.json';
 import {
@@ -6,6 +10,7 @@ import {
   imageAssetPathSchema,
   imageSchema,
   mediaSchema,
+  interfaceSchema,
   profileSchema,
 } from '../../src/lib/content';
 
@@ -138,5 +143,136 @@ describe('nontechnical owner edits retain safe publication semantics', () => {
         },
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('owner-managed website wording and actions', () => {
+  it('validates the canonical website copy independently of professional facts', () => {
+    const copy = interfaceSchema.parse(interfaceSource);
+    expect(copy.navigation.length).toBeGreaterThan(0);
+    expect(new Set(copy.navigation.map((link) => link.href)).size).toBe(
+      copy.navigation.length,
+    );
+    for (const section of [
+      'expertise',
+      'projects',
+      'journey',
+      'about',
+      'contact',
+    ] as const) {
+      expect(copy[section].titleLines.length).toBeGreaterThan(0);
+      expect(copy[section].eyebrow).toMatch(/\S/);
+    }
+    expect(copy.hero.primaryAction.href).toMatch(/^#/);
+    expect(copy.footer.backToTopLabel).toMatch(/\S/);
+  });
+
+  it('allows useful wording, section-target and contact-channel changes without arbitrary destinations', () => {
+    const changed = interfaceSchema.parse({
+      ...interfaceSource,
+      hero: {
+        ...interfaceSource.hero,
+        primaryAction: { label: 'See my experience', href: '#experience' },
+      },
+      contact: {
+        ...interfaceSource.contact,
+        preferredChannel: 'linkedin',
+        primaryActionLabel: 'Discuss an opportunity',
+      },
+      projects: { ...interfaceSource.projects, titleLines: ['Selected work'] },
+    });
+    expect(changed.hero.primaryAction.href).toBe('#experience');
+    expect(changed.contact.preferredChannel).toBe('linkedin');
+    expect(changed.projects.titleLines).toEqual(['Selected work']);
+    for (const href of [
+      'javascript:alert(1)',
+      'https://example.com',
+      '#missing',
+      '/another-page/',
+    ]) {
+      expect(
+        interfaceSchema.safeParse({
+          ...interfaceSource,
+          hero: {
+            ...interfaceSource.hero,
+            primaryAction: { label: 'Example', href },
+          },
+        }).success,
+      ).toBe(false);
+    }
+  });
+
+  it('rejects ambiguous navigation, empty headings and misleading CV-view labels', () => {
+    expect(
+      interfaceSchema.safeParse({ ...interfaceSource, navigation: [] }).success,
+    ).toBe(false);
+    expect(
+      interfaceSchema.safeParse({
+        ...interfaceSource,
+        navigation: [
+          interfaceSource.navigation[0],
+          interfaceSource.navigation[0],
+        ],
+      }).success,
+    ).toBe(false);
+    expect(
+      interfaceSchema.safeParse({
+        ...interfaceSource,
+        projects: { ...interfaceSource.projects, titleLines: [] },
+      }).success,
+    ).toBe(false);
+    expect(
+      interfaceSchema.safeParse({
+        ...interfaceSource,
+        contact: { ...interfaceSource.contact, preferredChannel: 'phone' },
+      }).success,
+    ).toBe(false);
+    expect(
+      interfaceSchema.safeParse({
+        ...interfaceSource,
+        actions: { ...interfaceSource.actions, cvViewLabel: 'Download PDF CV' },
+      }).success,
+    ).toBe(false);
+    expect(
+      interfaceSchema.safeParse({
+        ...interfaceSource,
+        actions: { ...interfaceSource.actions, cvViewLabel: 'Read CV' },
+      }).success,
+    ).toBe(true);
+  });
+
+  it('keeps every owner field editable through the matching Pages CMS schema', () => {
+    const config = validateCMSConfiguration(
+      readFileSync(new URL('../../.pages.yml', import.meta.url), 'utf8'),
+    );
+    expect(
+      config.content.some(
+        (entry: { path: string }) => entry.path === 'src/data/interface.json',
+      ),
+    ).toBe(true);
+    const editor = config.content.find(
+      (entry: { name: string }) => entry.name === 'interface',
+    );
+    editor.fields = editor.fields.filter(
+      (field: { name: string }) => field.name !== 'contact',
+    );
+    expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
+      /field coverage/i,
+    );
+  });
+});
+
+describe('editable decorative signature typography', () => {
+  it('uses the handwriting subset only for its exact approved text', () => {
+    expect(
+      usesSignatureFont(['Ideas', 'Analysis', 'Solutions', 'Impact']),
+    ).toBe(true);
+    expect(
+      usesSignatureFont(['Curiosity', 'Analysis', 'Solutions', 'Impact']),
+    ).toBe(false);
+    expect(
+      usesSignatureFont(['IDEAS', 'Analysis', 'Solutions', 'Impact']),
+    ).toBe(false);
+    expect(usesSignatureFont([])).toBe(false);
   });
 });

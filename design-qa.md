@@ -1,3 +1,45 @@
+# FOLIO Task 4 — release verification, 2026-10-23
+
+**Local candidate: PASS. Public launch: BLOCKED / PENDING OWNER ACTION.** The actual target `https://amarok90.github.io/folio/` returns HTTPS 404. GitHub Settings → Pages says **“Upgrade or make this repository public to enable Pages.”** The repository remains private. Pages CMS redirects to sign-in and requires owner acceptance/authorization. No successful public deployment, live CMS publishing, public rollback or production Lighthouse score is claimed. Clarity remains disabled and is outside this release.
+
+## Changes and root causes
+
+Task 3 left section headings, navigation wording and button labels embedded in components, despite the complete owner-editing requirement. A tenth Pages CMS editor now writes validated `src/data/interface.json`; components consume that canonical source. Safe section targets and actual PDF/view semantics remain enforced. All nine sections retain their approved defaults and professional facts.
+
+Explicit CMS skill proficiency previously disappeared during rendering; it now appears as text only when supplied, with truthful missing/mixed notes. Custom signature words use the complete primary font rather than the fixed Caveat glyph subset. Long valid navigation labels wrap. Measured sticky-header height controls anchor spacing, including after menu closure, and unenhanced navigation remains static so it cannot cover content. A stronger boundary test exposed the partly hidden eyebrow at 900px; the final test verifies the entire section introduction below the header. Contact email can break naturally before `@` without changing its link or accessible name.
+
+`Makefile` and the small runtime launcher provide the four requested commands using installed Node 24. Both serving commands stay foreground, print the correct `/folio/` URL and stop with Ctrl+C. Real HTTP requests verified pages, twelve referenced assets and correct MIME types. No runtime installation or background infrastructure was introduced.
+
+The Pages production workflow validates every main push before uploading the exact static artifact. Publication additionally requires `PAGES_DEPLOY_ENABLED=true`, the main branch and a current-commit check. Permissions are isolated, official actions remain pinned, and failed validation cannot publish. The deployment flag remains off while hosting eligibility needs the owner's visibility decision. Production forces Clarity off regardless of repository variables.
+
+## Final automated evidence
+
+The final frozen `make folio.check` passed with no retries: Astro/TypeScript **62 files, zero errors/warnings/hints**, ESLint, Prettier, **120 unit tests**, **7 isolated CMS workflows**, **34 base-path + 34 main E2E tests**, **19 intercepted analytics-resilience tests**, all static build checks and npm audit **0 vulnerabilities**. One earlier run correctly failed the centralized-token invariant for the new measured header variable; added its canonical token default and reran the entire pipeline. No test or budget was weakened.
+
+CMS workflows build real isolated static output for text and UI wording/CTA edits, image/logo replacement, a genuine temporary PDF fixture, project ordering, exact rollback, invalid input rejection and explicit/missing proficiency. Fixtures are restored and never published. Four additional browser cases exercise maximum-length brand, navigation and CV labels at 320/900/1024/1440. These local contracts do not substitute for authenticated CMS operations.
+
+Final budgets: **65,331 bytes CSS**, **12,031 bytes gzip CSS**, **10,813 aggregate client JavaScript bytes**, **57,484 font bytes**, three static HTML pages. Local Lighthouse: mobile **99/100/100/100**, desktop **100/100/100/100** (Performance/Accessibility/Best Practices/SEO). Reports use the documented isolated indexable candidate, gzip text and a ten-minute asset cache. Live scores and field Core Web Vitals remain unmeasured because the public site is unavailable.
+
+Security review covered the existing **3 commits / 149 unique blobs**, Git integrity and **102 current tracked/planned source files**. No actual credentials, private keys or confidential documents were found; six historical pattern matches were synthetic unsafe-URL rejection fixtures. Reviewed image metadata and SVGs revealed no GPS/EXIF payload or active SVG content. This is scoped audit evidence, not a guarantee about all conceivable secrets. Ignored screenshots, test documents and local artifacts do not enter Git or the deployment artifact.
+
+## Actual browser evidence
+
+Current native screenshots are saved and inspected under `artifacts/task4/screenshots/`; automated width/full-page evidence is under `artifacts/task4/automated-screenshots/`. Native Opera captures include browser/DevTools chrome; toolbar dimensions explicitly identify CSS width, 844px height and Fit to window. The white/ice-blue/navy composition, gradient controls, Alpine imagery and section hierarchy remain consistent with the approved reference. There is no claim of pixel-perfect extraction or physical-device coverage.
+
+- `01-public-url-404.png`, `02-pages-cms-sign-in.png`, `03-github-pages-eligibility.png`: actual external blockers, with no settings/authentication changes.
+- `08-opera-desktop-1440.png`, `09-opera-desktop-expertise.png`, `10-opera-desktop-journey.png`, `11-opera-desktop-about.png`: header/hero/highlights, real technical skill switching, arrow-key tabs, timeline and About composition. The Opera console shows no application errors.
+- `12-opera-tablet-768.png`, `13-opera-tablet-projects.png`, `14-opera-tablet-detail.png`: tablet composition, menu destination/closure and meaningful project challenge/contribution/limitations.
+- `07-opera-mobile-320.png`, `15-opera-mobile-390.png`, `16-opera-mobile-menu.png`, `17-opera-mobile-contact.png`, `19-opera-mobile-footer.png`: compact layouts, menu/Escape/focus, keyboard Contact navigation and readable approved contact channels.
+- `18-opera-mobile-privacy.png`: centered, readable preferences; optional analytics explicitly disabled, unavailable choices disabled, Escape closes the dialog. Production Clarity was never enabled to obtain this evidence.
+- `20-opera-real-cv.png`: clicking the site's actual View CV opens **CV Konstantin Arutjunov.pdf** in the real LinkedIn viewer. It is an external view, not a fabricated local download.
+- `04-safari-desktop.png`, `05-safari-project-detail.png`, `06-safari-privacy.png`: actual Safari desktop supplement; inspected rendering, anchor navigation, technical tab switching, project disclosure and preference/Escape behavior. This is not a complete Safari/device matrix.
+
+Automated axe and responsive checks cover 320–1920px, including intermediate widths, navigation without JavaScript, focus/menu/tabs/disclosures, media and privacy. They support the WCAG 2.2 AA target without asserting exhaustive screen-reader certification. Full live Opera, live Lighthouse, CMS text/image/current-PDF/order/save/deploy/rollback and public HTTPS checks remain pending hosting and owner sign-in. The original portrait/logo and current local PDF remain disclosed dependencies; no substitutes were presented as verified personal assets.
+
+The exact owner procedure and recovery steps are in [TASK4-HANDOFF.md](TASK4-HANDOFF.md). GitHub run links and the actual commit are reported after push; a successful artifact workflow with a skipped deployment is not LIVE PASS.
+
+---
+
 # FOLIO Task 3 — production-candidate verification
 
 Task 3 local gates are PASS; authenticated CMS, live Clarity and public hosting verification are READY FOR TASK 4. GitHub Pages eligibility is externally BLOCKED for the current private repository/plan. No public deployment was performed. The Task 2 visual audit is retained below as historical design evidence.

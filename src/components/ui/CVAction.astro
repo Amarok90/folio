@@ -1,4 +1,5 @@
 ---
+import { interfaceContent as ui } from '../../data/interface';
 import Button from './Button.astro';
 import { profile } from '../../data/profile';
 import { isPublished } from '../../lib/content';
@@ -20,7 +21,7 @@ const publicProfile = isPublished(profile) ? profile : null;
     class={className}
     icon="download"
   >
-    Download CV
+    {ui.actions.cvDownloadLabel}
   </Button>
 ) : publicProfile?.cvPreviewUrl ? (
   <Button
@@ -31,10 +32,10 @@ const publicProfile = isPublished(profile) ? profile : null;
     class={className}
     icon="external"
   >
-    View CV
+    {ui.actions.cvViewLabel}
   </Button>
 ) : (
   <Button disabled variant={variant} class={className} icon="download">
-    CV pending
+    {ui.actions.cvPendingLabel}
   </Button>
 )}

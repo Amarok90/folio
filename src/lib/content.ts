@@ -58,6 +58,139 @@ export const mediaSchema = z
   })
   .strict();
 
+/** Presentation copy is separate from professional facts and never contains executable markup. */
+export const sectionTargetSchema = z.enum([
+  '#home',
+  '#highlights',
+  '#expertise',
+  '#projects',
+  '#experience',
+  '#about',
+  '#contact',
+]);
+const shortCopy = text.max(120);
+const paragraphCopy = text.max(1200);
+const headingLines = z.array(shortCopy).min(1).max(3);
+export const sectionActionSchema = z
+  .object({ label: text.max(60), href: sectionTargetSchema })
+  .strict();
+const sectionIntroSchema = z
+  .object({ eyebrow: shortCopy, titleLines: headingLines })
+  .strict();
+export const interfaceSchema = z
+  .object({
+    brand: text.max(24),
+    navigation: z
+      .array(
+        z.object({ label: text.max(28), href: sectionTargetSchema }).strict(),
+      )
+      .min(1)
+      .max(5)
+      .refine(
+        (links) =>
+          new Set(links.map((link) => link.href)).size === links.length,
+        'Navigation destinations must be unique.',
+      ),
+    actions: z
+      .object({
+        cvViewLabel: text
+          .max(60)
+          .refine(
+            (value) => !/download/i.test(value),
+            'An external CV view must not be labelled as a download.',
+          ),
+        cvDownloadLabel: text.max(60),
+        cvPendingLabel: text.max(60),
+      })
+      .strict(),
+    common: z
+      .object({
+        portraitNote: shortCopy,
+        relocationLabel: shortCopy,
+        pendingLabel: shortCopy,
+        ongoingLabel: shortCopy,
+        locationLabel: shortCopy,
+        emailLabel: shortCopy,
+        linkedInLabel: shortCopy,
+        availabilityLabel: shortCopy,
+        unconfirmedLabel: shortCopy,
+      })
+      .strict(),
+    hero: z
+      .object({
+        primaryAction: sectionActionSchema,
+        locationPrefix: shortCopy,
+        signature: z.array(text.max(30)).length(4),
+      })
+      .strict(),
+    highlights: z
+      .object({ title: shortCopy, emptyMessage: paragraphCopy })
+      .strict(),
+    expertise: sectionIntroSchema
+      .extend({
+        description: paragraphCopy,
+        action: sectionActionSchema,
+        emptyMessage: paragraphCopy,
+        emptySkillsMessage: paragraphCopy,
+        footnote: paragraphCopy,
+        proficiencyNote: paragraphCopy,
+        partialProficiencyNote: paragraphCopy,
+      })
+      .strict(),
+    projects: sectionIntroSchema
+      .extend({
+        description: paragraphCopy,
+        emptyDescription: paragraphCopy,
+        action: sectionActionSchema,
+        detailsLabel: shortCopy,
+        challengeHeading: shortCopy,
+        contributionHeading: shortCopy,
+        limitationsHeading: shortCopy,
+        linkedInSourceLabel: shortCopy,
+        sourceLabel: shortCopy,
+        illustrativeCaption: shortCopy,
+        emptyMessage: paragraphCopy,
+      })
+      .strict(),
+    journey: sectionIntroSchema
+      .extend({
+        description: paragraphCopy,
+        emptyDescription: paragraphCopy,
+        earlierLabel: shortCopy,
+        detailsLabel: shortCopy,
+        presentLabel: shortCopy,
+        emptyMessage: paragraphCopy,
+      })
+      .strict(),
+    about: sectionIntroSchema
+      .extend({
+        action: sectionActionSchema,
+        approachTitle: shortCopy,
+        educationTitle: shortCopy,
+        languagesTitle: shortCopy,
+        emptyDescription: paragraphCopy,
+      })
+      .strict(),
+    contact: sectionIntroSchema
+      .extend({
+        descriptionLines: z.array(paragraphCopy).min(1).max(3),
+        primaryActionLabel: text.max(60),
+        preferredChannel: z.enum(['email', 'linkedin']),
+        linkedInActionLabel: shortCopy,
+        missingMessage: paragraphCopy,
+      })
+      .strict(),
+    footer: z
+      .object({
+        copyrightNotice: shortCopy,
+        backToTopLabel: shortCopy,
+        privacyLabel: shortCopy,
+        preferencesLabel: shortCopy,
+      })
+      .strict(),
+  })
+  .strict();
+
 export const contentIdSchema = z
   .string()
   .regex(
@@ -127,6 +260,8 @@ export const skillSchema = recordSchema
     ),
   })
   .strict();
+
+export type SkillProficiency = z.infer<typeof skillSchema>['proficiency'];
 
 export const caseStudySchema = recordSchema
   .extend({

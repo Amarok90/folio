@@ -95,8 +95,11 @@ before(
     symlinkSync(join(source, 'node_modules'), pathFor('node_modules'), 'dir');
     for (const path of [
       'src/data/profile.json',
+      'src/data/interface.json',
       'src/data/media.json',
       'src/content/case-studies.json',
+      'src/content/skills.json',
+      'src/content/expertise.json',
     ])
       originals.set(path, readFileSync(pathFor(path)));
     await validateRepositoryContent(fixture);
@@ -121,9 +124,32 @@ test(
     profile.hero.summary = 'CMS integration fixture: a temporary introduction.';
     profile.contact.email = null;
     saveJSON('src/data/profile.json', profile);
+    const ui = readJSON('src/data/interface.json');
+    ui.navigation[0].label = 'CMS navigation fixture';
+    ui.actions.cvViewLabel = 'Open profile CV';
+    ui.contact.primaryActionLabel = 'CMS contact fixture';
+    ui.hero.primaryAction = { label: 'CMS hero fixture', href: '#contact' };
+    ui.expertise.titleLines = ['CMS expertise', 'fixture'];
+    ui.hero.signature = ['Connect', 'Analyze', 'Deliver', 'Improve'];
+    saveJSON('src/data/interface.json', ui);
     await validateRepositoryContent(fixture);
     const html = build();
     assert.ok(html.includes(profile.hero.summary));
+    assert.match(html, /hero-signature--custom/);
+    for (const text of [
+      ui.navigation[0].label,
+      ui.actions.cvViewLabel,
+      ui.hero.primaryAction.label,
+      ...ui.expertise.titleLines,
+    ])
+      assert.ok(
+        html.includes(escapedText(text)),
+        `CMS copy was not rendered: ${text}`,
+      );
+    assert.match(
+      html,
+      /data-analytics-event="explore_work"[^>]*href="#contact"/,
+    );
     assert.ok(!html.includes('mailto:null'));
     const privacy = readFileSync(pathFor('dist/privacy/index.html'), 'utf8');
     assert.ok(
@@ -213,7 +239,13 @@ test(
     const html = build();
     assert.match(html, /href="\/folio\/documents\/cms-workflow\.pdf"/);
     assert.match(html, /download="cms-workflow\.pdf"/);
-    assert.match(html, /Download CV/);
+    assert.ok(
+      html.includes(
+        escapedText(
+          readJSON('src/data/interface.json').actions.cvDownloadLabel,
+        ),
+      ),
+    );
     assert.deepEqual(
       readFileSync(pathFor('dist/documents/cms-workflow.pdf')),
       pdf,
@@ -297,6 +329,72 @@ test(
 );
 
 test(
+  'CMS workflow: explicit proficiency remains distinct from missing or partly specified levels',
+  { timeout: 120_000 },
+  async () => {
+    const categories = readJSON('src/content/expertise.json');
+    const skills = readJSON('src/content/skills.json');
+    let publicCategory = categories.find(
+      (entry) => entry.status === 'published' && entry.visible,
+    );
+    if (!publicCategory) {
+      publicCategory = {
+        id: 'cms-proficiency-category',
+        order: 0,
+        status: 'published',
+        visible: true,
+        title: 'CMS proficiency fixture',
+        description: null,
+      };
+      categories.push(publicCategory);
+    }
+    while (
+      skills.filter((entry) => entry.status === 'published' && entry.visible)
+        .length < 2
+    )
+      skills.push({
+        id: `cms-proficiency-skill-${skills.length}`,
+        order: skills.length,
+        status: 'published',
+        visible: true,
+        name: 'CMS proficiency fixture',
+        categoryId: publicCategory.id,
+        proficiency: null,
+      });
+    for (const skill of skills) skill.proficiency = null;
+    saveJSON('src/content/expertise.json', categories);
+    saveJSON('src/content/skills.json', skills);
+    const ui = readJSON('src/data/interface.json');
+    await validateRepositoryContent(fixture);
+    let html = build();
+    assert.equal((html.match(/class="skill-proficiency"/g) ?? []).length, 0);
+    assert.ok(html.includes(escapedText(ui.expertise.proficiencyNote)));
+    assert.ok(!html.includes(escapedText(ui.expertise.partialProficiencyNote)));
+    const published = skills.filter(
+      (entry) => entry.status === 'published' && entry.visible,
+    );
+    published[0].proficiency = 'advanced';
+    saveJSON('src/content/skills.json', skills);
+    await validateRepositoryContent(fixture);
+    html = build();
+    assert.equal((html.match(/class="skill-proficiency"/g) ?? []).length, 1);
+    assert.match(html, /class="skill-proficiency"[^>]*>advanced<\/small>/);
+    assert.ok(html.includes(escapedText(ui.expertise.partialProficiencyNote)));
+    assert.ok(!html.includes(escapedText(ui.expertise.proficiencyNote)));
+    for (const skill of published) skill.proficiency = 'advanced';
+    saveJSON('src/content/skills.json', skills);
+    await validateRepositoryContent(fixture);
+    html = build();
+    assert.equal(
+      (html.match(/class="skill-proficiency"/g) ?? []).length,
+      published.length,
+    );
+    assert.ok(!html.includes(escapedText(ui.expertise.proficiencyNote)));
+    assert.ok(!html.includes(escapedText(ui.expertise.partialProficiencyNote)));
+  },
+);
+
+test(
   'CMS workflow: invalid saves fail validation and cannot produce a successful build',
   { timeout: 120_000 },
   async () => {
@@ -326,6 +424,15 @@ test(
     media.portrait.path = '/src/assets/../../private.png';
     saveJSON('src/data/media.json', media);
     await assert.rejects(() => validateRepositoryContent(fixture));
+    writeFileSync(
+      pathFor('src/data/media.json'),
+      originals.get('src/data/media.json'),
+    );
+    const ui = readJSON('src/data/interface.json');
+    ui.hero.primaryAction.href = 'javascript:alert(1)';
+    saveJSON('src/data/interface.json', ui);
+    await assert.rejects(() => validateRepositoryContent(fixture));
+    assert.match(build(false), /validation|href|Invalid|invalid/i);
   },
 );
 

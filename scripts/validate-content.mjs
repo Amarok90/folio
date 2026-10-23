@@ -12,6 +12,7 @@ import {
   highlightSchema,
   languageSchema,
   mediaSchema,
+  interfaceSchema,
   parseContentFile,
   profileSchema,
   parsePublicProfile,
@@ -32,11 +33,13 @@ const collectionSchemas = {
 const expectedContentPaths = [
   'src/data/profile.json',
   'src/data/media.json',
+  'src/data/interface.json',
   ...Object.keys(collectionSchemas).map((name) => `src/content/${name}.json`),
 ];
 const fileSchemas = {
   'src/data/profile.json': profileSchema,
   'src/data/media.json': mediaSchema,
+  'src/data/interface.json': interfaceSchema,
   ...Object.fromEntries(
     Object.entries(collectionSchemas).map(([name, schema]) => [
       `src/content/${name}.json`,
@@ -201,6 +204,9 @@ export async function validateRepositoryContent(root = defaultRoot) {
     JSON.parse(await readFile(resolve(root, path), 'utf8'));
   const profile = parsePublicProfile(await json('src/data/profile.json'));
   const media = mediaSchema.parse(await json('src/data/media.json'));
+  const interfaceContent = interfaceSchema.parse(
+    await json('src/data/interface.json'),
+  );
   const collections = {};
   for (const [name, schema] of Object.entries(collectionSchemas)) {
     collections[name] = parseContentFile(
@@ -256,7 +262,13 @@ export async function validateRepositoryContent(root = defaultRoot) {
       );
     }
   }
-  return { profile, media, collections, imageCount: imagePaths.size };
+  return {
+    profile,
+    media,
+    interfaceContent,
+    collections,
+    imageCount: imagePaths.size,
+  };
 }
 
 if (

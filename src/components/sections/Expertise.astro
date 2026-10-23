@@ -1,11 +1,13 @@
 ---
+import { interfaceContent as ui } from '../../data/interface';
 import { getCollection } from 'astro:content';
 import Icon, { type IconName } from '../ui/Icon.astro';
-import { publishedEntries } from '../../lib/content';
+import { publishedEntries, type SkillProficiency } from '../../lib/content';
 
 interface Skill {
   id: string;
   name: string;
+  proficiency: SkillProficiency;
 }
 interface Category {
   id: string;
@@ -21,6 +23,9 @@ const [expertiseEntries, skillEntries] = await Promise.all([
 ]);
 const categories = publishedEntries(expertiseEntries);
 const skills = publishedEntries(skillEntries);
+const specifiedProficiency = skills.filter(
+  (skill) => skill.data.proficiency !== null,
+).length;
 const panels: Category[] = categories.map((category) => ({
   id: category.id,
   title: category.data.title,
@@ -31,6 +36,7 @@ const panels: Category[] = categories.map((category) => ({
     .map((skill) => ({
       id: skill.id,
       name: skill.data.name,
+      proficiency: skill.data.proficiency,
     })),
 }));
 ---
@@ -41,17 +47,18 @@ const panels: Category[] = categories.map((category) => ({
   aria-labelledby="expertise-title"
 >
   <div class="section-intro">
-    <p class="eyebrow">Expertise</p>
+    <p class="eyebrow">{ui.expertise.eyebrow}</p>
     <h2 id="expertise-title">
-      Skills &amp;
-      <br />
-      Technologies
+      {ui.expertise.titleLines.map((line, index) => (
+        <>
+          {index > 0 && <br />}
+          {line}
+        </>
+      ))}
     </h2>
-    <p class="section-description">
-      Business analysis, from understanding the need to shaping the solution.
-    </p>
-    <a class="text-link expertise-section-link" href="#projects">
-      Explore case studies <Icon name="arrow" />
+    <p class="section-description">{ui.expertise.description}</p>
+    <a class="text-link expertise-section-link" href={ui.expertise.action.href}>
+      {ui.expertise.action.label} <Icon name="arrow" />
     </a>
   </div>
   <div class="section-body expertise-widget" data-expertise-tabs>
@@ -89,25 +96,36 @@ const panels: Category[] = categories.map((category) => ({
                 <span class="skill-icon">
                   <Icon name={panel.icon} />
                 </span>
-                <span class="skill-name">{skill.name}</span>
+                <span class="skill-name">
+                  {skill.name}
+                  {skill.proficiency !== null && (
+                    <small class="skill-proficiency">{skill.proficiency}</small>
+                  )}
+                </span>
                 <span class="skill-rule" aria-hidden="true" />
               </li>
             ))}
           </ul>
         ) : (
-          <p class="expertise-empty">
-            Skills for this category will appear after review and publication.
-          </p>
+          <p class="expertise-empty">{ui.expertise.emptySkillsMessage}</p>
         )}
       </div>
     ))}
     {panels.length === 0 ? (
-      <p class="expertise-empty">Expertise details are being updated.</p>
+      <p class="expertise-empty">{ui.expertise.emptyMessage}</p>
     ) : (
-      <p class="expertise-preview-note">
-        Selected skills from my professional experience.
-        <span class="sr-only">Proficiency levels have not been assessed.</span>
-      </p>
+      skills.length > 0 && (
+        <p class="expertise-preview-note">
+          {ui.expertise.footnote}
+          {specifiedProficiency < skills.length && (
+            <span class="sr-only">
+              {specifiedProficiency === 0
+                ? ui.expertise.proficiencyNote
+                : ui.expertise.partialProficiencyNote}
+            </span>
+          )}
+        </p>
+      )
     )}
   </div>
 </section>
@@ -191,6 +209,12 @@ const panels: Category[] = categories.map((category) => ({
 </script>
 
 <style>
+  .skill-proficiency {
+    display: block;
+    font-size: var(--text-caption);
+    color: var(--color-text-secondary);
+    text-transform: capitalize;
+  }
   .expertise-widget {
     min-width: 0;
   }

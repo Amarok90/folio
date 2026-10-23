@@ -1,4 +1,5 @@
 ---
+import { interfaceContent as ui } from '../../data/interface';
 import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
@@ -19,19 +20,22 @@ const projects = publishedEntries(await getCollection('caseStudies'));
   aria-labelledby="projects-title"
 >
   <div class="section-intro">
-    <p class="eyebrow">Featured projects</p>
+    <p class="eyebrow">{ui.projects.eyebrow}</p>
     <h2 id="projects-title">
-      Selected
-      <br />
-      Case Studies
+      {ui.projects.titleLines.map((line, index) => (
+        <>
+          {index > 0 && <br />}
+          {line}
+        </>
+      ))}
     </h2>
     <p class="section-description">
       {projects.length === 0
-        ? 'The context. The challenge. The contribution. The result.'
-        : 'Real projects. Clear challenges. Thoughtful solutions.'}
+        ? ui.projects.emptyDescription
+        : ui.projects.description}
     </p>
-    <a class="text-link projects-section-link" href="#experience">
-      Explore the journey <Icon name="arrow" />
+    <a class="text-link projects-section-link" href={ui.projects.action.href}>
+      {ui.projects.action.label} <Icon name="arrow" />
     </a>
   </div>
   <div class="section-body">
@@ -71,7 +75,9 @@ const projects = publishedEntries(await getCollection('caseStudies'));
               )}
               {(project.data.image?.illustrative ||
                 (!project.data.image && thumbnails[index])) && (
-                <span class="project-image-caption">Illustrative image</span>
+                <span class="project-image-caption">
+                  {ui.projects.illustrativeCaption}
+                </span>
               )}
             </div>
             <div class="project-content">
@@ -89,16 +95,16 @@ const projects = publishedEntries(await getCollection('caseStudies'));
               )}
               <details class="project-details">
                 <summary>
-                  View project details <Icon name="arrow" />
+                  {ui.projects.detailsLabel} <Icon name="arrow" />
                 </summary>
                 <div class="project-details-body">
-                  <h4>The challenge</h4>
+                  <h4>{ui.projects.challengeHeading}</h4>
                   <p>{project.data.challenge}</p>
-                  <h4>My contribution</h4>
+                  <h4>{ui.projects.contributionHeading}</h4>
                   <p>{project.data.contribution}</p>
                   {project.data.limitations.length > 0 && (
                     <>
-                      <h4>Context &amp; limitations</h4>
+                      <h4>{ui.projects.limitationsHeading}</h4>
                       <ul>
                         {project.data.limitations.map((limitation) => (
                           <li>{limitation}</li>
@@ -114,8 +120,8 @@ const projects = publishedEntries(await getCollection('caseStudies'));
                       rel="noopener noreferrer"
                     >
                       {project.data.link.startsWith('https://www.linkedin.com/')
-                        ? 'Source: LinkedIn'
-                        : 'Supporting source'}
+                        ? ui.projects.linkedInSourceLabel
+                        : ui.projects.sourceLabel}
                       <Icon name="external" />
                       <span class="sr-only"> (opens in a new tab)</span>
                     </a>
@@ -128,10 +134,7 @@ const projects = publishedEntries(await getCollection('caseStudies'));
       </div>
     )}
     {projects.length === 0 && (
-      <p class="section-description">
-        Case studies are being updated. Explore the professional journey for
-        current experience.
-      </p>
+      <p class="section-description">{ui.projects.emptyMessage}</p>
     )}
   </div>
 </section>
