@@ -67,6 +67,9 @@ test('preview has meaningful landmarks, navigation, and honest indexing metadata
     'content',
     indexable ? 'index, follow' : 'noindex, nofollow',
   );
+  await expect(
+    page.getByRole('complementary', { name: 'Preview status' }),
+  ).toHaveCount(indexable ? 0 : 1);
   if (mediaSource.portrait.temporary)
     await expect(page.locator('.portrait-note')).toHaveText(
       ui.common.portraitNote,

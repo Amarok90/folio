@@ -8,7 +8,7 @@ export const site = {
   identity: profile.identity,
   title: `${profile.seo.title ?? `${profile.identity.name} — ${profile.identity.jobTitle}`} | ${interfaceContent.brand}`,
   description: profile.seo.description ?? profile.hero.summary ?? '',
-  // Preview remains non-indexable until original imagery and launch review are complete.
+  // Only an explicit release setting enables indexing and publication presentation.
   indexable: resolveIndexability(process.env),
   navigation: interfaceContent.navigation,
 } as const;

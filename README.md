@@ -1,6 +1,6 @@
 # FOLIO
 
-Static-first professional portfolio for Konstantin Arutjunov. The complete responsive interface includes header, hero, professional highlights, expertise, selected case studies, career journey, about, contact, and footer. The site remains visibly marked **Design preview — Content verification pending** while the temporary portrait and final content approval remain outstanding. Source-backed career content and owner-confirmed technical skills are implemented. Task 4 adds tested local Make commands, ten Pages CMS editors, and a production Pages workflow with complete validation before publication. Public hosting eligibility and authenticated CMS acceptance remain external owner actions. Microsoft Clarity stays disabled in local commands and production; activation is outside this task.
+Static-first professional portfolio for Konstantin Arutjunov. The complete responsive interface includes header, hero, professional highlights, expertise, selected case studies, career journey, about, contact, and footer. Local non-indexable builds display **Design preview — Content verification pending**. Explicitly indexable release builds omit that technical banner; temporary portraits and illustrative images retain their honest labels. Source-backed career content and owner-confirmed technical skills are implemented. Task 4 adds tested local Make commands, ten Pages CMS editors, and a production Pages workflow with complete validation before publication. Public hosting authorization and authenticated CMS acceptance are external owner actions. Microsoft Clarity stays disabled in local commands and production; activation is outside this task.
 
 ## Baseline and architecture decisions
 
@@ -68,6 +68,16 @@ Underlying npm commands remain available for focused maintenance:
 | `npm run validate`        | Run the complete local quality pipeline                                                   |
 
 Build before running browser tests independently. Browser results and screenshots are generated evidence, not source assets. `npm ci` requires registry access on a clean machine; dependency audit also requires access to the npm advisory service. A failed or unavailable advisory request is not a clean security result.
+
+After publication, run the same thirty portfolio interaction, responsive, accessibility and metadata checks against the actual host:
+
+```sh
+FOLIO_E2E_URL=https://amarok90.github.io/folio/ \
+SITE_URL=https://amarok90.github.io SITE_INDEXABLE=true \
+npm run test:e2e
+```
+
+Live mode requires an HTTPS URL ending in `/`, starts no local server and excludes the isolated CMS layout fixtures. Supply the browser executable override above on this Mac if Chromium is not installed. Set the origin/indexability to the actual published configuration; an assertion failure is evidence to investigate, not a reason to weaken the tests.
 
 ## Design system
 

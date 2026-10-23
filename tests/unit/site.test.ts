@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { createE2EConfig } from '../../playwright.config';
 import {
   resolveDeployment,
   resolveIndexability,
@@ -49,6 +50,51 @@ describe('deployment authority', () => {
     '/x?y',
   ])('rejects invalid base path %s', (value) => {
     expect(() => resolveDeployment({ BASE_PATH: value })).toThrow();
+  });
+});
+
+describe('browser verification target', () => {
+  it.each([
+    '',
+    '/folio/',
+    'http://example.com/folio/',
+    '//example.com/folio/',
+    'https://example.com/folio',
+    'https://user:secret@example.com/folio/',
+    'https://example.com/folio/?query=/',
+    'https://example.com/folio/#fragment/',
+    'https://example.com/folio/ ',
+    'https://example.com\\folio/',
+  ])(
+    'rejects unsafe or ambiguous live URL %j before starting a server',
+    (value) => {
+      expect(() => createE2EConfig({ FOLIO_E2E_URL: value })).toThrow(
+        'FOLIO_E2E_URL',
+      );
+    },
+  );
+
+  it('uses the explicit live URL without spawning a preview or including CMS fixtures', () => {
+    const config = createE2EConfig({
+      FOLIO_E2E_URL: 'https://amarok90.github.io/folio/',
+      SITE_URL: 'https://amarok90.github.io',
+      SITE_INDEXABLE: 'true',
+    });
+    expect(config.use?.baseURL).toBe('https://amarok90.github.io/folio/');
+    expect(Object.hasOwn(config, 'webServer')).toBe(false);
+    expect(config.testMatch).toBe('**/portfolio.spec.ts');
+  });
+
+  it('preserves the local server and complete suite when no live URL is supplied', () => {
+    const config = createE2EConfig({ BASE_PATH: '/folio', CI: 'true' });
+    expect(config.use?.baseURL).toBe('http://127.0.0.1:4321/folio/');
+    expect(config.webServer).toMatchObject({
+      command: 'npm run preview -- --host 127.0.0.1 --port 4321 --ignore-lock',
+      url: 'http://127.0.0.1:4321/folio/',
+      reuseExistingServer: false,
+    });
+    expect(Object.hasOwn(config, 'testMatch')).toBe(false);
+    expect(createE2EConfig({}).use?.baseURL).toBe('http://127.0.0.1:4321/');
   });
 });
 
