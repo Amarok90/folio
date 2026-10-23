@@ -1,0 +1,363 @@
+---
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import { profile } from '../../data/profile';
+import { isPublished } from '../../lib/content';
+import Button from '../ui/Button.astro';
+import CVAction from '../ui/CVAction.astro';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  image: ImageMetadata;
+}
+const { image } = Astro.props;
+const publicProfile = isPublished(profile) ? profile : null;
+const contact = publicProfile?.contact;
+const professionalLink = contact?.links.find((link) => {
+  const hostname = new URL(link.url).hostname;
+  return hostname === 'linkedin.com' || hostname.endsWith('.linkedin.com');
+});
+---
+
+<section id="contact" aria-labelledby="contact-title" class="contact-section">
+  <Image
+    class="contact-section__image"
+    src={image}
+    alt=""
+    widths={[640, 960, 1440, 1920]}
+    sizes="(max-width: 1279px) 100vw, 1240px"
+    loading="lazy"
+    decoding="async"
+  />
+  <div class="contact-section__shade" aria-hidden="true" />
+
+  <div class="contact-section__content">
+    <p class="eyebrow">Let’s connect</p>
+    <h2 id="contact-title">
+      Let’s Build Something
+      <br />
+      Great Together
+    </h2>
+    <p class="contact-section__intro">
+      Open to my next Senior IT Business Analyst opportunity.
+      <br />
+      Let’s discuss how my banking expertise and technical experience can
+      contribute to your team.
+    </p>
+    <div class="contact-actions">
+      {contact?.email ? (
+        <Button href={`mailto:${contact.email}`} icon="arrow">
+          Get in Touch
+        </Button>
+      ) : professionalLink ? (
+        <Button href={professionalLink.url} external icon="arrow">
+          Get in Touch
+        </Button>
+      ) : (
+        <details id="contact-details" class="contact-disclosure">
+          <summary class="button button--primary">
+            Get in Touch <Icon name="arrow" />
+          </summary>
+          <p>
+            Contact details are being confirmed. Please check back for a direct
+            email address and professional profile links.
+          </p>
+        </details>
+      )}
+      <CVAction variant="secondary" />
+    </div>
+  </div>
+
+  <dl class="contact-list">
+    <div class="contact-item">
+      <dt>
+        <span class="contact-item__icon">
+          <Icon name="mail" />
+        </span>
+        Email
+      </dt>
+      <dd>
+        {contact?.email ? (
+          <a href={`mailto:${contact.email}`}>
+            <span>{contact.email}</span>
+          </a>
+        ) : (
+          'Details pending'
+        )}
+      </dd>
+    </div>
+    {professionalLink ? (
+      <div class="contact-item">
+        <dt>
+          <span class="contact-item__icon">
+            <Icon name="linkedin" />
+          </span>
+          LinkedIn profile
+        </dt>
+        <dd>
+          <a
+            href={professionalLink.url}
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            Connect on LinkedIn
+            <Icon name="external" />
+            <span class="sr-only"> (opens in a new tab)</span>
+          </a>
+        </dd>
+      </div>
+    ) : (
+      <div class="contact-item">
+        <dt>
+          <span class="contact-item__icon">
+            <Icon name="linkedin" />
+          </span>
+          LinkedIn profile
+        </dt>
+        <dd>Details pending</dd>
+      </div>
+    )}
+    <div class="contact-item">
+      <dt>
+        <span class="contact-item__icon">
+          <Icon name="location" />
+        </span>
+        Location
+      </dt>
+      <dd>{contact?.location ?? 'Details pending'}</dd>
+    </div>
+    <div class="contact-item">
+      <dt>
+        <span class="contact-item__icon">
+          <Icon name="globe" />
+        </span>
+        Availability
+      </dt>
+      <dd>{contact?.availability ?? 'To be confirmed'}</dd>
+    </div>
+  </dl>
+</section>
+
+<style>
+  .contact-section {
+    position: relative;
+    isolation: isolate;
+    display: grid;
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+    align-items: center;
+    gap: var(--space-10);
+    min-height: 21rem;
+    overflow: hidden;
+    padding: clamp(1.5rem, 3.3vw, 3rem);
+    border: 1px solid var(--color-inverse-surface);
+    border-radius: var(--radius-section);
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-text);
+  }
+  .contact-section__image {
+    position: absolute;
+    z-index: -3;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 72% 56%;
+  }
+  .contact-section__shade {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background: linear-gradient(
+      90deg,
+      var(--color-inverse-surface) 0%,
+      color-mix(in srgb, var(--color-inverse-surface) 97%, transparent) 28%,
+      color-mix(in srgb, var(--color-inverse-surface) 87%, transparent) 61%,
+      color-mix(in srgb, var(--color-inverse-surface) 20%, transparent) 100%
+    );
+  }
+  .contact-section__content {
+    position: relative;
+    min-width: 0;
+  }
+  .contact-section .eyebrow {
+    color: var(--color-inverse-muted);
+  }
+  .contact-section h2 {
+    margin-block: var(--space-4) var(--space-3);
+    color: var(--color-inverse-text);
+    font-size: clamp(1.75rem, 2.7vw, 2.5rem);
+    line-height: 1.12;
+  }
+  .contact-section__intro {
+    max-width: 48ch;
+    color: var(--color-inverse-muted);
+    font-size: var(--text-small);
+    line-height: 1.6;
+  }
+  .contact-actions {
+    display: flex;
+    align-items: start;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    margin-top: var(--space-5);
+  }
+  .contact-actions :global(.button--secondary) {
+    color: var(--color-inverse-text);
+    border-color: var(--color-inverse-muted);
+    background: color-mix(
+      in srgb,
+      var(--color-inverse-surface) 75%,
+      transparent
+    );
+  }
+  .contact-actions :global(.button--secondary:hover:not(:disabled)) {
+    border-color: var(--color-inverse-text);
+    background: var(--color-inverse-surface);
+  }
+  .contact-actions :global(.button:disabled) {
+    color: var(--color-inverse-muted);
+    border-color: color-mix(
+      in srgb,
+      var(--color-inverse-muted) 40%,
+      transparent
+    );
+    background: color-mix(
+      in srgb,
+      var(--color-inverse-surface) 50%,
+      transparent
+    );
+  }
+  .contact-disclosure {
+    max-width: 22rem;
+  }
+  .contact-disclosure summary {
+    width: fit-content;
+    cursor: pointer;
+    list-style: none;
+  }
+  .contact-disclosure summary::-webkit-details-marker {
+    display: none;
+  }
+  .contact-disclosure > p {
+    margin-top: var(--space-3);
+    padding: var(--space-3) var(--space-4);
+    border: 1px solid var(--color-inverse-muted);
+    border-radius: var(--radius-small);
+    background: var(--color-inverse-surface);
+    color: var(--color-inverse-text);
+    font-size: var(--text-small);
+    line-height: 1.6;
+  }
+  .contact-list {
+    position: relative;
+    display: grid;
+    gap: var(--space-3);
+    max-width: 25rem;
+    margin: 0;
+    padding: var(--space-4) 0;
+  }
+  .contact-item {
+    position: relative;
+    min-width: 0;
+    min-height: var(--space-8);
+    padding-left: calc(var(--space-8) + var(--space-3));
+  }
+  .contact-item__icon {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--space-8);
+    height: var(--space-8);
+    border: 1px solid var(--color-inverse-muted);
+    border-radius: var(--radius-pill);
+    background: var(--color-background-secondary);
+    color: var(--color-primary);
+  }
+  .contact-item__icon :global(.icon) {
+    width: var(--space-4);
+    height: var(--space-4);
+  }
+  .contact-item dt {
+    color: var(--color-inverse-text);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-medium);
+    line-height: 1.4;
+  }
+  .contact-item dd {
+    margin: 0;
+    color: var(--color-inverse-muted);
+    font-size: var(--text-small);
+    line-height: 1.55;
+    overflow-wrap: anywhere;
+  }
+  .contact-item a {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    max-width: 100%;
+    min-height: var(--touch-target);
+    text-decoration: underline;
+    text-decoration-color: transparent;
+    text-underline-offset: 0.25em;
+  }
+  .contact-item a > span:not(.sr-only) {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .contact-item a:hover {
+    color: var(--color-inverse-text);
+    text-decoration-color: currentColor;
+  }
+  .contact-item a :global(.icon) {
+    width: var(--space-3);
+    height: var(--space-3);
+  }
+  .contact-section :global(:focus-visible) {
+    outline-color: var(--color-inverse-text);
+  }
+  @media (width < 48rem) {
+    .contact-section {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-5);
+      padding: var(--space-6);
+    }
+    .contact-section__image {
+      object-position: 90% center;
+    }
+    .contact-section__shade {
+      background: linear-gradient(
+        180deg,
+        color-mix(in srgb, var(--color-inverse-surface) 98%, transparent),
+        color-mix(in srgb, var(--color-inverse-surface) 93%, transparent) 65%,
+        color-mix(in srgb, var(--color-inverse-surface) 65%, transparent)
+      );
+    }
+    .contact-section h2 {
+      font-size: clamp(1.65rem, 5.5vw, 2.5rem);
+    }
+    .contact-list {
+      gap: var(--space-4);
+      padding-top: var(--space-5);
+      border-top: 1px solid
+        color-mix(in srgb, var(--color-inverse-muted) 30%, transparent);
+    }
+  }
+  @media (width < 25rem) {
+    .contact-section {
+      padding: var(--space-5);
+    }
+    .contact-actions {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .contact-disclosure summary,
+    .contact-actions > :global(.button) {
+      width: 100%;
+    }
+  }
+</style>

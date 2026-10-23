@@ -1,0 +1,385 @@
+---
+import { Image } from 'astro:assets';
+import { profile } from '../../data/profile';
+import { media } from '../../config/media';
+import Button from '../ui/Button.astro';
+import CVAction from '../ui/CVAction.astro';
+import Icon from '../ui/Icon.astro';
+const [givenName, ...familyName] = profile.identity.name.split(' ');
+const approach = [
+  { icon: 'clipboard' as const, text: 'Understand business needs' },
+  { icon: 'workflow' as const, text: 'Analyze and design solutions' },
+  { icon: 'users' as const, text: 'Collaborate with teams' },
+  { icon: 'target' as const, text: 'Deliver measurable business value' },
+];
+---
+
+<section id="home" class="hero" aria-labelledby="home-title">
+  <Image
+    src={media.alpine}
+    alt=""
+    class="hero-landscape"
+    widths={[640, 960, 1280, 1600]}
+    sizes="(max-width: 767px) 100vw, 1216px"
+    format="webp"
+    loading="eager"
+    decoding="async"
+  />
+  <div class="hero-mist" aria-hidden="true"></div>
+  <div class="hero-copy">
+    <p class="eyebrow">{profile.identity.jobTitle}</p>
+    <h1 id="home-title">
+      <span>{givenName}</span>
+      <span>{familyName.join(' ')}</span>
+    </h1>
+    <p class="hero-headline">{profile.hero.headline}</p>
+    <p class="hero-description">{profile.hero.summary}</p>
+  </div>
+  <div class="hero-portrait">
+    <Image
+      src={media.portrait}
+      alt={media.portraitAlt}
+      widths={[320, 480, 640, 900]}
+      sizes="(max-width: 767px) 75vw, 46vw"
+      class="hero-person"
+      format="webp"
+      loading="eager"
+      fetchpriority="high"
+      decoding="async"
+    />
+    {media.portraitTemporary && (
+      <span class="portrait-note">Temporary portrait</span>
+    )}
+    <p class="hero-signature" aria-hidden="true">
+      Ideas
+      <br />
+      <span>Analysis</span>
+      <br />
+      <span>Solutions</span>
+      <br />
+      <span>Impact</span>
+    </p>
+  </div>
+  <div class="hero-actions">
+    <Button href="#projects" icon="arrow">
+      Explore My Work
+    </Button>
+    <CVAction />
+  </div>
+  <ul class="hero-availability" aria-label="Location and availability">
+    <li>
+      <Icon name="location" />
+      <span>Based in {profile.contact.location}</span>
+    </li>
+    {profile.contact.openToRelocation && (
+      <li>
+        <Icon name="globe" />
+        <span>Open to Relocation</span>
+      </li>
+    )}
+    <li>
+      <Icon name="briefcase" />
+      <span>{profile.contact.availability}</span>
+    </li>
+  </ul>
+  <div class="hero-approach" aria-label="Business analysis approach">
+    {approach.map((item) => (
+      <div>
+        <Icon name={item.icon} />
+        <span>{item.text}</span>
+      </div>
+    ))}
+  </div>
+</section>
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    min-height: 33rem;
+    border-radius: var(--radius-section);
+    padding: var(--space-12) var(--section-padding) var(--space-12);
+    background: var(--color-background-secondary);
+  }
+  .hero-landscape {
+    position: absolute;
+    z-index: -3;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 60% center;
+  }
+  .hero-mist {
+    position: absolute;
+    z-index: -2;
+    inset: 0;
+    background:
+      linear-gradient(
+        90deg,
+        rgb(249 253 255 / 98%) 0%,
+        rgb(246 252 255 / 94%) 27%,
+        rgb(243 250 254 / 55%) 48%,
+        transparent 68%
+      ),
+      linear-gradient(0deg, var(--color-background) 0%, transparent 24%);
+  }
+  .hero-copy {
+    position: relative;
+    z-index: 2;
+    width: 51%;
+    max-width: 37rem;
+  }
+  .hero-copy .eyebrow::before {
+    display: none;
+  }
+  .hero-copy .eyebrow::after {
+    content: '';
+    height: 1px;
+    width: var(--space-6);
+    background: var(--color-accent);
+  }
+  h1 {
+    font-size: clamp(2.5rem, 5.6vw, 4.5rem);
+    font-weight: var(--weight-bold);
+    line-height: 0.96;
+    letter-spacing: -0.05em;
+    margin-block: var(--space-4);
+  }
+  h1 span {
+    display: block;
+  }
+  .hero-headline {
+    font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+    line-height: 1.22;
+    color: var(--color-primary);
+    max-width: 27ch;
+    margin-bottom: var(--space-4);
+  }
+  .hero-description {
+    color: var(--color-text-secondary);
+    font-size: 0.9375rem;
+    line-height: 1.45;
+    max-width: 47ch;
+  }
+  .hero-portrait {
+    position: absolute;
+    z-index: -1;
+    right: 9%;
+    top: 0;
+    bottom: 0;
+    width: 47%;
+  }
+  .hero-person {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+    mask-image: linear-gradient(to bottom, black 83%, transparent 100%);
+  }
+  .portrait-note {
+    position: absolute;
+    bottom: var(--space-10);
+    right: var(--space-3);
+    color: var(--color-text-secondary);
+    background: rgb(255 255 255 / 85%);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-small);
+    font-size: 0.625rem;
+  }
+  .hero-signature {
+    position: absolute;
+    top: var(--space-10);
+    right: -4%;
+    color: var(--color-secondary);
+    font-family: var(--font-handwriting);
+    font-size: clamp(1.5rem, 2.7vw, 2.15rem);
+    line-height: 0.88;
+    transform: rotate(-10deg);
+    text-align: center;
+  }
+  .hero-signature span:nth-child(2) {
+    margin-left: var(--space-4);
+  }
+  .hero-signature span:nth-child(4) {
+    margin-left: var(--space-8);
+  }
+  .hero-signature span:last-child {
+    margin-left: var(--space-12);
+  }
+  .hero-actions {
+    position: relative;
+    z-index: 3;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-4);
+    margin-top: var(--space-5);
+    max-width: 52%;
+  }
+  .hero-availability {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-3) var(--space-6);
+    list-style: none;
+    padding: 0;
+    margin: var(--space-5) 0 0;
+    max-width: 70%;
+  }
+  .hero-availability li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    font-size: 0.6875rem;
+    color: var(--color-secondary);
+  }
+  .hero-availability :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .hero-approach {
+    position: absolute;
+    right: var(--space-5);
+    bottom: var(--space-16);
+    width: 12.5rem;
+    padding: var(--space-4);
+    display: grid;
+    gap: var(--space-3);
+    border: 1px solid rgb(255 255 255 / 80%);
+    border-radius: var(--radius-card);
+    background: rgb(255 255 255 / 88%);
+    box-shadow: var(--shadow-card);
+  }
+  .hero-approach div {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .hero-approach :global(.icon) {
+    color: var(--color-primary);
+  }
+  .hero-approach span {
+    font-size: 0.6875rem;
+    line-height: 1.35;
+  }
+  @media (width < 64rem) {
+    .hero {
+      min-height: 31rem;
+    }
+    .hero-portrait {
+      right: 3%;
+      width: 49%;
+    }
+    .hero-signature {
+      right: 0;
+      top: var(--space-8);
+    }
+    .hero-approach {
+      display: none;
+    }
+    .hero-description {
+      max-width: 39ch;
+    }
+  }
+  @media (width < 48rem) {
+    .hero {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr);
+      padding: var(--space-6) var(--space-5) var(--space-5);
+      min-height: auto;
+    }
+    .hero-landscape {
+      object-position: 65% bottom;
+    }
+    .hero-mist {
+      background: linear-gradient(
+        180deg,
+        rgb(249 253 255 / 99%) 0%,
+        rgb(246 252 255 / 96%) 31%,
+        rgb(243 250 254 / 10%) 58%,
+        var(--color-background) 88%
+      );
+    }
+    .hero-copy {
+      width: 100%;
+      max-width: 31rem;
+    }
+    h1 {
+      font-size: clamp(2.65rem, 9vw, 3.7rem);
+      margin-block: var(--space-4);
+    }
+    .hero-headline {
+      max-width: 30ch;
+      font-size: 1.1rem;
+    }
+    .hero-description {
+      font-size: 0.875rem;
+      max-width: 48ch;
+    }
+    .hero-portrait {
+      position: relative;
+      top: auto;
+      bottom: auto;
+      right: auto;
+      width: 100%;
+      height: 18rem;
+      margin-top: var(--space-3);
+      z-index: 0;
+    }
+    .hero-person {
+      width: 88%;
+      margin-left: auto;
+      object-position: right bottom;
+      mask-image: linear-gradient(to bottom, black 83%, transparent 100%);
+    }
+    .hero-signature {
+      top: var(--space-3);
+      bottom: auto;
+      right: calc(-1 * var(--space-2));
+      font-size: 1.55rem;
+      z-index: 1;
+    }
+    .hero-actions {
+      max-width: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      margin-top: 0;
+      gap: var(--space-3);
+    }
+    .hero-actions :global(.button) {
+      width: 100%;
+    }
+    .hero-availability {
+      max-width: 100%;
+      display: grid;
+      gap: var(--space-2);
+      margin-top: var(--space-4);
+    }
+    .hero-availability li {
+      font-size: 0.75rem;
+      padding-block: var(--space-1);
+    }
+    .hero-approach {
+      display: none;
+    }
+    .portrait-note {
+      right: auto;
+      left: 0;
+      bottom: var(--space-3);
+    }
+  }
+  @media (width >= 36rem) and (width < 48rem) {
+    .hero-portrait {
+      height: 24rem;
+    }
+    .hero-person {
+      width: 70%;
+    }
+    .hero-signature {
+      top: var(--space-6);
+      right: var(--space-2);
+    }
+  }
+</style>

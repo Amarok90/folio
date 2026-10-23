@@ -1,29 +1,35 @@
 {
-  "status": "draft",
-  "visible": false,
+  "status": "published",
+  "visible": true,
   "identity": {
     "name": "Konstantin Arutjunov",
     "jobTitle": "Senior IT Business Analyst"
   },
   "hero": {
-    "headline": null,
-    "summary": null
+    "headline": "Bridging business and technology to create real value.",
+    "summary": "10+ years across IT — from software engineering and enterprise systems to business analysis in banking and lending. Turning complex needs into reliable, practical solutions."
   },
   "about": {
-    "summary": null,
+    "summary": "Business analysis backed by hands-on engineering experience. I connect business needs with reliable technology through systems analysis, requirements engineering and API integration. My work spans discovery through testing, UAT and production support, complemented by Google Cloud Services, RPA automation and AI-assisted tools. Based in Estonia, I am open to opportunities in Switzerland.",
     "interests": []
   },
   "contact": {
-    "email": null,
-    "location": null,
-    "openToRelocation": null,
-    "availability": null,
-    "links": []
+    "email": "konstantin.arutjunov@gmail.com",
+    "location": "Estonia",
+    "openToRelocation": true,
+    "availability": "Open to opportunities in Switzerland",
+    "links": [
+      {
+        "label": "LinkedIn",
+        "url": "https://www.linkedin.com/in/konstantin-arutjunov/"
+      }
+    ]
   },
   "cv": null,
   "seo": {
-    "title": null,
-    "description": null,
+    "title": "Konstantin Arutjunov — Senior IT Business Analyst",
+    "description": "Senior IT Business Analyst with 10+ years across banking, lending and financial services. Based in Estonia and open to opportunities in Switzerland.",
     "socialImage": null
-  }
+  },
+  "cvPreviewUrl": "https://www.linkedin.com/in/konstantin-arutjunov/overlay/1753005451683/single-media-viewer/"
 }

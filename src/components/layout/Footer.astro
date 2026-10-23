@@ -2,24 +2,58 @@
 import Container from './Container.astro';
 import Icon from '../ui/Icon.astro';
 import { site } from '../../config/site';
+import { profile } from '../../data/profile';
 import { withBasePath } from '../../lib/urls';
-const overviewURL = `${withBasePath('/', import.meta.env.BASE_URL)}#overview`;
+const homeURL = withBasePath('/', import.meta.env.BASE_URL);
+const linkedIn = profile.contact.links.find((link) =>
+  link.url.includes('linkedin.com/in/'),
+);
 ---
 
 <footer class="footer-shell">
   <Container class="footer-inner">
-    <div>
-      <a href={overviewURL} class="brand">
+    <div class="footer-identity">
+      <a href={`${homeURL}#home`} class="brand">
         <Icon name="feather" />
         {site.brand}
       </a>
       <p>
-        {site.identity.name} · {site.identity.jobTitle}
+        <strong>{site.identity.name}</strong>
+        <span>{site.identity.jobTitle}</span>
       </p>
     </div>
-    <p>Foundation 01 · Development preview</p>
-    <a class="footer-link" href={overviewURL}>
+    <nav aria-label="Footer navigation">
+      {site.navigation.map((item) => (
+        <a href={`${homeURL}${item.href}`}>{item.label}</a>
+      ))}
+    </nav>
+    <div class="footer-social">
+      {linkedIn && (
+        <a
+          href={linkedIn.url}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="LinkedIn profile (opens in a new tab)"
+        >
+          <Icon name="linkedin" />
+        </a>
+      )}
+      {profile.contact.email && (
+        <a
+          href={`mailto:${profile.contact.email}`}
+          aria-label="Email Konstantin"
+        >
+          <Icon name="mail" />
+        </a>
+      )}
+    </div>
+    <p class="copyright">
+      © {new Date().getUTCFullYear()} {site.identity.name}
+      <span>All rights reserved.</span>
+    </p>
+    <a href={`${homeURL}#home`} class="footer-top">
       Back to top
+      <Icon name="up" />
     </a>
   </Container>
 </footer>

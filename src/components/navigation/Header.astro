@@ -1,6 +1,7 @@
 ---
 import Container from '../layout/Container.astro';
 import Icon from '../ui/Icon.astro';
+import CVAction from '../ui/CVAction.astro';
 import { site } from '../../config/site';
 import { withBasePath } from '../../lib/urls';
 const homeURL = withBasePath('/', import.meta.env.BASE_URL);
@@ -8,7 +9,7 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 
 <header class="header-shell" data-header>
   <Container class="header-inner">
-    <a href={homeURL} class="brand" aria-label="FOLIO home">
+    <a href={`${homeURL}#home`} class="brand" aria-label="FOLIO home">
       <Icon name="feather" />
       {site.brand}
     </a>
@@ -20,14 +21,30 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
       aria-label="Open menu"
       data-menu-toggle
     >
-      <span data-menu-label>Menu</span>
       <Icon name="menu" />
+      <span class="sr-only">Menu</span>
     </button>
     <nav id="main-navigation" aria-label="Main navigation" class="main-nav">
       {site.navigation.map((item) => (
         <a href={`${homeURL}${item.href}`}>{item.label}</a>
       ))}
     </nav>
+    <div class="header-actions">
+      <details class="language-control">
+        <summary aria-label="Language: EN (English)">
+          <Icon name="globe" />
+          <span>EN</span>
+          <Icon name="chevron" />
+        </summary>
+        <div class="language-panel">
+          <strong>
+            English <span aria-hidden="true">✓</span>
+          </strong>
+          <p>Other translations are not available yet.</p>
+        </div>
+      </details>
+      <CVAction variant="primary" class="header-cv" />
+    </div>
   </Container>
 </header>
 <script>
@@ -67,5 +84,35 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
       }),
     );
     compact.addEventListener('change', () => setOpen(false));
+    const links = [...nav.querySelectorAll('a')];
+    const visibleSections = new Set<Element>();
+    const observer = new IntersectionObserver(
+      (entries) => {
+        for (const entry of entries) {
+          if (entry.isIntersecting) visibleSections.add(entry.target);
+          else visibleSections.delete(entry.target);
+        }
+        const activationLine = window.innerHeight * 0.15;
+        const visible = [...visibleSections].sort(
+          (a, b) =>
+            Math.abs(a.getBoundingClientRect().top - activationLine) -
+            Math.abs(b.getBoundingClientRect().top - activationLine),
+        )[0];
+        links.forEach((link) => {
+          if (visible && link.hash === `#${visible.id}`)
+            link.setAttribute('aria-current', 'location');
+          else link.removeAttribute('aria-current');
+        });
+      },
+      { rootMargin: '-15% 0px -55% 0px' },
+    );
+    const sections = new Set([
+      ...links.map((link) => document.querySelector(link.hash)),
+      document.querySelector('#home'),
+      document.querySelector('#highlights'),
+    ]);
+    sections.forEach((section) => {
+      if (section) observer.observe(section);
+    });
   }
 </script>

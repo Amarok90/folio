@@ -1,0 +1,398 @@
+---
+import { Image } from 'astro:assets';
+import { getCollection } from 'astro:content';
+import type { ImageMetadata } from 'astro';
+import { media } from '../../config/media';
+import { profile } from '../../data/profile';
+import { isPublished, publishedEntries } from '../../lib/content';
+import Icon from '../ui/Icon.astro';
+
+interface Props {
+  image: ImageMetadata;
+  background?: ImageMetadata;
+}
+const { image, background } = Astro.props;
+const education = publishedEntries(await getCollection('education'));
+const languages = publishedEntries(await getCollection('languages'));
+const publicProfile = isPublished(profile) ? profile : null;
+const approach = [
+  {
+    title: 'Understand the Business',
+    description: 'Structured analysis of business needs and requirements.',
+    icon: 'contact' as const,
+  },
+  {
+    title: 'Analyze & Design',
+    description: 'Clear specifications that connect business and technology.',
+    icon: 'workflow' as const,
+  },
+  {
+    title: 'Collaborate',
+    description: 'Clear communication with stakeholders and delivery teams.',
+    icon: 'users' as const,
+  },
+  {
+    title: 'Deliver Real Value',
+    description:
+      'Focus on quality, practical outcomes, and reliable production.',
+    icon: 'shield' as const,
+  },
+];
+---
+
+<section
+  id="about"
+  aria-labelledby="about-title"
+  class="portfolio-section about"
+>
+  <div class="section-intro about__intro">
+    <p class="eyebrow">About me</p>
+    <h2 id="about-title">
+      More Than Just
+      <br />a Professional
+    </h2>
+    <p>
+      {publicProfile?.about.summary ??
+        `I’m Konstantin — a ${profile.identity.jobTitle}. A personal introduction, interests, and the story behind my work will be shared here soon.`}
+    </p>
+    {publicProfile && publicProfile.about.interests.length > 0 && (
+      <ul class="about__interests" aria-label="Personal interests">
+        {publicProfile.about.interests.map((interest) => (
+          <li>{interest}</li>
+        ))}
+      </ul>
+    )}
+    <a class="text-link about__story" href="#contact">
+      Let’s connect <Icon name="arrow" />
+    </a>
+  </div>
+
+  <figure class="about__portrait">
+    {background && (
+      <Image
+        class="about__landscape"
+        src={background}
+        alt=""
+        widths={[480, 720]}
+        sizes="(max-width: 639px) 90vw, 33vw"
+        loading="lazy"
+        decoding="async"
+      />
+    )}
+    <div class="about__portrait-mist" aria-hidden="true" />
+    <Image
+      class="about__person"
+      src={image}
+      alt={media.portraitAlt}
+      widths={[320, 480, 720]}
+      sizes="(max-width: 767px) 90vw, (max-width: 1023px) 42vw, 30vw"
+      loading="lazy"
+      decoding="async"
+    />
+    {media.portraitTemporary && <figcaption>Temporary portrait</figcaption>}
+  </figure>
+
+  <div class="section-body about__body">
+    <div class="about__approach-heading">
+      <Icon name="complete" />
+      <h3>My Approach</h3>
+      {!publicProfile && <span>Approach preview</span>}
+    </div>
+    <ol
+      class="approach-list"
+      aria-label={
+        publicProfile ? 'My working approach' : 'Proposed approach presentation'
+      }
+    >
+      {approach.map((item) => (
+        <li>
+          <span class="approach-list__icon">
+            <Icon name={item.icon} />
+          </span>
+          <div>
+            <h4>{item.title}</h4>
+            <p>{item.description}</p>
+          </div>
+        </li>
+      ))}
+    </ol>
+    <div class="about__details">
+      <div class="about-detail">
+        <Icon name="education" />
+        <div>
+          <h4>Education</h4>
+          {education.length > 0 ? (
+            <ul>
+              {education.map(({ data }) => (
+                <li>
+                  <span>
+                    {data.qualification}
+                    {data.current && ' · In progress'}
+                  </span>
+                  <span>{data.institution}</span>
+                  {data.field && <span>{data.field}</span>}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Details pending</p>
+          )}
+        </div>
+      </div>
+      <div class="about-detail">
+        <Icon name="languages" />
+        <div>
+          <h4>Languages</h4>
+          {languages.length > 0 ? (
+            <ul>
+              {languages.map(({ data }) => (
+                <li>
+                  {data.name}
+                  {data.proficiency && ` · ${data.proficiency}`}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p>Details pending</p>
+          )}
+        </div>
+      </div>
+      <div class="about-detail">
+        <Icon name="location" />
+        <div>
+          <h4>Location</h4>
+          <p>{publicProfile?.contact.location ?? 'Details pending'}</p>
+          {publicProfile?.contact.openToRelocation === true && (
+            <p>Open to relocation</p>
+          )}
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<style>
+  .about.portfolio-section {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 0.95fr) minmax(0, 1.4fr);
+    gap: var(--space-6);
+    align-items: stretch;
+  }
+  .about__intro h2 {
+    font-size: clamp(1.6rem, 2.4vw, 2.25rem);
+  }
+  .about__intro > p:not(.eyebrow) {
+    font-size: var(--text-small);
+    line-height: 1.6;
+  }
+  .about__story {
+    margin-top: var(--space-3);
+  }
+  .about__interests {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2) var(--space-4);
+    padding-left: var(--space-4);
+    margin-block: var(--space-3) 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-small);
+  }
+  .about__portrait {
+    position: relative;
+    min-width: 0;
+    min-height: 20rem;
+    margin: 0;
+    overflow: hidden;
+    border-radius: var(--radius-small);
+    background: var(--color-background-secondary);
+  }
+  .about__portrait .about__landscape {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: 65% center;
+  }
+  .about__portrait-mist {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--color-background-secondary) 16%, transparent),
+      color-mix(in srgb, var(--color-background-secondary) 8%, transparent) 60%,
+      color-mix(in srgb, var(--color-background-secondary) 55%, transparent)
+    );
+  }
+  .about__portrait .about__person {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    object-position: center bottom;
+  }
+  .about__portrait figcaption {
+    position: absolute;
+    inset: auto var(--space-3) var(--space-3);
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-small);
+    background: var(--color-surface);
+    color: var(--color-text-secondary);
+    font-size: var(--text-caption);
+    line-height: 1.45;
+    text-align: center;
+  }
+  .about__body {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+  }
+  .about__approach-heading {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-bottom: var(--space-3);
+  }
+  .about__approach-heading > :global(.icon) {
+    width: var(--space-4);
+    height: var(--space-4);
+    color: var(--color-primary);
+  }
+  .about__approach-heading h3 {
+    font-size: var(--text-h5);
+    letter-spacing: -0.025em;
+  }
+  .about__approach-heading > span {
+    margin-left: auto;
+    color: var(--color-text-muted);
+    font-size: 0.625rem;
+  }
+  .approach-list {
+    display: grid;
+    gap: var(--space-3);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .approach-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .approach-list__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    width: var(--space-10);
+    height: var(--space-10);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-pill);
+    background: var(--color-surface);
+    color: var(--color-primary);
+    box-shadow: var(--shadow-card);
+  }
+  .approach-list h4 {
+    font-size: var(--text-caption);
+    letter-spacing: -0.01em;
+    line-height: 1.5;
+  }
+  .approach-list p {
+    color: var(--color-text-secondary);
+    font-size: var(--text-caption);
+    line-height: 1.55;
+  }
+  .about__details {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    margin-top: auto;
+    padding-top: var(--space-4);
+  }
+  .about-detail {
+    display: flex;
+    align-items: start;
+    gap: var(--space-2);
+    min-width: 0;
+    padding: var(--space-3) var(--space-2);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-small);
+    background: var(--color-surface);
+  }
+  .about-detail > :global(.icon) {
+    width: var(--space-4);
+    height: var(--space-4);
+    color: var(--color-primary);
+  }
+  .about-detail h4 {
+    margin-bottom: var(--space-1);
+    font-size: 0.625rem;
+    letter-spacing: 0;
+    line-height: 1.3;
+  }
+  .about-detail p,
+  .about-detail ul {
+    color: var(--color-text-secondary);
+    font-size: 0.625rem;
+    line-height: 1.5;
+  }
+  .about-detail ul {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .about-detail li + li {
+    margin-top: var(--space-2);
+  }
+  .about-detail li > span {
+    display: block;
+  }
+  @media (width < 64rem) {
+    .about.portfolio-section {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .about__body {
+      grid-column: 1 / -1;
+    }
+    .approach-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-5);
+    }
+    .about__details {
+      padding-top: var(--space-5);
+    }
+    .about-detail h4,
+    .about-detail p,
+    .about-detail ul {
+      font-size: var(--text-caption);
+    }
+  }
+  @media (width < 40rem) {
+    .about.portfolio-section {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+    .about__portrait {
+      height: 23rem;
+      min-height: 0;
+    }
+    .about__intro h2 {
+      font-size: var(--text-h2);
+    }
+    .about__intro h2 br {
+      display: none;
+    }
+    .approach-list {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+    .about__details {
+      grid-template-columns: minmax(0, 1fr);
+    }
+    .about-detail {
+      padding: var(--space-3);
+    }
+  }
+</style>

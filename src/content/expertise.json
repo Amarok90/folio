@@ -1,1 +1,34 @@
-[]
+[
+  {
+    "id": "business-analytical",
+    "order": 1,
+    "title": "Business & Analytical",
+    "description": "Understand business needs, structure requirements and shape effective solutions.",
+    "status": "published",
+    "visible": true
+  },
+  {
+    "id": "technical-tools",
+    "order": 2,
+    "title": "Technical & Tools",
+    "description": "APIs, data and integration analysis, complemented by Google Cloud Services, RPA automation and AI-assisted tools.",
+    "status": "published",
+    "visible": true
+  },
+  {
+    "id": "methodologies",
+    "order": 3,
+    "title": "Methodologies",
+    "description": "Support delivery through collaboration, testing, investigation and controlled change.",
+    "status": "published",
+    "visible": true
+  },
+  {
+    "id": "industry-knowledge",
+    "order": 4,
+    "title": "Industry Knowledge",
+    "description": "Experience across banking, lending, financial services and related digital processes.",
+    "status": "published",
+    "visible": true
+  }
+]

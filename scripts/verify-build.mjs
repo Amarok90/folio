@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { gzipSync } from 'node:zlib';
 import { resolveDeployment } from '../src/config/deployment.ts';
 
 export function verifyBuild(directory, rawBase = '/', rawOrigin) {
@@ -23,6 +24,7 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
     '.nojekyll',
     'icons/favicon.svg',
     'fonts/inter-OFL.txt',
+    'fonts/caveat-OFL.txt',
   ]) {
     assert.ok(
       existsSync(join(output, required)),
@@ -49,28 +51,79 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
         !html.includes('rel="canonical"'),
         'Unknown domain must not emit a canonical',
       );
-    for (const match of html.matchAll(/(?:href|src)="([^"#]+)"/g)) {
-      const href = match[1];
-      if (/^(?:https:|mailto:|tel:|data:)/.test(href)) continue;
+    const verifyLocalURL = (href) => {
+      if (/^(?:https:|mailto:|tel:|data:)/.test(href)) return;
+      if (href.startsWith('#')) {
+        assert.ok(
+          html.includes(`id="${href.slice(1)}"`),
+          `Broken same-page anchor in ${file}: ${href}`,
+        );
+        return;
+      }
       assert.ok(
         href.startsWith(base),
         `Asset/link bypasses base ${base}: ${href}`,
       );
       const local = href.slice(base.length).split(/[?#]/)[0];
       const target = join(output, local || 'index.html');
-      assert.ok(
-        existsSync(target) || existsSync(join(target, 'index.html')),
-        `Broken local URL: ${href}`,
-      );
+      const resolvedTarget =
+        existsSync(target) && statSync(target).isFile()
+          ? target
+          : join(target, 'index.html');
+      assert.ok(existsSync(resolvedTarget), `Broken local URL: ${href}`);
+      const fragment = href.split('#')[1];
+      if (fragment && extname(resolvedTarget) === '.html') {
+        assert.ok(
+          readFileSync(resolvedTarget, 'utf8').includes(`id="${fragment}"`),
+          `Broken destination anchor: ${href}`,
+        );
+      }
+    };
+    for (const match of html.matchAll(/(?:href|src)="([^"]+)"/g)) {
+      verifyLocalURL(match[1]);
+    }
+    for (const match of html.matchAll(/srcset="([^"]+)"/g)) {
+      for (const candidate of match[1].split(',')) {
+        verifyLocalURL(candidate.trim().split(/\s+/)[0]);
+      }
     }
   }
   const index = readFileSync(join(output, 'index.html'), 'utf8');
-  assert.match(index, /Foundation preview/);
-  assert.match(index, /<button[^>]*disabled[^>]*>/);
-  assert.match(index, /Skip to content/);
+  assert.match(index, /Design preview/);
+  assert.match(index, /Content verification pending/);
   assert.ok(
-    !/10\+|20\+|International Bank/.test(index),
-    'Unverified reference career claims leaked into preview',
+    !/Foundation preview/i.test(index),
+    'Task 1 scaffolding leaked into portfolio',
+  );
+  for (const id of [
+    'main-content',
+    'home',
+    'highlights',
+    'expertise',
+    'projects',
+    'experience',
+    'about',
+    'contact',
+  ]) {
+    assert.equal(
+      [...index.matchAll(new RegExp(`\\bid="${id}"`, 'g'))].length,
+      1,
+      `Missing or duplicate portfolio section: ${id}`,
+    );
+  }
+  assert.match(index, /Skip to content/);
+  assert.match(index, /View CV/);
+  assert.match(
+    index,
+    /https:\/\/www\.linkedin\.com\/in\/konstantin-arutjunov\/overlay\/1753005451683\/single-media-viewer\//,
+  );
+  assert.ok(
+    !/<a\b[^>]*\bdownload(?:=|[\s>])/.test(index),
+    'External CV preview must not expose a fake local download',
+  );
+  assert.ok(
+    !/20\+|International Bank|konstantin@example\.com/.test(index),
+    'Unverified reference placeholders leaked into portfolio',
   );
   if (origin)
     assert.ok(
@@ -92,12 +145,21 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
   }, 0);
   const javascriptBytes = sizeOf('.js') + inlineJavascriptBytes;
   const cssBytes = sizeOf('.css');
+  const cssGzipBytes = files
+    .filter((path) => path.endsWith('.css'))
+    .reduce((sum, path) => sum + gzipSync(readFileSync(path)).length, 0);
   const fontBytes = sizeOf('.woff2');
   assert.ok(
     javascriptBytes < 6000,
-    `Foundation JavaScript budget exceeded: ${javascriptBytes}`,
+    `Portfolio JavaScript budget exceeded: ${javascriptBytes}`,
   );
-  assert.ok(cssBytes < 40000, `Foundation CSS budget exceeded: ${cssBytes}`);
+  // Nine production sections replace the smaller Task 1 component gallery.
+  // Both source size and compressed payload are bounded to prevent silent growth.
+  assert.ok(cssBytes < 64000, `Portfolio CSS budget exceeded: ${cssBytes}`);
+  assert.ok(
+    cssGzipBytes < 14000,
+    `Compressed portfolio CSS budget exceeded: ${cssGzipBytes}`,
+  );
   assert.ok(fontBytes < 70000, `Font budget exceeded: ${fontBytes}`);
   assert.equal(
     readFileSync(join(output, 'robots.txt'), 'utf8'),
@@ -107,6 +169,7 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
     htmlPages: htmlFiles.length,
     javascriptBytes,
     cssBytes,
+    cssGzipBytes,
     fontBytes,
     base,
     canonicalConfigured: Boolean(origin),

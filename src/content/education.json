@@ -1,1 +1,26 @@
-[]
+[
+  {
+    "id": "university-tartu",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "institution": "University of Tartu",
+    "qualification": "Bachelor of Engineering (BE)",
+    "field": "Computer Technology",
+    "startDate": "2010-09",
+    "endDate": "2015-06",
+    "current": false
+  },
+  {
+    "id": "udacity-business-analytics",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "institution": "Udacity",
+    "qualification": "Nanodegree",
+    "field": "Business Analytics",
+    "startDate": "2023-11",
+    "endDate": null,
+    "current": true
+  }
+]

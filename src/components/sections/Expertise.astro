@@ -1,0 +1,444 @@
+---
+import { getCollection } from 'astro:content';
+import Icon, { type IconName } from '../ui/Icon.astro';
+import { publishedEntries } from '../../lib/content';
+
+interface Skill {
+  id: string;
+  name: string;
+}
+interface Category {
+  id: string;
+  title: string;
+  description: string | null;
+  icon: IconName;
+  skills: Skill[];
+}
+
+const [expertiseEntries, skillEntries] = await Promise.all([
+  getCollection('expertise'),
+  getCollection('skills'),
+]);
+const categories = publishedEntries(expertiseEntries);
+const skills = publishedEntries(skillEntries);
+const isPreview = categories.length === 0;
+
+// Presentation taxonomy, not claims about the owner's skills or proficiency.
+const previewCategories = [
+  {
+    id: 'business-analytical',
+    title: 'Business & Analytical',
+    icon: 'file',
+    topics: [
+      'Business Analysis',
+      'Requirements Engineering',
+      'Systems Analysis',
+      'Process Modelling (BPMN)',
+      'Stakeholder Analysis',
+      'Solution Design',
+      'Business Requirements',
+      'Functional Specifications',
+      'User Stories & Acceptance Criteria',
+      'Data & Information Flows',
+      'Impact Analysis',
+      'Requirements Traceability',
+    ],
+  },
+  {
+    id: 'technical-tools',
+    title: 'Technical & Tools',
+    icon: 'code',
+    topics: [
+      'SQL & Data Analysis',
+      'REST / SOAP APIs',
+      'Integration Analysis',
+      'Data Modelling',
+      'Jira & Confluence',
+      'UML & Diagramming',
+      'Interface Specifications',
+      'Testing & Quality Assurance',
+    ],
+  },
+  {
+    id: 'methodologies',
+    title: 'Methodologies',
+    icon: 'layers',
+    topics: [
+      'Agile Delivery',
+      'Scrum & Kanban',
+      'Discovery Workshops',
+      'Process Improvement',
+      'Solution Evaluation',
+      'Change Management',
+      'Business Case Development',
+      'Delivery Documentation',
+    ],
+  },
+  {
+    id: 'industry-knowledge',
+    title: 'Industry Knowledge',
+    icon: 'shield',
+    topics: [
+      'Banking & FinTech',
+      'Digital Banking',
+      'Payments & Open Banking',
+      'Lending Processes',
+      'Insurance Platforms',
+      'Regulatory Requirements',
+      'Risk & Controls',
+      'Customer Journeys',
+    ],
+  },
+] satisfies {
+  id: string;
+  title: string;
+  icon: IconName;
+  topics: string[];
+}[];
+
+const panels: Category[] = isPreview
+  ? previewCategories.map((category) => ({
+      ...category,
+      description: null,
+      skills: category.topics.map((name, index) => ({
+        id: `${category.id}-${index}`,
+        name,
+      })),
+    }))
+  : categories.map((category) => ({
+      id: category.id,
+      title: category.data.title,
+      description: category.data.description,
+      icon: 'file',
+      skills: skills
+        .filter((skill) => skill.data.categoryId === category.id)
+        .map((skill) => ({
+          id: skill.id,
+          name: skill.data.name,
+        })),
+    }));
+---
+
+<section
+  id="expertise"
+  class="portfolio-section expertise-section"
+  aria-labelledby="expertise-title"
+>
+  <div class="section-intro">
+    <p class="eyebrow">Expertise</p>
+    <h2 id="expertise-title">
+      Skills &amp;
+      <br />
+      Technologies
+    </h2>
+    <p class="section-description">
+      Business analysis, from understanding the need to shaping the solution.
+    </p>
+    <a class="text-link expertise-section-link" href="#projects">
+      Explore case studies <Icon name="arrow" />
+    </a>
+  </div>
+  <div class="section-body expertise-widget" data-expertise-tabs>
+    <div class="expertise-tabs" data-tab-list>
+      {panels.map((panel) => (
+        <a
+          class="expertise-tab"
+          id={`expertise-tab-${panel.id}`}
+          href={`#expertise-panel-${panel.id}`}
+          data-expertise-tab
+        >
+          {panel.title}
+        </a>
+      ))}
+    </div>
+    {panels.map((panel) => (
+      <div
+        id={`expertise-panel-${panel.id}`}
+        class="expertise-panel"
+        data-expertise-panel
+      >
+        <h3 class="expertise-panel-title">{panel.title}</h3>
+        {panel.description && (
+          <p class="expertise-panel-description">{panel.description}</p>
+        )}
+        {panel.skills.length > 0 ? (
+          <ul
+            class="skills-list"
+            style={`--skill-rows: ${Math.ceil(panel.skills.length / 2)}`}
+          >
+            {panel.skills.map((skill) => (
+              <li class="skill-row">
+                <span class="skill-icon">
+                  <Icon name={panel.icon} />
+                </span>
+                <span class="skill-name">{skill.name}</span>
+                <span class="skill-rule" aria-hidden="true" />
+              </li>
+            ))}
+          </ul>
+        ) : (
+          <p class="expertise-empty">
+            Skills for this category will appear after review and publication.
+          </p>
+        )}
+      </div>
+    ))}
+    {isPreview && (
+      <p class="preview-note expertise-preview-note">
+        <span class="preview-dot" aria-hidden="true" />
+        Topic preview · skills and proficiency await confirmation.
+      </p>
+    )}
+    {!isPreview && (
+      <p class="expertise-preview-note">
+        Selected skills from my professional experience.
+        <span class="sr-only">Proficiency levels have not been assessed.</span>
+      </p>
+    )}
+  </div>
+</section>
+
+<script>
+  document
+    .querySelectorAll<HTMLElement>('[data-expertise-tabs]')
+    .forEach((widget) => {
+      const tabList = widget.querySelector<HTMLElement>('[data-tab-list]');
+      const tabs = Array.from(
+        widget.querySelectorAll<HTMLAnchorElement>('[data-expertise-tab]'),
+      );
+      const panels = Array.from(
+        widget.querySelectorAll<HTMLElement>('[data-expertise-panel]'),
+      );
+      if (!tabList || tabs.length === 0 || tabs.length !== panels.length)
+        return;
+
+      tabList.setAttribute('role', 'tablist');
+      tabList.setAttribute('aria-label', 'Expertise categories');
+      tabs.forEach((tab, index) => {
+        const panel = panels[index];
+        if (!panel) return;
+        tab.setAttribute('role', 'tab');
+        tab.setAttribute('aria-controls', panel.id);
+        panel.setAttribute('role', 'tabpanel');
+        panel.setAttribute('aria-labelledby', tab.id);
+        panel.tabIndex = 0;
+      });
+
+      const activate = (index: number, moveFocus = false) => {
+        tabs.forEach((tab, tabIndex) => {
+          const selected = tabIndex === index;
+          tab.setAttribute('aria-selected', String(selected));
+          tab.tabIndex = selected ? 0 : -1;
+          const panel = panels[tabIndex];
+          if (panel) panel.hidden = !selected;
+        });
+        if (moveFocus) tabs[index]?.focus();
+      };
+
+      tabs.forEach((tab, index) => {
+        tab.addEventListener('click', (event) => {
+          event.preventDefault();
+          activate(index);
+        });
+        tab.addEventListener('keydown', (event) => {
+          let nextIndex: number;
+          switch (event.key) {
+            case 'ArrowRight':
+              nextIndex = (index + 1) % tabs.length;
+              break;
+            case 'ArrowLeft':
+              nextIndex = (index - 1 + tabs.length) % tabs.length;
+              break;
+            case 'Home':
+              nextIndex = 0;
+              break;
+            case 'End':
+              nextIndex = tabs.length - 1;
+              break;
+            case ' ':
+              event.preventDefault();
+              activate(index);
+              return;
+            default:
+              return;
+          }
+          event.preventDefault();
+          activate(nextIndex, true);
+        });
+      });
+
+      // A fragment link remains meaningful when the page is opened without JS.
+      const fragmentIndex = panels.findIndex(
+        (panel) => `#${panel.id}` === window.location.hash,
+      );
+      activate(fragmentIndex >= 0 ? fragmentIndex : 0);
+      widget.dataset.enhanced = '';
+    });
+</script>
+
+<style>
+  .expertise-widget {
+    min-width: 0;
+  }
+  .expertise-tabs {
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-1);
+    margin: calc(var(--space-1) * -1);
+    margin-bottom: var(--space-5);
+    overflow-x: auto;
+    scrollbar-width: thin;
+    scrollbar-color: var(--color-border) transparent;
+  }
+  .expertise-tab {
+    flex: 1 0 auto;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: var(--touch-target);
+    padding: var(--space-2) var(--space-4);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-small);
+    background: var(--color-background-secondary);
+    color: var(--color-secondary);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-medium);
+    white-space: nowrap;
+    transition:
+      color var(--duration-fast) var(--ease-standard),
+      background var(--duration-fast) var(--ease-standard),
+      box-shadow var(--duration-fast) var(--ease-standard);
+  }
+  .expertise-tab:hover {
+    background: var(--color-border);
+  }
+  .expertise-tab[aria-selected='true'] {
+    border-color: transparent;
+    background: var(--gradient-primary);
+    color: var(--color-on-primary);
+    box-shadow: var(--shadow-button);
+  }
+  .expertise-panel {
+    padding-block: var(--space-2);
+  }
+  .expertise-panel + .expertise-panel {
+    margin-top: var(--space-6);
+  }
+  .expertise-panel-title {
+    font-size: var(--text-h4);
+    margin-bottom: var(--space-4);
+  }
+  .expertise-widget[data-enhanced] .expertise-panel-title {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+  .expertise-widget[data-enhanced] .expertise-panel {
+    margin-top: 0;
+  }
+  .expertise-panel-description,
+  .expertise-empty {
+    margin-bottom: var(--space-4);
+    color: var(--color-text-secondary);
+    font-size: var(--text-small);
+  }
+  .skills-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: column;
+    grid-template-rows: repeat(var(--skill-rows), auto);
+    gap: var(--space-2) var(--space-6);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .skill-row {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) minmax(1rem, 2.25rem);
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--space-8);
+  }
+  .skill-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--space-8);
+    height: var(--space-8);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-pill);
+    color: var(--color-accent);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+  }
+  .skill-icon :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+  }
+  .skill-name {
+    font-size: var(--text-caption);
+    line-height: 1.45;
+  }
+  .skill-rule {
+    height: 2px;
+    border-radius: var(--radius-pill);
+    background: var(--color-border);
+  }
+  .expertise-preview-note {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-top: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+    line-height: 1.5;
+  }
+  .preview-dot {
+    width: var(--space-1);
+    height: var(--space-1);
+    flex-shrink: 0;
+    border-radius: var(--radius-pill);
+    background: var(--color-accent);
+  }
+  .expertise-section-link {
+    margin-top: var(--space-4);
+  }
+  @media (width < 68rem) and (width >= 48rem) {
+    .skill-row {
+      grid-template-columns: auto minmax(0, 1fr);
+    }
+    .skill-rule {
+      display: none;
+    }
+    .skills-list {
+      column-gap: var(--space-4);
+    }
+  }
+  @media (width < 48rem) {
+    .expertise-tabs {
+      margin-bottom: var(--space-4);
+    }
+    .skills-list {
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-flow: row;
+      grid-template-rows: none;
+      gap: var(--space-2);
+    }
+    .skill-row {
+      grid-template-columns: auto minmax(0, 1fr) minmax(1.5rem, 3.5rem);
+      min-height: var(--space-10);
+    }
+    .skill-name {
+      font-size: var(--text-small);
+    }
+    .expertise-section-link {
+      margin-top: var(--space-2);
+    }
+  }
+</style>

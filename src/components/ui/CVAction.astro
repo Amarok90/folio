@@ -1,0 +1,38 @@
+---
+import Button from './Button.astro';
+import { profile } from '../../data/profile';
+import { isPublished } from '../../lib/content';
+import { withBasePath } from '../../lib/urls';
+interface Props {
+  variant?: 'primary' | 'secondary';
+  class?: string;
+}
+const { variant = 'secondary', class: className = '' } = Astro.props;
+const publicProfile = isPublished(profile) ? profile : null;
+---
+
+{publicProfile?.cv ? (
+  <Button
+    href={withBasePath(publicProfile.cv.path, import.meta.env.BASE_URL)}
+    download
+    variant={variant}
+    class={className}
+    icon="download"
+  >
+    Download CV
+  </Button>
+) : publicProfile?.cvPreviewUrl ? (
+  <Button
+    href={publicProfile?.cvPreviewUrl}
+    external
+    variant={variant}
+    class={className}
+    icon="external"
+  >
+    View CV
+  </Button>
+) : (
+  <Button disabled variant={variant} class={className} icon="download">
+    CV pending
+  </Button>
+)}

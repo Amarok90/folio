@@ -196,6 +196,7 @@ export const profileSchema = publicationSchema
       })
       .strict()
       .nullable(),
+    cvPreviewUrl: httpsUrlSchema.nullable().default(null),
     seo: z
       .object({
         title: nullableText,

@@ -1,1 +1,38 @@
-[]
+[
+  {
+    "id": "it-experience",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "value": "10+",
+    "label": "Years across IT",
+    "context": "From software engineering to banking analysis"
+  },
+  {
+    "id": "business-analysis-since",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "value": "2019",
+    "label": "Business Analysis since",
+    "context": "Creditstar Group and Luminor Group"
+  },
+  {
+    "id": "loan-processing",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "value": "≈3 min",
+    "label": "Loan processing",
+    "context": "From approximately 2 hours"
+  },
+  {
+    "id": "core-expertise",
+    "order": 4,
+    "status": "published",
+    "visible": true,
+    "value": "Banking & FinTech",
+    "label": "Core expertise",
+    "context": "Lending, credit risk and digital banking"
+  }
+]

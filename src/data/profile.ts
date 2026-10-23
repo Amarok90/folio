@@ -1,5 +1,5 @@
 import source from './profile.json';
 import { profileSchema } from '../lib/content';
 
-/** Only the owner's supplied name and title are populated; unknown facts remain null. */
+/** Published professional facts are sourced from the owner's LinkedIn profile and CV. */
 export const profile = profileSchema.parse(source);

@@ -5,12 +5,19 @@ type Props = {
   icon?: IconName;
   class?: string;
 } & (
-  | { href: string; disabled?: never; type?: never; download?: boolean }
+  | {
+      href: string;
+      disabled?: never;
+      type?: never;
+      download?: boolean;
+      external?: boolean;
+    }
   | {
       href?: never;
       disabled?: boolean;
       type?: 'button' | 'submit' | 'reset';
       download?: never;
+      external?: never;
     }
 );
 const {
@@ -20,21 +27,28 @@ const {
   disabled,
   type = 'button',
   download,
+  external = false,
   class: className,
+  ...attributes
 } = Astro.props;
 ---
 
 {href ? (
   <a
+    {...attributes}
     href={href}
     download={download}
+    target={external ? '_blank' : undefined}
+    rel={external ? 'noopener noreferrer' : undefined}
     class:list={['button', `button--${variant}`, className]}
   >
     <slot />
     {icon && <Icon name={icon} />}
+    {external && <span class="sr-only"> (opens in a new tab)</span>}
   </a>
 ) : (
   <button
+    {...attributes}
     type={type}
     disabled={disabled}
     class:list={['button', `button--${variant}`, className]}

@@ -1,1 +1,77 @@
-[]
+[
+  {
+    "id": "consumer-loan-origination",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "title": "Consumer Loan Origination",
+    "sector": "Banking",
+    "summary": "Business and systems analysis for automated consumer loan origination at Luminor Group.",
+    "challenge": "A consumer loan origination process involved approximately 2 hours of processing.",
+    "contribution": "Contributed business and systems analysis to the design of an automated consumer loan origination process.",
+    "outcomes": [
+      "Processing time reduced from approximately 2 hours to 3 minutes."
+    ],
+    "limitations": [
+      "Outcome is self-reported in the LinkedIn profile; measurement method and period are not published."
+    ],
+    "skillIds": [
+      "business-analysis",
+      "system-analysis",
+      "requirements-engineering",
+      "lending"
+    ],
+    "image": null,
+    "link": "https://www.linkedin.com/in/konstantin-arutjunov/"
+  },
+  {
+    "id": "external-bank-statements",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "title": "External Bank Statements",
+    "sector": "FinTech",
+    "summary": "Requirements and API integration for collecting external bank account statements at Luminor Group.",
+    "challenge": "Lending decisions required bank account statements from external banks.",
+    "contribution": "Defined requirements and supported API integration for retrieving bank account statements from external banks.",
+    "outcomes": [
+      "API-based collection of bank account statements from external banks."
+    ],
+    "limitations": [
+      "No quantified business outcome or delivery period is published."
+    ],
+    "skillIds": [
+      "requirements-engineering",
+      "rest-soap-apis",
+      "integration-testing",
+      "lending"
+    ],
+    "image": null,
+    "link": "https://www.linkedin.com/in/konstantin-arutjunov/"
+  },
+  {
+    "id": "insurance-renewal-automation",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "title": "Insurance Renewal Automation",
+    "sector": "Insurance",
+    "summary": "Automated insurance renewal notifications supporting collateral coverage at Luminor Group.",
+    "challenge": "Collateral insurance coverage was approximately 65%.",
+    "contribution": "Contributed analysis for automated insurance renewal notifications.",
+    "outcomes": [
+      "Collateral insurance coverage increased from approximately 65% to 90%."
+    ],
+    "limitations": [
+      "Outcome is self-reported in the LinkedIn profile; measurement method and period are not published."
+    ],
+    "skillIds": [
+      "business-analysis",
+      "requirements-engineering",
+      "insurance",
+      "stakeholder-management"
+    ],
+    "image": null,
+    "link": "https://www.linkedin.com/in/konstantin-arutjunov/"
+  }
+]

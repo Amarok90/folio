@@ -1,1 +1,131 @@
-[]
+[
+  {
+    "id": "luminor-group",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "role": "Senior IT Business Analyst",
+    "organization": "Luminor Group",
+    "location": "Tallinn, Estonia",
+    "startDate": "2021-08",
+    "endDate": null,
+    "current": true,
+    "summary": "Business and systems analysis across the retail lending lifecycle.",
+    "achievements": [
+      "Lead business and systems analysis for retail lending processes.",
+      "Contributed to an automated consumer loan origination design that reduced processing time from approximately 2 hours to 3 minutes.",
+      "Defined requirements for credit-limit monitoring, credit risk and Early Warning systems.",
+      "Supported automated insurance renewal notifications; collateral insurance coverage increased from approximately 65% to 90%.",
+      "Defined requirements and integrations for API-based bank account statements from external banks.",
+      "Collaborate with stakeholders, product owners, developers and QA throughout delivery."
+    ],
+    "skillIds": [
+      "business-analysis",
+      "system-analysis",
+      "requirements-engineering",
+      "lending",
+      "credit-risk",
+      "early-warning-systems",
+      "rest-soap-apis",
+      "insurance"
+    ]
+  },
+  {
+    "id": "creditstar-group",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "role": "IT Business Analyst",
+    "organization": "Creditstar Group AS",
+    "location": "Tallinn, Estonia",
+    "startDate": "2019-08",
+    "endDate": "2021-08",
+    "current": false,
+    "summary": "Analysis and delivery support for web and mobile lending platforms.",
+    "achievements": [
+      "Analysed requirements for lending, credit risk and digital onboarding.",
+      "Documented workflows and requirements with stakeholders, vendors and development teams.",
+      "Supported SMS and phone-verification processes for customer onboarding.",
+      "Performed functional, integration and user acceptance testing."
+    ],
+    "skillIds": [
+      "business-analysis",
+      "requirements-engineering",
+      "stakeholder-management",
+      "lending",
+      "digital-onboarding-kyc",
+      "functional-testing",
+      "integration-testing",
+      "uat"
+    ]
+  },
+  {
+    "id": "kuehne-nagel",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "role": "System Engineer",
+    "organization": "Kuehne + Nagel",
+    "location": "Tallinn, Estonia",
+    "startDate": "2017-09",
+    "endDate": "2019-08",
+    "current": false,
+    "summary": "System analysis and third-line support for enterprise printing and document management.",
+    "achievements": [
+      "Analysed requirements and prepared Jira tasks and system specifications.",
+      "Created XML / XSLT document models and supported a new document storage solution.",
+      "Performed manual, load and performance testing.",
+      "Investigated production issues and identified root causes."
+    ],
+    "skillIds": [
+      "system-analysis",
+      "requirements-engineering",
+      "xml-xslt",
+      "functional-testing",
+      "root-cause-analysis"
+    ]
+  },
+  {
+    "id": "seb",
+    "order": 4,
+    "status": "published",
+    "visible": true,
+    "role": "Front-end developer (Internet Banking)",
+    "organization": "SEB",
+    "location": "Tallinn, Estonia",
+    "startDate": "2015-12",
+    "endDate": "2017-05",
+    "current": false,
+    "summary": "Customer-facing internet banking development and production defect resolution.",
+    "achievements": [
+      "Contributed to digital banking serving 600,000+ customers.",
+      "Developed functionality with Progress ABL, JavaScript, CSS and XSLT.",
+      "Implemented investment-product suitability interfaces, responses and results.",
+      "Investigated and resolved production defects."
+    ],
+    "skillIds": [
+      "javascript",
+      "xml-xslt",
+      "digital-banking",
+      "root-cause-analysis"
+    ]
+  },
+  {
+    "id": "spin-tek",
+    "order": 5,
+    "status": "published",
+    "visible": true,
+    "role": "PHP Developer (Trainee)",
+    "organization": "Spin TEK AS",
+    "location": "Tallinn, Estonia",
+    "startDate": "2013-11",
+    "endDate": "2014-05",
+    "current": false,
+    "summary": "Government-sector software development and testing.",
+    "achievements": [
+      "Implemented functionality and bug fixes using PHP, MySQL, JavaScript, HTML and CSS.",
+      "Tested changes and worked with SVN and CVS version control."
+    ],
+    "skillIds": ["javascript", "functional-testing"]
+  }
+]

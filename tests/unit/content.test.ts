@@ -1,9 +1,11 @@
+import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { profile } from '../../src/data/profile';
 import {
   caseStudySchema,
   contentIdSchema,
   educationSchema,
+  expertiseSchema,
   experienceSchema,
   highlightSchema,
   httpsUrlSchema,
@@ -41,17 +43,23 @@ const exampleExperience = {
 };
 
 describe('profile integrity', () => {
-  it('contains only supplied identity and keeps unverified professional facts absent', () => {
+  it('publishes source-backed professional information and keeps the external CV distinct from a local download', () => {
     expect(profile.identity).toEqual({
       name: 'Konstantin Arutjunov',
       jobTitle: 'Senior IT Business Analyst',
     });
-    expect(profile.hero.summary).toBeNull();
-    expect(profile.contact.email).toBeNull();
-    expect(profile.contact.openToRelocation).toBeNull();
-    expect(profile.contact.links).toEqual([]);
+    expect(profile.hero.summary).toMatch(/\S/);
+    expect(profile.contact.email).toBe('konstantin.arutjunov@gmail.com');
+    expect(profile.contact.links).toContainEqual(
+      expect.objectContaining({
+        url: expect.stringMatching(/^https:\/\/(?:www\.)?linkedin\.com\/in\//),
+      }),
+    );
     expect(profile.cv).toBeNull();
-    expect(isPublished(profile)).toBe(false);
+    expect(profile.cvPreviewUrl).toBe(
+      'https://www.linkedin.com/in/konstantin-arutjunov/overlay/1753005451683/single-media-viewer/',
+    );
+    expect(isPublished(profile)).toBe(true);
   });
 
   it('rejects missing identity, empty claims, unknown fields, and invalid contacts', () => {
@@ -89,6 +97,24 @@ describe('profile integrity', () => {
     expect(isPublished(defaults)).toBe(false);
   });
 
+  it('defaults an absent external CV preview to null and rejects unsafe preview URLs', () => {
+    expect(
+      profileSchema.parse({ ...profile, cvPreviewUrl: undefined }).cvPreviewUrl,
+    ).toBeNull();
+    expect(
+      profileSchema.safeParse({
+        ...profile,
+        cvPreviewUrl: 'javascript:alert(1)',
+      }).success,
+    ).toBe(false);
+    expect(
+      profileSchema.safeParse({
+        ...profile,
+        cvPreviewUrl: 'http://example.com/cv',
+      }).success,
+    ).toBe(false);
+  });
+
   it('requires complete CV metadata and a local PDF before exposing a download', () => {
     expect(
       profileSchema.safeParse({
@@ -112,6 +138,84 @@ describe('profile integrity', () => {
         },
       }).success,
     ).toBe(false);
+  });
+});
+
+describe('published professional content provenance', () => {
+  const source = (name: string) =>
+    readFileSync(
+      new URL(`../../src/content/${name}.json`, import.meta.url),
+      'utf8',
+    );
+  const expertise = parseContentFile(source('expertise'), expertiseSchema);
+  const skills = parseContentFile(source('skills'), skillSchema);
+  const caseStudies = parseContentFile(source('case-studies'), caseStudySchema);
+  const experience = parseContentFile(source('experience'), experienceSchema);
+  const education = parseContentFile(source('education'), educationSchema);
+  const highlights = parseContentFile(
+    source('professional-highlights'),
+    highlightSchema,
+  );
+
+  it('keeps source-backed collections internally consistent and only publishes intentional records', () => {
+    expect(expertise).toHaveLength(4);
+    expect(skills.length).toBeGreaterThanOrEqual(32);
+    expect(skills.map((skill) => skill.name)).toEqual(
+      expect.arrayContaining([
+        'Google Cloud Services',
+        'RPA Automation',
+        'ChatGPT',
+        'Copilot',
+        'Codex',
+      ]),
+    );
+    expect(caseStudies).toHaveLength(3);
+    expect(experience).toHaveLength(5);
+    expect(education).toHaveLength(2);
+    for (const entry of [
+      ...expertise,
+      ...skills,
+      ...caseStudies,
+      ...experience,
+      ...education,
+      ...highlights,
+    ]) {
+      expect(isPublished(entry)).toBe(true);
+    }
+    expect(() =>
+      validateContentReferences({ expertise, skills, caseStudies, experience }),
+    ).not.toThrow();
+    expect(skills.every((skill) => skill.proficiency === null)).toBe(true);
+  });
+
+  it('preserves the source precision and disclosed limits of reported outcomes', () => {
+    const cases = new Map(caseStudies.map((record) => [record.id, record]));
+    const loan = cases.get('consumer-loan-origination')!;
+    expect(loan.outcomes.join(' ')).toMatch(
+      /approximately 2 hours to 3 minutes/,
+    );
+    const insurance = cases.get('insurance-renewal-automation')!;
+    expect(insurance.outcomes.join(' ')).toMatch(/approximately 65% to 90%/);
+    for (const quantified of [loan, insurance]) {
+      expect(quantified.limitations.join(' ')).toMatch(/self-reported/);
+      expect(quantified.limitations.join(' ')).toMatch(
+        /measurement method and period are not published/,
+      );
+    }
+    expect(
+      cases.get('external-bank-statements')?.limitations.join(' '),
+    ).toMatch(/No quantified business outcome or delivery period/);
+    for (const record of caseStudies) {
+      expect(record.link).toBe(
+        'https://www.linkedin.com/in/konstantin-arutjunov/',
+      );
+    }
+    expect(highlights.map((record) => record.value)).toEqual([
+      '10+',
+      '2019',
+      '≈3 min',
+      'Banking & FinTech',
+    ]);
   });
 });
 

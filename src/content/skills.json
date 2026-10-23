@@ -1,1 +1,335 @@
-[]
+[
+  {
+    "id": "business-analysis",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "name": "Business Analysis",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "system-analysis",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "name": "System Analysis",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "requirements-engineering",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "name": "Requirements Engineering",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "requirements-elicitation",
+    "order": 4,
+    "status": "published",
+    "visible": true,
+    "name": "Requirements Elicitation",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "user-stories-use-cases",
+    "order": 5,
+    "status": "published",
+    "visible": true,
+    "name": "User Stories & Use Cases",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "bpmn-process-modelling",
+    "order": 6,
+    "status": "published",
+    "visible": true,
+    "name": "BPMN & Process Modelling",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "stakeholder-management",
+    "order": 7,
+    "status": "published",
+    "visible": true,
+    "name": "Stakeholder Management",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "requirements-workshops",
+    "order": 8,
+    "status": "published",
+    "visible": true,
+    "name": "Requirements Workshops",
+    "categoryId": "business-analytical",
+    "proficiency": null
+  },
+  {
+    "id": "rest-soap-apis",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "name": "REST / SOAP APIs",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "sql",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "name": "SQL",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "excel",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "name": "Excel",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "tableau",
+    "order": 4,
+    "status": "published",
+    "visible": true,
+    "name": "Tableau",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "swagger",
+    "order": 5,
+    "status": "published",
+    "visible": true,
+    "name": "Swagger",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "postman",
+    "order": 6,
+    "status": "published",
+    "visible": true,
+    "name": "Postman",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "soapui",
+    "order": 7,
+    "status": "published",
+    "visible": true,
+    "name": "SoapUI",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "javascript",
+    "order": 8,
+    "status": "published",
+    "visible": true,
+    "name": "JavaScript",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "xml-xslt",
+    "order": 9,
+    "status": "published",
+    "visible": true,
+    "name": "XML / XSLT",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "agile-delivery",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "name": "Agile Delivery",
+    "categoryId": "methodologies",
+    "proficiency": null
+  },
+  {
+    "id": "scrum",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "name": "Scrum",
+    "categoryId": "methodologies",
+    "proficiency": null
+  },
+  {
+    "id": "functional-testing",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "name": "Functional Testing",
+    "categoryId": "methodologies",
+    "proficiency": null
+  },
+  {
+    "id": "integration-testing",
+    "order": 4,
+    "status": "published",
+    "visible": true,
+    "name": "Integration Testing",
+    "categoryId": "methodologies",
+    "proficiency": null
+  },
+  {
+    "id": "uat",
+    "order": 5,
+    "status": "published",
+    "visible": true,
+    "name": "User Acceptance Testing",
+    "categoryId": "methodologies",
+    "proficiency": null
+  },
+  {
+    "id": "root-cause-analysis",
+    "order": 6,
+    "status": "published",
+    "visible": true,
+    "name": "Root Cause Analysis",
+    "categoryId": "methodologies",
+    "proficiency": null
+  },
+  {
+    "id": "change-management",
+    "order": 7,
+    "status": "published",
+    "visible": true,
+    "name": "Change Management",
+    "categoryId": "methodologies",
+    "proficiency": null
+  },
+  {
+    "id": "digital-banking",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "name": "Digital Banking",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "lending",
+    "order": 2,
+    "status": "published",
+    "visible": true,
+    "name": "Lending",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "credit-risk",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "name": "Credit Risk",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "early-warning-systems",
+    "order": 4,
+    "status": "published",
+    "visible": true,
+    "name": "Early Warning Systems",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "insurance",
+    "order": 5,
+    "status": "published",
+    "visible": true,
+    "name": "Insurance",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "digital-onboarding-kyc",
+    "order": 6,
+    "status": "published",
+    "visible": true,
+    "name": "Digital Onboarding & KYC",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "payments",
+    "order": 7,
+    "status": "published",
+    "visible": true,
+    "name": "Payments",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "crm",
+    "order": 8,
+    "status": "published",
+    "visible": true,
+    "name": "CRM",
+    "categoryId": "industry-knowledge",
+    "proficiency": null
+  },
+  {
+    "id": "google-cloud-services",
+    "order": 10,
+    "status": "published",
+    "visible": true,
+    "name": "Google Cloud Services",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "rpa-automation",
+    "order": 11,
+    "status": "published",
+    "visible": true,
+    "name": "RPA Automation",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "chatgpt",
+    "order": 12,
+    "status": "published",
+    "visible": true,
+    "name": "ChatGPT",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "copilot",
+    "order": 13,
+    "status": "published",
+    "visible": true,
+    "name": "Copilot",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  },
+  {
+    "id": "codex",
+    "order": 14,
+    "status": "published",
+    "visible": true,
+    "name": "Codex",
+    "categoryId": "technical-tools",
+    "proficiency": null
+  }
+]

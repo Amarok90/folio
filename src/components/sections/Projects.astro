@@ -1,0 +1,484 @@
+---
+import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import type { ImageMetadata } from 'astro';
+import Icon from '../ui/Icon.astro';
+import { publishedEntries } from '../../lib/content';
+import { withBasePath } from '../../lib/urls';
+
+interface Props {
+  thumbnails?: readonly ImageMetadata[];
+}
+const { thumbnails = [] } = Astro.props;
+const base = import.meta.env.BASE_URL;
+const projects = publishedEntries(await getCollection('caseStudies'));
+const isPreview = projects.length === 0;
+const previewBriefs = [
+  {
+    id: 'banking-preview',
+    title: 'Banking case study',
+    sector: 'Banking',
+    summary:
+      'A space for a confirmed banking project, its challenges and the thinking behind the solution.',
+    requirements: [
+      'Business context and problem',
+      'Personal role and contribution',
+      'Verified results and permissions',
+    ],
+    prompt:
+      'A banking project will be published here once its scope, contribution and outcomes have been confirmed. Client confidentiality will be preserved.',
+  },
+  {
+    id: 'fintech-preview',
+    title: 'FinTech case study',
+    sector: 'FinTech',
+    summary:
+      'A space for a confirmed financial technology project, from discovery through delivery.',
+    requirements: [
+      'Product and integration context',
+      'Analysis and delivery approach',
+      'Evidence of the resulting change',
+    ],
+    prompt:
+      'A financial technology project will be published here with an approved account of the problem, analysis approach and supported results.',
+  },
+  {
+    id: 'insurance-preview',
+    title: 'Insurance case study',
+    sector: 'Insurance',
+    summary:
+      'A space for a confirmed insurance project with clear responsibilities and supported outcomes.',
+    requirements: [
+      'Process or customer challenge',
+      'Requirements and decisions',
+      'Measured outcomes and limitations',
+    ],
+    prompt:
+      'An insurance project will be published here only after its relevance, responsibilities and results have been verified. No client or achievement is implied by this preview.',
+  },
+];
+---
+
+<section
+  id="projects"
+  class="portfolio-section projects-section"
+  aria-labelledby="projects-title"
+>
+  <div class="section-intro">
+    <p class="eyebrow">Featured projects</p>
+    <h2 id="projects-title">
+      Selected
+      <br />
+      Case Studies
+    </h2>
+    <p class="section-description">
+      {isPreview
+        ? 'The context. The challenge. The contribution. The result.'
+        : 'Real projects. Clear challenges. Thoughtful solutions.'}
+    </p>
+    <a class="text-link projects-section-link" href="#experience">
+      Explore the journey <Icon name="arrow" />
+    </a>
+  </div>
+  <div class="section-body">
+    <div class="project-grid">
+      {isPreview
+        ? previewBriefs.map((brief, index) => (
+            <article class="project-card" aria-labelledby={`${brief.id}-title`}>
+              <div class="project-image-wrap">
+                {thumbnails[index] ? (
+                  <Image
+                    src={thumbnails[index]}
+                    alt=""
+                    widths={[320, 480, 720]}
+                    sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
+                    width={720}
+                    loading="lazy"
+                    class="project-image"
+                  />
+                ) : (
+                  <div class="project-image-placeholder" aria-hidden="true">
+                    <Icon
+                      name={
+                        index === 0 ? 'layers' : index === 1 ? 'code' : 'shield'
+                      }
+                    />
+                  </div>
+                )}
+                <span class="project-sector">{brief.sector}</span>
+                {thumbnails[index] && (
+                  <span class="project-image-caption">Illustrative image</span>
+                )}
+              </div>
+              <div class="project-content">
+                <p class="project-status">Preview · not a published project</p>
+                <h3 id={`${brief.id}-title`}>{brief.title}</h3>
+                <p class="project-summary">{brief.summary}</p>
+                <ul
+                  class="project-points"
+                  aria-label="Details awaiting confirmation"
+                >
+                  {brief.requirements.map((requirement) => (
+                    <li>
+                      <Icon name="file" />
+                      <span>{requirement}</span>
+                    </li>
+                  ))}
+                </ul>
+                <details class="project-details">
+                  <summary>
+                    View preparation brief <Icon name="arrow" />
+                  </summary>
+                  <div class="project-details-body">
+                    <h4>Prepared for a real story</h4>
+                    <p>{brief.prompt}</p>
+                    <p class="project-image-note">
+                      Illustrative imagery. No client relationship is
+                      represented.
+                    </p>
+                  </div>
+                </details>
+              </div>
+            </article>
+          ))
+        : projects.map((project, index) => (
+            <article
+              class="project-card"
+              aria-labelledby={`${project.id}-title`}
+            >
+              <div class="project-image-wrap">
+                {project.data.image ? (
+                  <img
+                    src={withBasePath(project.data.image.path, base)}
+                    alt={project.data.image.alt}
+                    width="720"
+                    height="420"
+                    loading="lazy"
+                    decoding="async"
+                    class="project-image"
+                  />
+                ) : thumbnails[index] ? (
+                  <Image
+                    src={thumbnails[index]}
+                    alt=""
+                    widths={[320, 480, 720]}
+                    sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
+                    width={720}
+                    loading="lazy"
+                    class="project-image"
+                  />
+                ) : (
+                  <div class="project-image-placeholder" aria-hidden="true">
+                    <Icon name="layers" />
+                  </div>
+                )}
+                {project.data.sector && (
+                  <span class="project-sector">{project.data.sector}</span>
+                )}
+                {!project.data.image && thumbnails[index] && (
+                  <span class="project-image-caption">Illustrative image</span>
+                )}
+              </div>
+              <div class="project-content">
+                <h3 id={`${project.id}-title`}>{project.data.title}</h3>
+                <p class="project-summary">{project.data.summary}</p>
+                {project.data.outcomes.length > 0 && (
+                  <ul class="project-points" aria-label="Project outcomes">
+                    {project.data.outcomes.map((outcome) => (
+                      <li>
+                        <Icon name="complete" />
+                        <span>{outcome}</span>
+                      </li>
+                    ))}
+                  </ul>
+                )}
+                <details class="project-details">
+                  <summary>
+                    View project details <Icon name="arrow" />
+                  </summary>
+                  <div class="project-details-body">
+                    <h4>The challenge</h4>
+                    <p>{project.data.challenge}</p>
+                    <h4>My contribution</h4>
+                    <p>{project.data.contribution}</p>
+                    {project.data.limitations.length > 0 && (
+                      <>
+                        <h4>Context &amp; limitations</h4>
+                        <ul>
+                          {project.data.limitations.map((limitation) => (
+                            <li>{limitation}</li>
+                          ))}
+                        </ul>
+                      </>
+                    )}
+                    {project.data.link && (
+                      <a
+                        class="project-external"
+                        href={project.data.link}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        {project.data.link.startsWith(
+                          'https://www.linkedin.com/',
+                        )
+                          ? 'Source: LinkedIn'
+                          : 'Supporting source'}
+                        <Icon name="external" />
+                        <span class="sr-only"> (opens in a new tab)</span>
+                      </a>
+                    )}
+                  </div>
+                </details>
+              </div>
+            </article>
+          ))}
+    </div>
+    {isPreview && (
+      <p class="preview-note projects-preview-note">
+        Case study previews · professional details and outcomes await
+        confirmation.
+      </p>
+    )}
+  </div>
+</section>
+
+<style>
+  .project-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    align-items: start;
+    gap: var(--space-4);
+  }
+  .project-card {
+    min-width: 0;
+    overflow: clip;
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-card);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-card);
+    transition:
+      transform var(--duration-normal) var(--ease-standard),
+      box-shadow var(--duration-normal) var(--ease-standard),
+      border-color var(--duration-normal) var(--ease-standard);
+  }
+  @media (hover: hover) and (prefers-reduced-motion: no-preference) {
+    .project-card:hover {
+      transform: translateY(-3px);
+      border-color: var(--color-border);
+      box-shadow: var(--shadow-elevated);
+    }
+    .project-card:hover .project-image {
+      transform: scale(1.025);
+    }
+  }
+  .project-card:focus-within {
+    border-color: var(--color-primary);
+    box-shadow: var(--shadow-elevated);
+  }
+  .project-image-wrap {
+    position: relative;
+    overflow: hidden;
+    background: var(--color-background-secondary);
+    aspect-ratio: 1.85;
+  }
+  .project-image,
+  .project-image-placeholder {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .project-image {
+    transition: transform var(--duration-normal) var(--ease-standard);
+  }
+  .project-image-placeholder {
+    display: grid;
+    place-items: center;
+    color: var(--color-primary);
+    background: linear-gradient(
+      135deg,
+      var(--color-background-secondary),
+      var(--color-border)
+    );
+  }
+  .project-image-placeholder :global(.icon) {
+    width: var(--space-10);
+    height: var(--space-10);
+  }
+  .project-sector {
+    position: absolute;
+    top: var(--space-3);
+    left: var(--space-3);
+    padding: var(--space-1) var(--space-3);
+    border: 1px solid rgb(255 255 255 / 25%);
+    border-radius: var(--radius-small);
+    color: var(--color-on-primary);
+    background: var(--gradient-primary);
+    box-shadow: var(--shadow-card);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+  }
+  .project-image-caption {
+    position: absolute;
+    right: var(--space-2);
+    bottom: var(--space-2);
+    padding: var(--space-1) var(--space-2);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-small);
+    background: var(--color-surface);
+    color: var(--color-text-muted);
+    font-size: 0.625rem;
+    line-height: 1.4;
+  }
+  .project-content {
+    padding: var(--space-4);
+  }
+  .project-status {
+    margin-bottom: var(--space-2);
+    color: var(--color-text-muted);
+    font-size: 0.625rem;
+    line-height: 1.5;
+  }
+  .project-content h3 {
+    font-size: var(--text-small);
+    line-height: 1.35;
+    letter-spacing: -0.025em;
+  }
+  .project-summary {
+    margin-top: var(--space-2);
+    color: var(--color-text-secondary);
+    font-size: var(--text-caption);
+    line-height: 1.6;
+  }
+  .project-points {
+    display: grid;
+    gap: var(--space-2);
+    padding: 0;
+    margin: var(--space-3) 0 var(--space-1);
+    list-style: none;
+  }
+  .project-points li {
+    display: flex;
+    align-items: start;
+    gap: var(--space-2);
+    color: var(--color-text-secondary);
+    font-size: var(--text-caption);
+    line-height: 1.5;
+  }
+  .project-points :global(.icon) {
+    width: 0.875rem;
+    height: 0.875rem;
+    margin-top: 0.125rem;
+    color: var(--color-primary);
+  }
+  .project-details summary {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--touch-target);
+    width: fit-content;
+    border-radius: var(--radius-small);
+    list-style: none;
+    color: var(--color-primary);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-semibold);
+    cursor: pointer;
+    text-underline-offset: 0.25em;
+  }
+  .project-details summary::-webkit-details-marker {
+    display: none;
+  }
+  .project-details summary:hover {
+    color: var(--color-hover);
+    text-decoration: underline;
+  }
+  .project-details summary :global(.icon) {
+    width: 1rem;
+    height: 1rem;
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+  .project-details[open] summary :global(.icon) {
+    transform: rotate(90deg);
+  }
+  .project-details-body {
+    display: grid;
+    gap: var(--space-2);
+    padding-block: var(--space-3) var(--space-1);
+    border-top: 1px solid var(--color-divider);
+    font-size: var(--text-caption);
+    line-height: 1.65;
+    color: var(--color-text-secondary);
+  }
+  .project-details-body h4 {
+    margin-top: var(--space-2);
+    font-size: var(--text-caption);
+    letter-spacing: 0;
+    line-height: 1.5;
+  }
+  .project-details-body ul {
+    padding-left: var(--space-4);
+    margin: 0;
+  }
+  .project-image-note {
+    margin-top: var(--space-2);
+    color: var(--color-text-muted);
+    font-style: italic;
+  }
+  .project-external {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--touch-target);
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+  .projects-section-link {
+    margin-top: var(--space-4);
+  }
+  .projects-preview-note {
+    margin-top: var(--space-4);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+    line-height: 1.5;
+  }
+  @media (width < 64rem) and (width >= 48rem) {
+    .project-grid {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .project-card:last-child {
+      grid-column: 1 / -1;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+    .project-card:last-child .project-image-wrap {
+      aspect-ratio: auto;
+      min-height: 100%;
+    }
+  }
+  @media (width < 48rem) {
+    .project-grid {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-5);
+    }
+    .project-content {
+      padding: var(--space-5);
+    }
+    .project-content h3 {
+      font-size: var(--text-h4);
+    }
+    .project-summary,
+    .project-points li,
+    .project-details summary {
+      font-size: var(--text-small);
+    }
+    .project-status {
+      font-size: var(--text-caption);
+    }
+    .project-details-body {
+      font-size: var(--text-small);
+    }
+    .projects-section-link {
+      margin-top: var(--space-2);
+    }
+  }
+</style>

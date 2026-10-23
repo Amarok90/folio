@@ -1,0 +1,160 @@
+---
+import { getCollection } from 'astro:content';
+import { publishedEntries } from '../../lib/content';
+import Icon, { type IconName } from '../ui/Icon.astro';
+const entries = publishedEntries(await getCollection('professionalHighlights'));
+const icons: IconName[] = ['clipboard', 'briefcase', 'workflow', 'building'];
+---
+
+<section id="highlights" class="highlights" aria-labelledby="highlights-title">
+  <h2 id="highlights-title" class="sr-only">
+    Professional highlights
+  </h2>
+  <dl>
+    {entries.map((entry, index) => (
+      <div class="highlight">
+        <Icon name={icons[index] ?? 'complete'} />
+        <dt>{entry.data.label}</dt>
+        <dd
+          class:list={[
+            'highlight-value',
+            { 'highlight-value--long': String(entry.data.value).length > 11 },
+          ]}
+        >
+          {entry.data.value}
+        </dd>
+        {entry.data.context && (
+          <dd class="highlight-context">{entry.data.context}</dd>
+        )}
+      </div>
+    ))}
+  </dl>
+</section>
+<style>
+  .highlights {
+    position: relative;
+    z-index: 4;
+    margin: calc(-1 * var(--space-8)) var(--space-4) 0;
+    padding: var(--space-6) var(--space-5);
+    background: rgb(255 255 255 / 97%);
+    border: 1px solid var(--color-divider);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+  }
+  dl {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    margin: 0;
+  }
+  .highlight {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    align-items: flex-start;
+    padding-inline: var(--space-6);
+    border-right: 1px solid var(--color-border);
+  }
+  .highlight:first-child {
+    padding-left: var(--space-3);
+  }
+  .highlight:last-child {
+    border: 0;
+  }
+  .highlight :global(.icon) {
+    color: var(--color-primary);
+    margin-bottom: var(--space-2);
+  }
+  dt {
+    order: 2;
+    font-size: 0.875rem;
+    font-weight: var(--weight-semibold);
+    line-height: 1.25;
+  }
+  dd {
+    margin: 0;
+  }
+  .highlight-value {
+    order: 1;
+    font-size: clamp(1.7rem, 2.7vw, 2.25rem);
+    color: var(--color-text);
+    font-weight: var(--weight-bold);
+    line-height: 1.1;
+    letter-spacing: -0.04em;
+  }
+  .highlight-value--long {
+    font-size: clamp(1.25rem, 2vw, 1.7rem);
+  }
+  .highlight-context {
+    order: 3;
+    color: var(--color-text-secondary);
+    font-size: 0.8125rem;
+    line-height: 1.35;
+    max-width: 22ch;
+    margin-top: var(--space-2);
+  }
+  @media (width < 48rem) {
+    .highlights {
+      margin: 0;
+      padding: var(--space-5);
+    }
+    dl {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: var(--space-5) var(--space-3);
+    }
+    .highlight {
+      padding: 0;
+      border: 0;
+    }
+    .highlight:first-child {
+      padding-left: 0;
+    }
+    .highlight-value {
+      font-size: 1.8rem;
+    }
+    .highlight-value--long {
+      font-size: 1.2rem;
+    }
+    dt {
+      font-size: 0.75rem;
+    }
+    .highlight-context {
+      font-size: 0.75rem;
+    }
+  }
+  @media (width < 27rem) {
+    dl {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-4);
+    }
+    .highlight {
+      position: relative;
+      padding-left: var(--space-10);
+      display: grid;
+      grid-template-columns: auto 1fr;
+      gap: var(--space-1) var(--space-3);
+      align-items: center;
+    }
+    .highlight:first-child {
+      padding-left: var(--space-10);
+    }
+    .highlight :global(.icon) {
+      position: absolute;
+      left: 0;
+      top: var(--space-1);
+    }
+    .highlight-value {
+      grid-column: 1;
+      grid-row: 1;
+      font-size: 1.5rem;
+    }
+    dt {
+      grid-column: 2;
+      grid-row: 1;
+    }
+    .highlight-context {
+      grid-column: 1 / -1;
+      max-width: 100%;
+      margin-top: 0;
+    }
+  }
+</style>
