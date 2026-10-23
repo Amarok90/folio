@@ -38,7 +38,7 @@ describe('design system accessibility invariants', () => {
     'color-text',
     'color-text-secondary',
     'color-text-muted',
-    'color-primary',
+    'color-primary-text',
     'color-secondary',
   ] as const)(
     '%s meets AA on the lightest and tinted surfaces',
@@ -51,6 +51,10 @@ describe('design system accessibility invariants', () => {
         expect(contrast(foreground, background)).toBeGreaterThanOrEqual(4.5);
     },
   );
+  it('keeps the approved brand accent distinguishable for non-text graphics', () => {
+    for (const background of ['color-surface', 'color-background-secondary'])
+      expect(contrast('color-primary', background)).toBeGreaterThanOrEqual(3);
+  });
   it('preserves AA text contrast at both gradient endpoints and the dark footer', () => {
     for (const background of ['color-gradient-start', 'color-gradient-end'])
       expect(contrast('color-on-primary', background)).toBeGreaterThanOrEqual(

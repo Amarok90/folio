@@ -1,3 +1,54 @@
+# FOLIO — Signature Executive design verification, 2026-10-23
+
+**Visual implementation: passed within the explicit layout and verified-content constraints below. Full owner-content acceptance remains pending.** No pixel-perfect or 17/17 certification is asserted: the available request supplies the current requirements but no separate list of seventeen prior objectives.
+
+## Visual truth and comparison evidence
+
+Source: `/tmp/codex-remote-attachments/01a16713-c634-7441-b3a4-485398a30445/EEBF85ED-C899-4AF3-80DE-5CF44A2847BC/1-Вставленное-изображение-1.jpg`, 853×1280 physical pixels. Its original CSS viewport/density is unknown; it is a design reference, not a measured browser capture.
+
+Rendered implementation: `artifacts/design-refinement/active-release-v2/screenshots/folio-1440.png`, 1440×4144 pixels, CSS viewport 1440×1000, device scale factor 1. Additional complete captures cover 320, 390, 768, 1024 and 1920px. State: all main sections, first expertise category, collapsed project/role disclosures, optional analytics rejected. No synthetic assessment values or fake CV appear.
+
+Actual combined comparison inputs were opened and inspected: `artifacts/diamond/comparisons/overview-v1.png`, `hero-v1.png`, `overview-v2.png`, `hero-v2.png`. Source is left; the implementation's centered 1200px content canvas is cropped and proportionally resized to 853px on the right. No vertical stretching or device chrome is compared. Full overview evaluates composition and rhythm; the focused Hero comparison evaluates readable typography, image crop, buttons, colors and content hierarchy. The explicit 56–104px spacing and longer verified career explain the taller implementation; this normalization does not establish identical source viewport or pixel fidelity.
+
+Native Opera evidence: `artifacts/diamond/opera/03-final-local-1440.png`, `04-final-local-320.png`, `05-final-local-mobile-about-keyboard.png`. The Opera connector was disconnected; the actual installed Opera application was controlled and inspected natively. Desktop and small-mobile rendering were viewed; pointer menu opening, Tab/Enter anchor navigation, menu closure and target focus were verified. Browser chrome in these native screenshots is retained as provenance and is excluded from the content-only comparison boards.
+
+## Findings and remediation history
+
+- **P1, composition:** the previous uniform panels did not implement the newer Skills/image split, portrait-first About or combined education timeline. Refined reusable Astro components implement those layouts without replacing the architecture or professional records. Post-fix full-page captures show the section order and intended asymmetry.
+- **P2, accessibility:** changing the primary brand blue exposed insufficient Privacy Policy link contrast. Link text now uses `--color-primary-text`; the approved lighter brand color remains a non-text accent. Repeated actual axe checks passed; the test was not removed.
+- **P2, optional CMS image:** clearing analytics imagery left an empty column. The text-only modifier now spans the full skills grid; an isolated real CMS build protects this fallback.
+- **P2, score boundary:** a two-character numeric slot could not contain the valid 100-point assessment. A three-character slot and a rendered text-range boundary assertion protect the value.
+- **P2, timeline density:** duplicated summaries and skill badges made initial scanning unnecessarily tall. All role-specific facts remain in native keyboard-operable disclosures; role, employer, dates and education remain visible.
+- **P2, first visual comparison:** the desktop name overpowered the reference proportions and the 768px analytics figure became tall/narrow. The second iteration uses a 4.1rem maximum name, a concise source-backed introduction and a landscape figure below skills under 1024px. Same-viewport v2 captures were compared with v1 and the source; both findings are closed. An independent visual reviewer found no additional actionable P0/P1/P2 issue.
+
+## Required fidelity surfaces
+
+- **Typography:** self-hosted Inter Variable, navy expressive headings, fluid sizing, readable small text, tabular numeric labels and stable wrapping. Caveat is retained only for the existing handwritten accent. No font family or runtime dependency added.
+- **Spacing/layout:** 1200px centered canvas, explicit 56–104px section rhythm, Hero/highlights overlap, Skills approximately 65/35 on desktop, Projects introduction/cards approximately 30/70, compact timeline and portrait-left About. At tablet/mobile, grids stack and the analytics crop stays stable. All twelve tested widths from 320 through 1920px remain free of document overflow.
+- **Colors/tokens:** exact owner palette #488AA0/#3C7689/#082345/#EAF4F6/#FFFFFF; separate AA text, focus and darker button-gradient tokens; restrained borders, shadows and 180–220ms motion with reduced-motion support.
+- **Images:** six existing assets reused; only the missing analytics workspace illustration generated, optimized to responsive WebP and centrally editable. Portrait replacement still updates Hero/About together. Temporary identity and illustrative project/analytics captions remain truthful. The source screenshot is never rendered as the UI.
+- **Copy/content:** verified metrics, employers, month dates, education, contributions, email and LinkedIn preserved. Introduction/About reduce repetition. Empty Languages is omitted. No career/project count, certification, proficiency or regulatory result is invented.
+
+## Intentional constraints and external acceptance
+
+The explicit requested layout table takes priority over the small image's adjacent Projects/Career panels: a readable three-card 70% project area is followed by its own Career & Education section. The current external-bank-statements case keeps its verified title and contribution rather than asserting unverified PSD2/regulatory outcomes from reference artwork.
+
+All 37 real skills currently have no owner-approved numeric assessments. CMS supports independent nullable whole-number self-assessments from 1 to 100; approved values render accessible native meters with numeric labels and an explicit self-assessment caption. Unknown values render no misleading meter; isolated 1/100/null fixtures are not published claims. Owner confirmation of screenshot values is pending.
+
+The owner previously authorized a temporary portrait; no authentic replacement has been provided. A reviewed PDF candidate exists outside Git but is not owner-approved for publication. No Download CV label redirects to LinkedIn: the genuine action remains **View CV** until an approved PDF is selected. Public PDF-download acceptance therefore remains pending; local safe PDF upload/download contracts passed. Live Pages CMS installation/save/upload/rollback and Clarity dashboard authentication remain separate existing external checks, not newly certified by this visual work.
+
+## Automated evidence and release boundary
+
+Full local gate after actual defect remediation: strict Astro/TypeScript, ESLint, Prettier, 153 unit tests, 7 isolated CMS workflows, 37 base-path E2E, 37 standard E2E, 19 consent/resilience tests and npm audit with zero vulnerabilities passed (`artifacts/design-refinement/make-check-final.log`). After the final Hero/tablet refinement, strict/lint/format/static build and 37 exact active/indexable E2E passed again (`active-release-v2/e2e.log`, `results.json`). Local Lighthouse: mobile 99/100/100/100, desktop 100/100/100/100; these are candidate lab results, not public-site or field Core Web Vitals evidence.
+
+The production workflow, Clarity project/consent boundary, analytics event contract, hosting, content collections, SEO and architecture remain intact. Remote CI, deployment and post-publication evidence must be checked for the resulting commit; local results do not certify a later public deployment.
+
+**Implementation checklist:** visual iteration complete; responsive/keyboard/axe checks passed; CMS nullable/image/PDF contracts retained; no fabricated owner data; deployment and public smoke verification follow this candidate gate. No remaining code-level P0/P1/P2 finding. Original photo, approved scores/PDF and authenticated external service acceptance remain explicit owner dependencies.
+
+final result: passed
+
+---
+
 # FOLIO Task 4 — public release verification, 2026-10-23
 
 **Public website: PASS. Full CMS-managed certification: pending live CMS acceptance.** The owner approved public visibility and confirmed GitHub Mobile sudo authentication. The repository is now public; Pages uses GitHub Actions with HTTPS enforced and `PAGES_DEPLOY_ENABLED=true`. [Pages production run 39938621033](https://github.com/Amarok90/folio/actions/runs/39938621033) built and deployed exact commit `0faa923fd76f0ca8e8eb399699ea99cac5292fa6`; both jobs and the stale-commit guard passed. A real HTTPS request to [FOLIO](https://amarok90.github.io/folio/) returned 200 with certificate verification passing.

@@ -7,11 +7,25 @@ import CVAction from '../ui/CVAction.astro';
 import Icon from '../ui/Icon.astro';
 
 const experience = publishedEntries(await getCollection('experience'));
-const timelineGroups = [
-  { entries: experience.slice(0, 4), earlier: false },
-  ...(experience.length > 4
-    ? [{ entries: experience.slice(4), earlier: true }]
-    : []),
+const education = publishedEntries(await getCollection('education'));
+const timeline = [
+  ...experience.map(({ id, data }) => ({
+    ...data,
+    id: `experience-${id}`,
+    kind: 'experience' as const,
+    title: data.role,
+  })),
+  ...education.map(({ id, data }) => ({
+    ...data,
+    id: `education-${id}`,
+    kind: 'education' as const,
+    title: data.qualification,
+    organization: data.institution,
+    location: null,
+    summary: data.field,
+    achievements: [],
+    skillIds: [],
+  })),
 ];
 const skills = new Map(
   publishedEntries(await getCollection('skills')).map(({ id, data }) => [
@@ -39,13 +53,17 @@ const monthLabel = (date: string): string => {
     <h2 id="experience-title">
       {ui.journey.titleLines.map((line, index) => (
         <>
-          {index > 0 && <br />}
+          {index > 0 && (
+            <>
+              <br />{' '}
+            </>
+          )}
           {line}
         </>
       ))}
     </h2>
     <p>
-      {experience.length > 0
+      {timeline.length > 0
         ? ui.journey.description
         : ui.journey.emptyDescription}
     </p>
@@ -53,112 +71,105 @@ const monthLabel = (date: string): string => {
   </div>
 
   <div class="section-body journey__body">
-    {experience.length > 0 ? (
-      timelineGroups.map((group) => {
-        const GroupContainer = group.earlier ? 'details' : 'div';
-        return (
-          <GroupContainer
+    {timeline.length > 0 ? (
+      <ol
+        class="career-timeline"
+        aria-label="Professional experience and education"
+      >
+        {timeline.map((entry) => (
+          <li
             class:list={[
-              'career-group',
-              { 'career-group--earlier': group.earlier },
+              'career-step',
+              { 'career-step--education': entry.kind === 'education' },
             ]}
+            id={entry.id}
           >
-            {group.earlier && (
-              <summary>
-                {ui.journey.earlierLabel} <Icon name="chevron" />
-              </summary>
-            )}
-            <ol
-              class="career-timeline"
-              aria-label={
-                group.earlier
-                  ? 'Earlier professional experience'
-                  : 'Professional experience'
-              }
-            >
-              {group.entries.map(({ id, data }) => (
-                <li class="career-step" id={`experience-${id}`}>
-                  <p class="career-step__date">
-                    <time datetime={data.startDate}>
-                      {monthLabel(data.startDate)}
-                    </time>
-                    <span aria-hidden="true"> — </span>
-                    {data.endDate ? (
-                      <time datetime={data.endDate}>
-                        {monthLabel(data.endDate)}
-                      </time>
-                    ) : (
-                      <span>{ui.journey.presentLabel}</span>
-                    )}
+            <p class="career-step__date">
+              <time datetime={entry.startDate}>
+                {monthLabel(entry.startDate)}
+              </time>
+              <span aria-hidden="true"> — </span>
+              {entry.endDate ? (
+                <time datetime={entry.endDate}>
+                  {monthLabel(entry.endDate)}
+                </time>
+              ) : (
+                <span>
+                  {entry.kind === 'education'
+                    ? ui.common.ongoingLabel
+                    : ui.journey.presentLabel}
+                </span>
+              )}
+            </p>
+            <span class="career-step__icon">
+              <Icon
+                name={
+                  entry.kind === 'education'
+                    ? 'education'
+                    : entry.current
+                      ? 'briefcase'
+                      : 'users'
+                }
+              />
+            </span>
+            <div class="career-step__content">
+              <div class="career-step__heading">
+                <div>
+                  {entry.kind === 'education' && (
+                    <p class="career-step__category">
+                      {ui.about.educationTitle}
+                    </p>
+                  )}
+                  <h3>{entry.title}</h3>
+                  <p class="career-step__organization">
+                    {entry.organization}
+                    {entry.location && ` · ${entry.location}`}
                   </p>
-                  <span class="career-step__icon">
-                    <Icon name={data.current ? 'briefcase' : 'users'} />
-                  </span>
-                  <div class="career-step__content">
-                    <div class="career-step__heading">
-                      <div>
-                        <h3>{data.role}</h3>
-                        <p class="career-step__organization">
-                          {data.organization}
-                          {data.location && ` · ${data.location}`}
-                        </p>
-                      </div>
-                      {data.skillIds.length > 0 && (
-                        <div
-                          class="career-step__skills"
-                          aria-label="Key skills used"
-                        >
-                          {data.skillIds
-                            .slice(0, 2)
-                            .map(
-                              (skillId) =>
-                                skills.has(skillId) && (
-                                  <Badge>{skills.get(skillId)}</Badge>
-                                ),
-                            )}
-                        </div>
-                      )}
-                    </div>
-                    {data.summary && (
-                      <p class="career-step__summary">{data.summary}</p>
+                </div>
+              </div>
+              {entry.kind === 'education' && entry.summary && (
+                <p class="career-step__summary">{entry.summary}</p>
+              )}
+              {entry.kind === 'experience' &&
+                (entry.summary ||
+                  entry.achievements.length > 0 ||
+                  entry.skillIds.length > 0) && (
+                  <details class="career-step__details">
+                    <summary>
+                      {ui.journey.detailsLabel} <Icon name="chevron" />
+                    </summary>
+                    {entry.summary && (
+                      <p class="career-step__summary">{entry.summary}</p>
                     )}
-                    {data.achievements.length > 0 && (
-                      <details class="career-step__details">
-                        <summary>
-                          {ui.journey.detailsLabel} <Icon name="chevron" />
-                        </summary>
-                        <ul class="career-step__achievements">
-                          {data.achievements.map((achievement) => (
-                            <li>
-                              <Icon name="check" />
-                              <span>{achievement}</span>
-                            </li>
-                          ))}
-                        </ul>
-                        {data.skillIds.length > 2 && (
-                          <div
-                            class="career-step__additional-skills"
-                            aria-label="Additional skills used"
-                          >
-                            {data.skillIds
-                              .slice(2)
-                              .map(
-                                (skillId) =>
-                                  skills.has(skillId) && (
-                                    <Badge>{skills.get(skillId)}</Badge>
-                                  ),
-                              )}
-                          </div>
+                    {entry.achievements.length > 0 && (
+                      <ul class="career-step__achievements">
+                        {entry.achievements.map((achievement) => (
+                          <li>
+                            <Icon name="check" />
+                            <span>{achievement}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                    {entry.skillIds.length > 0 && (
+                      <div
+                        class="career-step__additional-skills"
+                        aria-label="Skills used"
+                      >
+                        {entry.skillIds.map(
+                          (skillId) =>
+                            skills.has(skillId) && (
+                              <Badge>{skills.get(skillId)}</Badge>
+                            ),
                         )}
-                      </details>
+                      </div>
                     )}
-                  </div>
-                </li>
-              ))}
-            </ol>
-          </GroupContainer>
-        );
-      })
+                  </details>
+                )}
+            </div>
+          </li>
+        ))}
+      </ol>
     ) : (
       <p>{ui.journey.emptyMessage}</p>
     )}
@@ -166,75 +177,56 @@ const monthLabel = (date: string): string => {
 </section>
 
 <style>
-  .journey {
+  .journey.portfolio-section {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 2.1fr);
     align-items: start;
+    gap: clamp(var(--space-8), 5vw, var(--space-16));
   }
   .journey__intro :global(.button) {
-    margin-top: var(--space-5);
+    margin-top: var(--space-6);
   }
   .career-timeline {
+    --timeline-date-width: 7.25rem;
+    --timeline-marker-size: 2.75rem;
     list-style: none;
     margin: 0;
     padding: 0;
   }
-  .career-group--earlier {
-    margin-top: var(--space-3);
-    padding-top: var(--space-2);
-    border-top: 1px solid var(--color-divider);
-  }
-  .career-group--earlier > summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: var(--touch-target);
-    width: fit-content;
-    color: var(--color-primary);
-    font-size: var(--text-small);
-    font-weight: var(--weight-medium);
-    cursor: pointer;
-    list-style: none;
-    text-underline-offset: 0.25em;
-  }
-  .career-group--earlier > summary::-webkit-details-marker {
-    display: none;
-  }
-  .career-group--earlier > summary:hover {
-    text-decoration: underline;
-  }
-  .career-group--earlier > summary :global(.icon) {
-    width: var(--space-3);
-    height: var(--space-3);
-    transition: transform var(--duration-normal) var(--ease-standard);
-  }
-  .career-group--earlier[open] > summary :global(.icon) {
-    transform: rotate(180deg);
-  }
   .career-step {
     position: relative;
     display: grid;
-    grid-template-columns: 7.75rem 3.5rem minmax(0, 1fr);
+    grid-template-columns:
+      var(--timeline-date-width) var(--timeline-marker-size)
+      minmax(0, 1fr);
     gap: var(--space-4);
-    padding-block: var(--space-2);
+    padding-bottom: var(--space-6);
   }
   .career-step::before {
     position: absolute;
     content: '';
     top: 0;
     bottom: 0;
-    left: calc(7.75rem + var(--space-4) + 1.75rem);
+    left: calc(
+      var(--timeline-date-width) + var(--space-4) +
+        var(--timeline-marker-size) / 2
+    );
     width: 1px;
     background: var(--color-border);
   }
   .career-step:first-child::before {
-    top: calc(var(--space-2) + 1.75rem);
+    top: calc(var(--timeline-marker-size) / 2);
   }
   .career-step:last-child::before {
-    bottom: calc(100% - var(--space-2) - 1.75rem);
+    bottom: calc(100% - var(--timeline-marker-size) / 2);
+  }
+  .career-step:last-child {
+    padding-bottom: 0;
   }
   .career-step__date {
-    padding-top: var(--space-4);
+    padding-top: var(--space-2);
     color: var(--color-text-muted);
     font-size: var(--text-caption);
+    line-height: 1.6;
     font-variant-numeric: tabular-nums;
     text-align: right;
   }
@@ -243,96 +235,67 @@ const monthLabel = (date: string): string => {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 3.5rem;
-    height: 3.5rem;
+    width: var(--timeline-marker-size);
+    height: var(--timeline-marker-size);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     background: var(--color-surface);
-    box-shadow: var(--shadow-card);
-    color: var(--color-primary);
+    color: var(--color-primary-text);
   }
   .career-step__icon :global(.icon) {
-    width: var(--space-6);
-    height: var(--space-6);
+    width: var(--space-5);
+    height: var(--space-5);
   }
   .career-step__content {
     min-width: 0;
-    padding-block: 0 var(--space-2);
+    padding-bottom: var(--space-4);
     border-bottom: 1px solid var(--color-divider);
-  }
-  .career-step__heading {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: start;
-    justify-content: space-between;
-    gap: var(--space-4);
-  }
-  .career-step__heading > div:first-child {
-    min-width: 0;
-    flex: 1 1 14rem;
   }
   .career-step:last-child .career-step__content {
     padding-bottom: 0;
     border-bottom: 0;
   }
+  .career-step__heading {
+    min-width: 0;
+  }
   .career-step h3 {
     font-size: var(--text-small);
-    line-height: 1.4;
-    letter-spacing: -0.02em;
+    line-height: 1.5;
+    letter-spacing: -0.015em;
     overflow-wrap: anywhere;
   }
-  .career-step__organization {
+  .career-step__category {
+    margin-bottom: var(--space-1);
+    color: var(--color-primary-text);
+    font-size: var(--text-caption);
+    font-weight: var(--weight-medium);
+  }
+  .career-step__organization,
+  .career-step__summary {
     color: var(--color-text-secondary);
-    font-size: var(--text-small);
+    font-size: var(--text-caption);
+    line-height: 1.65;
   }
   .career-step__summary {
-    max-width: 51ch;
-    margin-top: var(--space-2);
-    color: var(--color-text-secondary);
-    font-size: var(--text-small);
-    line-height: 1.55;
+    max-width: 60ch;
+    margin-top: var(--space-1);
   }
-  .career-step__achievements {
-    display: grid;
-    gap: var(--space-1);
-    list-style: none;
-    margin: var(--space-2) 0 0;
-    padding: 0;
-    color: var(--color-text-secondary);
-    font-size: var(--text-small);
-    line-height: 1.5;
-  }
-  .career-step__achievements li {
-    display: flex;
-    gap: var(--space-2);
-  }
-  .career-step__achievements :global(.icon) {
-    width: var(--space-3);
-    height: var(--space-5);
-    color: var(--color-primary);
-  }
-  .career-step__skills {
+  .career-step__additional-skills {
     display: flex;
     flex-wrap: wrap;
-    justify-content: end;
     gap: var(--space-2);
-    max-width: min(100%, 15rem);
-    flex: 0 1 auto;
   }
-  .career-step__skills :global(.badge) {
-    font-size: 0.625rem;
-  }
-  .career-step__details {
-    margin-top: var(--space-1);
+  .career-step__additional-skills :global(.badge) {
+    font-size: var(--text-caption);
+    padding: var(--space-1) var(--space-2);
   }
   .career-step__details summary {
     display: inline-flex;
     align-items: center;
     gap: var(--space-2);
     min-height: var(--touch-target);
-    padding-block: var(--space-2);
     list-style: none;
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     font-size: var(--text-caption);
     font-weight: var(--weight-medium);
     cursor: pointer;
@@ -352,72 +315,46 @@ const monthLabel = (date: string): string => {
   .career-step__details[open] summary :global(.icon) {
     transform: rotate(180deg);
   }
-  .career-step__additional-skills {
-    display: flex;
-    flex-wrap: wrap;
+  .career-step__details .career-step__summary {
+    margin-block: 0 var(--space-3);
+  }
+  .career-step__achievements {
+    display: grid;
     gap: var(--space-2);
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    color: var(--color-text-secondary);
+    font-size: var(--text-small);
+    line-height: 1.6;
+  }
+  .career-step__achievements li {
+    display: flex;
+    align-items: start;
+    gap: var(--space-2);
+  }
+  .career-step__achievements :global(.icon) {
+    width: var(--space-3);
+    height: var(--space-5);
+    color: var(--color-primary-text);
+  }
+  .career-step__additional-skills {
     margin-top: var(--space-3);
   }
-  .journey-preview__label {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-bottom: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-pill);
-    background: var(--color-background-secondary);
-    color: var(--color-text-secondary);
-    font-size: var(--text-caption);
-    line-height: 1.4;
-  }
-  .journey-preview__dot {
-    width: var(--space-1);
-    height: var(--space-1);
-    border-radius: var(--radius-pill);
-    background: var(--color-primary);
-    flex-shrink: 0;
-  }
-  .career-timeline--preview .career-step {
-    grid-template-columns: var(--space-8) 3.5rem minmax(0, 1fr);
-    padding-block: var(--space-3);
-  }
-  .career-timeline--preview .career-step::before {
-    left: calc(var(--space-8) + var(--space-4) + 1.75rem);
-  }
-  .career-step__pending {
-    display: inline-block;
-    margin-top: var(--space-2);
-    color: var(--color-text-muted);
-    font-size: var(--text-caption);
-  }
   @media (width < 64rem) {
-    .career-step__heading {
-      flex-direction: column;
-      gap: var(--space-2);
+    .career-timeline {
+      --timeline-marker-size: 2.5rem;
     }
-    .career-step__heading > div:first-child {
-      flex: auto;
+    .career-step {
+      grid-template-columns: var(--timeline-marker-size) minmax(0, 1fr);
+      gap: var(--space-2) var(--space-3);
     }
-    .career-step__skills {
-      justify-content: start;
-      max-width: none;
-    }
-    .career-step,
-    .career-timeline--preview .career-step {
-      grid-template-columns: 2.75rem minmax(0, 1fr);
-      gap: var(--space-3);
-      padding-block: var(--space-3);
-    }
-    .career-step::before,
-    .career-timeline--preview .career-step::before {
-      left: 1.375rem;
+    .career-step::before {
+      left: calc(var(--timeline-marker-size) / 2);
     }
     .career-step__icon {
       grid-row: 1 / 3;
       grid-column: 1;
-      width: 2.75rem;
-      height: 2.75rem;
     }
     .career-step__date {
       grid-column: 2;
@@ -426,16 +363,18 @@ const monthLabel = (date: string): string => {
     }
     .career-step__content {
       grid-column: 2;
-      padding-top: 0;
     }
-    .career-timeline--preview .career-step__date {
+  }
+  @media (width < 48rem) {
+    .journey.portfolio-section {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-8);
+    }
+    .journey__intro h2 br {
       display: none;
     }
-    .career-step:first-child::before {
-      top: calc(var(--space-3) + 1.375rem);
-    }
-    .career-step:last-child::before {
-      bottom: calc(100% - var(--space-3) - 1.375rem);
+    .career-step {
+      padding-bottom: var(--space-5);
     }
   }
 </style>

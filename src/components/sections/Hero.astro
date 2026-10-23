@@ -10,11 +10,6 @@ import Button from '../ui/Button.astro';
 import CVAction from '../ui/CVAction.astro';
 import Icon from '../ui/Icon.astro';
 const [givenName, ...familyName] = profile.identity.name.split(' ');
-const approachIcons = ['clipboard', 'workflow', 'users', 'target'] as const;
-const approach = profile.hero.approach.map((text, index) => ({
-  icon: approachIcons[index] ?? 'target',
-  text,
-}));
 ---
 
 <section id="home" class="hero" aria-labelledby="home-title">
@@ -25,7 +20,7 @@ const approach = profile.hero.approach.map((text, index) => ({
     quality={65}
     fetchpriority="high"
     widths={[640, 960, 1280, 1600]}
-    sizes="(max-width: 767px) 100vw, 1216px"
+    sizes="(max-width: 767px) 100vw, 1200px"
     format="webp"
     loading="eager"
     decoding="async"
@@ -106,21 +101,13 @@ const approach = profile.hero.approach.map((text, index) => ({
       </li>
     )}
   </ul>
-  <div class="hero-approach" aria-label="Business analysis approach">
-    {approach.map((item) => (
-      <div>
-        <Icon name={item.icon} />
-        <span>{item.text}</span>
-      </div>
-    ))}
-  </div>
 </section>
 <style>
   .hero {
     position: relative;
     isolation: isolate;
     overflow: hidden;
-    min-height: 33rem;
+    min-height: 32rem;
     border-radius: var(--radius-section);
     padding: var(--space-12) var(--section-padding) var(--space-12);
     background: var(--color-background-secondary);
@@ -151,7 +138,7 @@ const approach = profile.hero.approach.map((text, index) => ({
   .hero-copy {
     position: relative;
     z-index: 2;
-    width: 51%;
+    width: 48%;
     max-width: 37rem;
   }
   .hero-copy .eyebrow::before {
@@ -164,7 +151,7 @@ const approach = profile.hero.approach.map((text, index) => ({
     background: var(--color-accent);
   }
   h1 {
-    font-size: clamp(2.5rem, 5.6vw, 4.5rem);
+    font-size: clamp(2.6rem, 5.2vw, 4.1rem);
     font-weight: var(--weight-bold);
     line-height: 0.96;
     letter-spacing: -0.05em;
@@ -176,7 +163,7 @@ const approach = profile.hero.approach.map((text, index) => ({
   .hero-headline {
     font-size: clamp(1.05rem, 1.8vw, 1.45rem);
     line-height: 1.22;
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     max-width: 27ch;
     margin-bottom: var(--space-4);
   }
@@ -184,15 +171,15 @@ const approach = profile.hero.approach.map((text, index) => ({
     color: var(--color-text-secondary);
     font-size: 0.9375rem;
     line-height: 1.45;
-    max-width: 47ch;
+    max-width: 43ch;
   }
   .hero-portrait {
     position: absolute;
     z-index: -1;
-    right: 9%;
+    right: 4%;
     top: 0;
     bottom: 0;
-    width: 47%;
+    width: 50%;
   }
   .hero-person {
     width: 100%;
@@ -250,7 +237,7 @@ const approach = profile.hero.approach.map((text, index) => ({
     list-style: none;
     padding: 0;
     margin: var(--space-5) 0 0;
-    max-width: 70%;
+    max-width: 62%;
   }
   .hero-availability li {
     display: flex;
@@ -263,31 +250,6 @@ const approach = profile.hero.approach.map((text, index) => ({
     width: 1rem;
     height: 1rem;
   }
-  .hero-approach {
-    position: absolute;
-    right: var(--space-5);
-    bottom: var(--space-16);
-    width: 12.5rem;
-    padding: var(--space-4);
-    display: grid;
-    gap: var(--space-3);
-    border: 1px solid rgb(255 255 255 / 80%);
-    border-radius: var(--radius-card);
-    background: rgb(255 255 255 / 88%);
-    box-shadow: var(--shadow-card);
-  }
-  .hero-approach div {
-    display: flex;
-    align-items: center;
-    gap: var(--space-3);
-  }
-  .hero-approach :global(.icon) {
-    color: var(--color-primary);
-  }
-  .hero-approach span {
-    font-size: 0.6875rem;
-    line-height: 1.35;
-  }
   @media (width < 64rem) {
     .hero {
       min-height: 31rem;
@@ -299,9 +261,6 @@ const approach = profile.hero.approach.map((text, index) => ({
     .hero-signature {
       right: 0;
       top: var(--space-8);
-    }
-    .hero-approach {
-      display: none;
     }
     .hero-description {
       max-width: 39ch;
@@ -384,9 +343,6 @@ const approach = profile.hero.approach.map((text, index) => ({
     .hero-availability li {
       font-size: 0.75rem;
       padding-block: var(--space-1);
-    }
-    .hero-approach {
-      display: none;
     }
     .portrait-note {
       right: auto;

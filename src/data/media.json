@@ -10,6 +10,11 @@
   "contact": {
     "path": "/src/assets/contact.webp"
   },
+  "analytics": {
+    "path": "/src/assets/analytics-workspace.webp",
+    "alt": "Illustrative laptop with a blue analytics dashboard in a naturally lit workspace",
+    "illustrative": true
+  },
   "logo": null,
   "projects": [
     {

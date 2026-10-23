@@ -133,7 +133,7 @@
     display: flex;
     align-items: center;
     gap: var(--space-3);
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     font-weight: var(--weight-semibold);
     text-transform: uppercase;
     font-size: 0.6875rem;
@@ -184,7 +184,7 @@
   }
   .button--secondary:hover {
     background: var(--color-background-secondary);
-    border-color: var(--color-primary);
+    border-color: var(--color-primary-text);
   }
   .button--secondary:active {
     background: var(--color-border);
@@ -201,7 +201,7 @@
     align-items: center;
     gap: var(--space-2);
     min-height: var(--touch-target);
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     font-size: var(--text-small);
     font-weight: var(--weight-semibold);
     text-decoration: underline;
@@ -230,14 +230,14 @@
     justify-content: center;
     width: var(--touch-target);
     min-height: var(--touch-target);
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
     background: var(--color-surface);
   }
   .icon-link:hover {
     background: var(--color-background-secondary);
-    border-color: var(--color-primary);
+    border-color: var(--color-primary-text);
   }
   .badge {
     display: inline-flex;
@@ -273,7 +273,7 @@
     gap: var(--space-2);
   }
   .metric__icon {
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     margin-bottom: var(--space-2);
   }
   .metric__value {
@@ -325,7 +325,7 @@
   .brand .icon {
     width: 1.75rem;
     height: 1.75rem;
-    color: var(--color-primary);
+    color: var(--color-primary-text);
   }
   .header-shell {
     position: relative;
@@ -334,8 +334,9 @@
     width: min(100% - var(--gutter) * 2, var(--content-width));
     margin-inline: auto;
     border: 1px solid var(--color-divider);
-    border-radius: var(--radius-section) var(--radius-section) 0 0;
+    border-radius: 0 0 var(--radius-small) var(--radius-small);
     background: var(--color-surface);
+    box-shadow: 0 2px 14px var(--color-overlay);
   }
   .header-shell[data-enhanced] {
     position: sticky;
@@ -368,7 +369,7 @@
     font-size: 0.75rem;
   }
   .main-nav a:hover {
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     text-underline-offset: 0.4em;
     text-decoration: none;
   }
@@ -409,7 +410,7 @@
     font-size: 1rem;
   }
   .footer-shell .brand .icon {
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     width: 1.5rem;
   }
   .footer-shell a:focus-visible {
@@ -423,8 +424,8 @@
   }
   .portfolio-section {
     display: grid;
-    grid-template-columns: minmax(12rem, 0.88fr) minmax(0, 2.72fr);
-    gap: var(--space-8);
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 2.35fr);
+    gap: clamp(1.5rem, 3vw, 3rem);
     padding: var(--section-padding);
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-section);
@@ -436,12 +437,12 @@
   }
   .section-intro h2 {
     margin-block: var(--space-4);
-    max-width: 14ch;
+    max-width: 17ch;
     font-weight: var(--weight-bold);
   }
   .section-intro > p:not(.eyebrow) {
     color: var(--color-text-secondary);
-    font-size: var(--text-small);
+    font-size: 0.9375rem;
     line-height: 1.55;
     max-width: 29ch;
   }
@@ -462,7 +463,7 @@
     transform: translateX(3px);
   }
   .main-nav a[aria-current] {
-    color: var(--color-primary);
+    color: var(--color-primary-text);
   }
   .main-nav a::after {
     content: '';
@@ -576,7 +577,7 @@
     font-size: 0.6875rem;
   }
   .footer-shell a:hover {
-    color: var(--color-primary);
+    color: var(--color-primary-text);
   }
   .footer-social {
     display: flex;
@@ -601,7 +602,7 @@
     gap: var(--space-2);
     min-height: var(--touch-target);
     font-size: 0.6875rem;
-    color: var(--color-primary);
+    color: var(--color-primary-text);
   }
   details > summary {
     cursor: pointer;

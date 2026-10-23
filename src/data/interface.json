@@ -83,9 +83,9 @@
     "emptyMessage": "Case studies are being updated. Explore the professional journey for current experience."
   },
   "journey": {
-    "eyebrow": "Career experience",
-    "titleLines": ["Professional", "Journey"],
-    "description": "From engineering to senior business analysis — connecting business needs with systems that work.",
+    "eyebrow": "Professional journey",
+    "titleLines": ["Career &", "Education"],
+    "description": "A foundation in engineering. A career connecting business, technology and financial services.",
     "emptyDescription": "The experience behind the work. A detailed career history is being prepared for this portfolio.",
     "earlierLabel": "Earlier experience",
     "detailsLabel": "Role highlights",

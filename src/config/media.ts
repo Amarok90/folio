@@ -25,6 +25,11 @@ export const media = {
   portraitTemporary: mediaConfig.portrait.temporary,
   alpine: resolveImage(mediaConfig.alpine.path),
   contact: resolveImage(mediaConfig.contact.path),
+  analytics: mediaConfig.analytics
+    ? resolveImage(mediaConfig.analytics.path)
+    : null,
+  analyticsAlt: mediaConfig.analytics?.alt ?? '',
+  analyticsIllustrative: mediaConfig.analytics?.illustrative ?? false,
   logo: mediaConfig.logo ? resolveImage(mediaConfig.logo.path) : null,
   logoAlt: mediaConfig.logo?.alt ?? '',
   socialImage: profile.seo.socialImage

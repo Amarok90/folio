@@ -1,6 +1,8 @@
 ---
 import { interfaceContent as ui } from '../../data/interface';
 import { getCollection } from 'astro:content';
+import { Image } from 'astro:assets';
+import { media } from '../../config/media';
 import Icon, { type IconName } from '../ui/Icon.astro';
 import { publishedEntries, type SkillProficiency } from '../../lib/content';
 
@@ -8,6 +10,7 @@ interface Skill {
   id: string;
   name: string;
   proficiency: SkillProficiency;
+  selfAssessment: number | null;
 }
 interface Category {
   id: string;
@@ -37,97 +40,136 @@ const panels: Category[] = categories.map((category) => ({
       id: skill.id,
       name: skill.data.name,
       proficiency: skill.data.proficiency,
+      selfAssessment: skill.data.selfAssessment,
     })),
 }));
 ---
 
 <section
   id="expertise"
-  class="portfolio-section expertise-section"
+  class:list={[
+    'portfolio-section',
+    'expertise-section',
+    { 'expertise-section--text-only': !media.analytics },
+  ]}
   aria-labelledby="expertise-title"
 >
-  <div class="section-intro">
-    <p class="eyebrow">{ui.expertise.eyebrow}</p>
-    <h2 id="expertise-title">
-      {ui.expertise.titleLines.map((line, index) => (
-        <>
-          {index > 0 && <br />}
-          {line}
-        </>
-      ))}
-    </h2>
-    <p class="section-description">{ui.expertise.description}</p>
-    <a class="text-link expertise-section-link" href={ui.expertise.action.href}>
-      {ui.expertise.action.label} <Icon name="arrow" />
-    </a>
-  </div>
-  <div class="section-body expertise-widget" data-expertise-tabs>
-    {panels.length > 0 && (
-      <div class="expertise-tabs" data-tab-list>
-        {panels.map((panel) => (
-          <a
-            class="expertise-tab"
-            id={`expertise-tab-${panel.id}`}
-            href={`#expertise-panel-${panel.id}`}
-            data-expertise-tab
-          >
-            {panel.title}
-          </a>
-        ))}
-      </div>
-    )}
-    {panels.map((panel) => (
-      <div
-        id={`expertise-panel-${panel.id}`}
-        class="expertise-panel"
-        data-expertise-panel
+  <div class="expertise-content">
+    <div class="section-intro expertise-intro">
+      <p class="eyebrow">{ui.expertise.eyebrow}</p>
+      <h2 id="expertise-title">{ui.expertise.titleLines.join(' ')}</h2>
+      <p class="section-description">{ui.expertise.description}</p>
+      <a
+        class="text-link expertise-section-link"
+        href={ui.expertise.action.href}
       >
-        <h3 class="expertise-panel-title">{panel.title}</h3>
-        {panel.description && (
-          <p class="expertise-panel-description">{panel.description}</p>
-        )}
-        {panel.skills.length > 0 ? (
-          <ul
-            class="skills-list"
-            style={`--skill-rows: ${Math.ceil(panel.skills.length / 2)}`}
-          >
-            {panel.skills.map((skill) => (
-              <li class="skill-row">
-                <span class="skill-icon">
-                  <Icon name={panel.icon} />
-                </span>
-                <span class="skill-name">
-                  {skill.name}
-                  {skill.proficiency !== null && (
-                    <small class="skill-proficiency">{skill.proficiency}</small>
-                  )}
-                </span>
-                <span class="skill-rule" aria-hidden="true" />
-              </li>
-            ))}
-          </ul>
-        ) : (
-          <p class="expertise-empty">{ui.expertise.emptySkillsMessage}</p>
-        )}
-      </div>
-    ))}
-    {panels.length === 0 ? (
-      <p class="expertise-empty">{ui.expertise.emptyMessage}</p>
-    ) : (
-      skills.length > 0 && (
-        <p class="expertise-preview-note">
-          {ui.expertise.footnote}
-          {specifiedProficiency < skills.length && (
-            <span class="sr-only">
-              {specifiedProficiency === 0
-                ? ui.expertise.proficiencyNote
-                : ui.expertise.partialProficiencyNote}
-            </span>
+        {ui.expertise.action.label} <Icon name="arrow" />
+      </a>
+    </div>
+    <div class="section-body expertise-widget" data-expertise-tabs>
+      {panels.length > 0 && (
+        <div class="expertise-tabs" data-tab-list>
+          {panels.map((panel) => (
+            <a
+              class="expertise-tab"
+              id={`expertise-tab-${panel.id}`}
+              href={`#expertise-panel-${panel.id}`}
+              data-expertise-tab
+            >
+              {panel.title}
+            </a>
+          ))}
+        </div>
+      )}
+      {panels.map((panel) => (
+        <div
+          id={`expertise-panel-${panel.id}`}
+          class="expertise-panel"
+          data-expertise-panel
+        >
+          <h3 class="expertise-panel-title">{panel.title}</h3>
+          {panel.description && (
+            <p class="expertise-panel-description">{panel.description}</p>
           )}
-        </p>
-      )
-    )}
+          {panel.skills.length > 0 ? (
+            <ul
+              class="skills-list"
+              style={`--skill-rows: ${Math.ceil(panel.skills.length / 2)}`}
+            >
+              {panel.skills.map((skill) => (
+                <li class="skill-row">
+                  <span class="skill-icon">
+                    <Icon name={panel.icon} />
+                  </span>
+                  <span class="skill-name">
+                    {skill.name}
+                    {skill.proficiency !== null && (
+                      <small class="skill-proficiency">
+                        {skill.proficiency}
+                      </small>
+                    )}
+                  </span>
+                  {skill.selfAssessment !== null && (
+                    <span class="skill-score">
+                      <meter
+                        min="1"
+                        max="100"
+                        value={skill.selfAssessment}
+                        aria-label={`${skill.name} self-assessment`}
+                      >
+                        {skill.selfAssessment} out of 100
+                      </meter>
+                      <span class="skill-score-value" aria-hidden="true">
+                        {skill.selfAssessment}
+                      </span>
+                    </span>
+                  )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p class="expertise-empty">{ui.expertise.emptySkillsMessage}</p>
+          )}
+        </div>
+      ))}
+      {panels.length === 0 ? (
+        <p class="expertise-empty">{ui.expertise.emptyMessage}</p>
+      ) : (
+        skills.length > 0 && (
+          <p class="expertise-preview-note">
+            {ui.expertise.footnote}
+            {skills.some((skill) => skill.data.selfAssessment !== null) && (
+              <span>Numeric levels are self-assessed, on a 1–100 scale.</span>
+            )}
+            {specifiedProficiency < skills.length && (
+              <span class="sr-only">
+                {specifiedProficiency === 0
+                  ? ui.expertise.proficiencyNote
+                  : ui.expertise.partialProficiencyNote}
+              </span>
+            )}
+          </p>
+        )
+      )}
+    </div>
   </div>
+  {media.analytics && (
+    <figure class="expertise-visual">
+      <Image
+        src={media.analytics}
+        alt={media.analyticsAlt}
+        widths={[400, 640, 900]}
+        sizes="(max-width: 767px) 90vw, 400px"
+        format="webp"
+        loading="lazy"
+        decoding="async"
+        class="expertise-image"
+      />
+      {media.analyticsIllustrative && (
+        <figcaption>{ui.projects.illustrativeCaption}</figcaption>
+      )}
+    </figure>
+  )}
 </section>
 
 <script>
@@ -209,11 +251,46 @@ const panels: Category[] = categories.map((category) => ({
 </script>
 
 <style>
-  .skill-proficiency {
-    display: block;
-    font-size: var(--text-caption);
-    color: var(--color-text-secondary);
-    text-transform: capitalize;
+  .expertise-section {
+    grid-template-columns: minmax(0, 1.86fr) minmax(0, 1fr);
+    align-items: stretch;
+    gap: var(--space-8);
+    padding: 0;
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+  }
+  .expertise-content {
+    min-width: 0;
+    padding-block: var(--space-4);
+  }
+  .expertise-section--text-only .expertise-content {
+    grid-column: 1 / -1;
+  }
+  .expertise-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-4);
+    margin-bottom: var(--space-6);
+  }
+  .expertise-intro > .eyebrow,
+  .expertise-intro > h2,
+  .expertise-intro > .section-description {
+    grid-column: 1;
+  }
+  .expertise-intro h2 {
+    max-width: none;
+    margin-block: var(--space-3);
+  }
+  .expertise-intro > .section-description {
+    max-width: 54ch;
+  }
+  .expertise-intro .text-link {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    align-self: center;
+    max-width: 9rem;
+    margin-top: 0;
   }
   .expertise-widget {
     min-width: 0;
@@ -222,7 +299,7 @@ const panels: Category[] = categories.map((category) => ({
     display: flex;
     gap: var(--space-2);
     padding: var(--space-1);
-    margin: calc(var(--space-1) * -1);
+    margin: calc(-1 * var(--space-1));
     margin-bottom: var(--space-5);
     overflow-x: auto;
     scrollbar-width: thin;
@@ -234,7 +311,7 @@ const panels: Category[] = categories.map((category) => ({
     align-items: center;
     justify-content: center;
     min-height: var(--touch-target);
-    padding: var(--space-2) var(--space-4);
+    padding: var(--space-2) var(--space-3);
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-small);
     background: var(--color-background-secondary);
@@ -243,9 +320,8 @@ const panels: Category[] = categories.map((category) => ({
     font-weight: var(--weight-medium);
     white-space: nowrap;
     transition:
-      color var(--duration-fast) var(--ease-standard),
-      background var(--duration-fast) var(--ease-standard),
-      box-shadow var(--duration-fast) var(--ease-standard);
+      background var(--duration-normal) var(--ease-standard),
+      box-shadow var(--duration-normal) var(--ease-standard);
   }
   .expertise-tab:hover {
     background: var(--color-border);
@@ -291,91 +367,146 @@ const panels: Category[] = categories.map((category) => ({
     grid-template-columns: repeat(2, minmax(0, 1fr));
     grid-auto-flow: column;
     grid-template-rows: repeat(var(--skill-rows), auto);
-    gap: var(--space-2) var(--space-6);
+    gap: var(--space-3) var(--space-5);
     margin: 0;
     padding: 0;
     list-style: none;
   }
   .skill-row {
-    display: grid;
-    grid-template-columns: auto minmax(0, 1fr) minmax(1rem, 2.25rem);
+    display: flex;
     align-items: center;
     gap: var(--space-2);
     min-height: var(--space-8);
+    min-width: 0;
   }
   .skill-icon {
     display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: var(--space-8);
-    height: var(--space-8);
-    border: 1px solid var(--color-divider);
-    border-radius: var(--radius-pill);
-    color: var(--color-accent);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-card);
+    color: var(--color-primary-text);
+    flex-shrink: 0;
   }
   .skill-icon :global(.icon) {
     width: 1rem;
     height: 1rem;
   }
   .skill-name {
-    font-size: var(--text-caption);
-    line-height: 1.45;
-  }
-  .skill-rule {
-    height: 2px;
-    border-radius: var(--radius-pill);
-    background: var(--color-border);
-  }
-  .expertise-preview-note {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    margin-top: var(--space-4);
-    color: var(--color-text-muted);
+    flex: 1;
+    min-width: 0;
     font-size: var(--text-caption);
     line-height: 1.5;
   }
-  .preview-dot {
-    width: var(--space-1);
-    height: var(--space-1);
-    flex-shrink: 0;
+  .skill-proficiency {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+    text-transform: capitalize;
+  }
+  .skill-score {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex: 0 0 37%;
+  }
+  meter {
+    width: 100%;
+    min-width: 0;
+    height: 0.375rem;
+    appearance: none;
+    border: 0;
+    background: var(--color-divider);
     border-radius: var(--radius-pill);
-    background: var(--color-accent);
   }
-  .expertise-section-link {
-    margin-top: var(--space-4);
+  meter::-webkit-meter-bar {
+    height: 0.375rem;
+    background: var(--color-divider);
+    border: 0;
+    border-radius: var(--radius-pill);
   }
-  @media (width < 68rem) and (width >= 48rem) {
-    .skill-row {
-      grid-template-columns: auto minmax(0, 1fr);
-    }
-    .skill-rule {
-      display: none;
-    }
-    .skills-list {
-      column-gap: var(--space-4);
-    }
+  meter::-webkit-meter-optimum-value {
+    background: var(--gradient-primary);
+    border-radius: var(--radius-pill);
   }
-  @media (width < 48rem) {
-    .expertise-tabs {
-      margin-bottom: var(--space-4);
-    }
-    .skills-list {
+  meter::-moz-meter-bar {
+    background: var(--gradient-primary);
+    border-radius: var(--radius-pill);
+  }
+  .skill-score-value {
+    width: 3ch;
+    flex-shrink: 0;
+    text-align: right;
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+    font-variant-numeric: tabular-nums;
+  }
+  .expertise-preview-note {
+    display: grid;
+    gap: var(--space-1);
+    margin-top: var(--space-5);
+    color: var(--color-text-muted);
+    font-size: var(--text-caption);
+  }
+  .expertise-visual {
+    position: relative;
+    margin: 0;
+    min-width: 0;
+    border-radius: var(--radius-section);
+    overflow: hidden;
+    background: var(--color-background-secondary);
+    box-shadow: var(--shadow-card);
+  }
+  .expertise-image {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    inset: 0;
+    object-fit: cover;
+    object-position: 58% center;
+  }
+  figcaption {
+    position: absolute;
+    right: var(--space-3);
+    bottom: var(--space-3);
+    color: var(--color-text-muted);
+    background: var(--color-surface);
+    font-size: 0.625rem;
+    border-radius: var(--radius-small);
+    padding: var(--space-1) var(--space-2);
+  }
+  @media (width < 64rem) {
+    .expertise-section {
       grid-template-columns: minmax(0, 1fr);
-      grid-auto-flow: row;
-      grid-template-rows: none;
-      gap: var(--space-2);
     }
-    .skill-row {
-      grid-template-columns: auto minmax(0, 1fr) minmax(1.5rem, 3.5rem);
-      min-height: var(--space-10);
+    .expertise-visual {
+      aspect-ratio: 16 / 9;
     }
     .skill-name {
       font-size: var(--text-small);
     }
-    .expertise-section-link {
+  }
+  @media (width < 48rem) {
+    .skills-list {
+      grid-template-columns: minmax(0, 1fr);
+      grid-auto-flow: row;
+      grid-template-rows: none;
+    }
+    .expertise-section {
+      grid-template-columns: minmax(0, 1fr);
+      gap: var(--space-6);
+    }
+    .expertise-content {
+      padding: 0;
+    }
+    .expertise-visual {
+      aspect-ratio: 3 / 2;
+    }
+    .skill-row {
+      min-height: var(--space-10);
+    }
+    .expertise-intro {
+      display: block;
+      margin-bottom: var(--space-5);
+    }
+    .expertise-intro .text-link {
+      max-width: none;
       margin-top: var(--space-2);
     }
   }

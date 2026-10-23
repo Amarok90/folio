@@ -167,7 +167,7 @@ test(
 );
 
 test(
-  'CMS workflow: replace the portrait and logo with uploaded image sources',
+  'CMS workflow: replace the portrait, logo and analytics illustration with uploaded image sources',
   { timeout: 120_000 },
   async () => {
     const media = readJSON('src/data/media.json');
@@ -189,6 +189,11 @@ test(
       path: `/${uploadedPath}`,
       alt: 'CMS integration logo fixture',
     };
+    media.analytics = {
+      path: `/${uploadedPath}`,
+      alt: 'CMS integration analytics fixture',
+      illustrative: true,
+    };
     saveJSON('src/data/media.json', media);
     await validateRepositoryContent(fixture);
     const html = build();
@@ -199,6 +204,16 @@ test(
     assert.equal(
       (html.match(/alt="CMS integration logo fixture"/g) ?? []).length,
       2,
+    );
+    const analyticsTag = html.match(
+      /<img\b[^>]*alt="CMS integration analytics fixture"[^>]*>/,
+    )?.[0];
+    assert.ok(analyticsTag, 'CMS-selected analytics image is missing.');
+    const analyticsSource = analyticsTag.match(/src="([^"]+)"/)?.[1];
+    assert.ok(analyticsSource?.startsWith('/folio/_astro/'));
+    assert.ok(
+      existsSync(pathFor(`dist/${analyticsSource.slice('/folio/'.length)}`)),
+      'Analytics media must resolve to an actual optimized output asset.',
     );
     const portraitTag = html.match(
       /<img\b[^>]*alt="CMS integration portrait fixture"[^>]*>/,
@@ -216,6 +231,15 @@ test(
     assert.ok(
       !html.includes('src="/src/assets/'),
       'Unprocessed source path escaped into HTML.',
+    );
+    media.analytics = null;
+    saveJSON('src/data/media.json', media);
+    await validateRepositoryContent(fixture);
+    const withoutAnalytics = build();
+    assert.ok(
+      withoutAnalytics.includes('expertise-section--text-only') &&
+        !/<figure\b[^>]*class="expertise-visual"/.test(withoutAnalytics),
+      'Clearing optional analytics media must restore the full-width text layout.',
     );
   },
 );
@@ -329,7 +353,7 @@ test(
 );
 
 test(
-  'CMS workflow: explicit proficiency remains distinct from missing or partly specified levels',
+  'CMS workflow: proficiency and numeric self-assessment remain independent and truthful when missing',
   { timeout: 120_000 },
   async () => {
     const categories = readJSON('src/content/expertise.json');
@@ -361,27 +385,39 @@ test(
         categoryId: publicCategory.id,
         proficiency: null,
       });
-    for (const skill of skills) skill.proficiency = null;
+    for (const skill of skills) {
+      skill.proficiency = null;
+      skill.selfAssessment = null;
+    }
     saveJSON('src/content/expertise.json', categories);
     saveJSON('src/content/skills.json', skills);
     const ui = readJSON('src/data/interface.json');
     await validateRepositoryContent(fixture);
     let html = build();
     assert.equal((html.match(/class="skill-proficiency"/g) ?? []).length, 0);
+    assert.equal((html.match(/<meter\b/g) ?? []).length, 0);
     assert.ok(html.includes(escapedText(ui.expertise.proficiencyNote)));
     assert.ok(!html.includes(escapedText(ui.expertise.partialProficiencyNote)));
     const published = skills.filter(
       (entry) => entry.status === 'published' && entry.visible,
     );
     published[0].proficiency = 'advanced';
+    published[1].selfAssessment = 1;
     saveJSON('src/content/skills.json', skills);
     await validateRepositoryContent(fixture);
     html = build();
     assert.equal((html.match(/class="skill-proficiency"/g) ?? []).length, 1);
     assert.match(html, /class="skill-proficiency"[^>]*>advanced<\/small>/);
+    const partialBars = html.match(/<meter\b[^>]*>/g) ?? [];
+    assert.equal(partialBars.length, 1);
+    assert.match(partialBars[0], /value="1"/);
+    assert.match(partialBars[0], /min="1"/);
+    assert.match(partialBars[0], /max="100"/);
+    assert.match(html, /self-assessed/i);
     assert.ok(html.includes(escapedText(ui.expertise.partialProficiencyNote)));
     assert.ok(!html.includes(escapedText(ui.expertise.proficiencyNote)));
     for (const skill of published) skill.proficiency = 'advanced';
+    published[1].selfAssessment = 100;
     saveJSON('src/content/skills.json', skills);
     await validateRepositoryContent(fixture);
     html = build();
@@ -391,6 +427,13 @@ test(
     );
     assert.ok(!html.includes(escapedText(ui.expertise.proficiencyNote)));
     assert.ok(!html.includes(escapedText(ui.expertise.partialProficiencyNote)));
+    const maximumBars = html.match(/<meter\b[^>]*>/g) ?? [];
+    assert.equal(maximumBars.length, 1);
+    assert.match(maximumBars[0], /value="100"/);
+    // A CMS save outside the approved 1–100 domain must fail before publishing.
+    published[1].selfAssessment = 0;
+    saveJSON('src/content/skills.json', skills);
+    await assert.rejects(() => validateRepositoryContent(fixture));
   },
 );
 

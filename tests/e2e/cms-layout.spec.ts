@@ -1,4 +1,5 @@
 import { expect, test } from '@playwright/test';
+import AxeBuilder from '@axe-core/playwright';
 import {
   cpSync,
   existsSync,
@@ -22,6 +23,7 @@ test.describe('CMS-managed navigation layout boundaries', () => {
   let fixture: string;
   let server: Server | undefined;
   let baseURL: string;
+  let ratingCategoryId: string;
   const labels = [
     '#about',
     '#expertise',
@@ -68,6 +70,58 @@ test.describe('CMS-managed navigation layout boundaries', () => {
     expect(labels.every((link) => link.label.length === 28)).toBe(true);
     const ui = interfaceSchema.parse(input);
     writeFileSync(join(fixture, 'src/data/interface.json'), JSON.stringify(ui));
+    const categories = JSON.parse(
+      readFileSync(join(fixture, 'src/content/expertise.json'), 'utf8'),
+    );
+    ratingCategoryId = 'cms-assessment-category';
+    categories.push({
+      id: ratingCategoryId,
+      order: 0,
+      status: 'published',
+      visible: true,
+      title: 'Assessment fixture',
+      description: 'Isolated owner assessment accessibility fixture.',
+    });
+    writeFileSync(
+      join(fixture, 'src/content/expertise.json'),
+      JSON.stringify(categories),
+    );
+    const skills = JSON.parse(
+      readFileSync(join(fixture, 'src/content/skills.json'), 'utf8'),
+    );
+    skills.push(
+      ...[
+        {
+          id: 'minimum',
+          name: 'Minimum assessment fixture',
+          selfAssessment: 1,
+          proficiency: null,
+        },
+        {
+          id: 'maximum',
+          name: 'Maximum assessment fixture',
+          selfAssessment: 100,
+          proficiency: 'expert',
+        },
+        {
+          id: 'unknown',
+          name: 'Unknown assessment fixture',
+          selfAssessment: null,
+          proficiency: 'advanced',
+        },
+      ].map((entry, order) => ({
+        ...entry,
+        id: `cms-assessment-${entry.id}`,
+        order,
+        status: 'published',
+        visible: true,
+        categoryId: ratingCategoryId,
+      })),
+    );
+    writeFileSync(
+      join(fixture, 'src/content/skills.json'),
+      JSON.stringify(skills),
+    );
     const manifest = JSON.parse(
       readFileSync('node_modules/astro/package.json', 'utf8'),
     );
@@ -223,6 +277,53 @@ test.describe('CMS-managed navigation layout boundaries', () => {
           path: join(evidenceDirectory, `cms-anchor-${width}.png`),
           animations: 'disabled',
         });
+    });
+  }
+
+  for (const width of [390, 1440]) {
+    test(`owner-provided skill values have accessible boundaries and no invented unknown rating at ${width}px`, async ({
+      page,
+    }) => {
+      await page.setViewportSize({ width, height: 1000 });
+      await page.goto(baseURL);
+      await page.evaluate(() => document.fonts.ready);
+      await page.locator(`#expertise-tab-${ratingCategoryId}`).click();
+      const panel = page.locator(`#expertise-panel-${ratingCategoryId}`);
+      await expect(panel).toBeVisible();
+      await expect(panel.getByRole('meter')).toHaveCount(2);
+      for (const [name, value] of [
+        ['Minimum assessment fixture', 1],
+        ['Maximum assessment fixture', 100],
+      ] as const) {
+        const bar = panel.getByRole('meter', { name: new RegExp(name) });
+        await expect(bar).toHaveAttribute('value', String(value));
+        await expect(bar).toHaveAttribute('min', '1');
+        await expect(bar).toHaveAttribute('max', '100');
+        await expect(bar).toHaveAccessibleName(new RegExp(name));
+        await expect(bar).toBeVisible();
+        const score = bar.locator('..').locator('.skill-score-value');
+        await expect(score).toHaveText(String(value));
+        const scoreWidth = await score.evaluate((element) => {
+          const text = document.createRange();
+          text.selectNodeContents(element);
+          return {
+            label: text.getBoundingClientRect().width,
+            available: element.getBoundingClientRect().width,
+          };
+        });
+        expect(scoreWidth.label).toBeLessThanOrEqual(scoreWidth.available + 1);
+      }
+      const unknown = panel
+        .locator('.skill-row')
+        .filter({ hasText: 'Unknown assessment fixture' });
+      await expect(unknown).toContainText('advanced');
+      await expect(unknown.getByRole('meter')).toHaveCount(0);
+      await expect(page.locator('#expertise')).toContainText(/self-assessed/i);
+      const accessibility = await new AxeBuilder({ page })
+        .include('#expertise')
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+        .analyze();
+      expect(accessibility.violations).toEqual([]);
     });
   }
 });

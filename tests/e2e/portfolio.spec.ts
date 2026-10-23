@@ -5,6 +5,8 @@ import profileInput from '../../src/data/profile.json' with { type: 'json' };
 import expertiseInput from '../../src/content/expertise.json' with { type: 'json' };
 import projectsInput from '../../src/content/case-studies.json' with { type: 'json' };
 import skillsInput from '../../src/content/skills.json' with { type: 'json' };
+import experienceInput from '../../src/content/experience.json' with { type: 'json' };
+import educationInput from '../../src/content/education.json' with { type: 'json' };
 import interfaceInput from '../../src/data/interface.json' with { type: 'json' };
 import mediaInput from '../../src/data/media.json' with { type: 'json' };
 import {
@@ -14,6 +16,8 @@ import {
   skillSchema,
   interfaceSchema,
   mediaSchema,
+  experienceSchema,
+  educationSchema,
 } from '../../src/lib/content';
 
 const profileSource = profileSchema.parse(profileInput);
@@ -22,6 +26,8 @@ const projectsSource = caseStudySchema.array().parse(projectsInput);
 const skillsSource = skillSchema.array().parse(skillsInput);
 const ui = interfaceSchema.parse(interfaceInput);
 const mediaSource = mediaSchema.parse(mediaInput);
+const experienceSource = experienceSchema.array().parse(experienceInput);
+const educationSource = educationSchema.array().parse(educationInput);
 
 const published = (record: { status: string; visible: boolean }) =>
   record.status === 'published' && record.visible;
@@ -34,6 +40,35 @@ const publicProjects = projectsSource
       left.order - right.order ||
       (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
   );
+const byEditorialOrder = (
+  left: { order: number; id: string },
+  right: { order: number; id: string },
+) =>
+  left.order - right.order ||
+  (left.id < right.id ? -1 : left.id > right.id ? 1 : 0);
+const publicTimeline = [
+  ...experienceSource
+    .filter(published)
+    .sort(byEditorialOrder)
+    .map((entry) => ({
+      ...entry,
+      id: `experience-${entry.id}`,
+      title: entry.role,
+      kind: 'experience' as const,
+    })),
+  ...educationSource
+    .filter(published)
+    .sort(byEditorialOrder)
+    .map((entry) => ({
+      ...entry,
+      id: `education-${entry.id}`,
+      title: entry.qualification,
+      organization: entry.institution,
+      summary: entry.field,
+      achievements: [],
+      kind: 'education' as const,
+    })),
+];
 const indexable = process.env['SITE_INDEXABLE'] === 'true';
 const analyticsEnabled =
   process.env['CLARITY_ENABLED'] === 'true' &&
@@ -157,6 +192,86 @@ for (const width of [
       measurements.viewportWidth + 1,
     );
     expect(measurements.clipped).toEqual([]);
+    if (width >= 1024) {
+      const composition = await page.evaluate(() => {
+        const main = document
+          .querySelector('.site-main')!
+          .getBoundingClientRect();
+        const expertise = document
+          .querySelector('#expertise')!
+          .getBoundingClientRect();
+        const projects = document
+          .querySelector('#projects')!
+          .getBoundingClientRect();
+        const skills = document
+          .querySelector('#expertise .expertise-content')!
+          .getBoundingClientRect();
+        const analytics = document
+          .querySelector('#expertise .expertise-visual')
+          ?.getBoundingClientRect();
+        const portrait = document
+          .querySelector('#about .about__portrait')!
+          .getBoundingClientRect();
+        const story = document
+          .querySelector('#about .about__intro')!
+          .getBoundingClientRect();
+        return {
+          width: main.width,
+          horizontalBalance:
+            main.left + main.right - document.documentElement.clientWidth,
+          sectionGap: projects.top - expertise.bottom,
+          expertise: analytics
+            ? {
+                leftShare: skills.width / (skills.width + analytics.width),
+                gutter: analytics.left - skills.right,
+              }
+            : null,
+          about: {
+            gutter: story.left - portrait.right,
+            rowOverlap:
+              Math.min(portrait.bottom, story.bottom) -
+              Math.max(portrait.top, story.top),
+          },
+        };
+      });
+      expect(composition.width).toBeLessThanOrEqual(1201);
+      if (width >= 1440) expect(composition.width).toBeGreaterThanOrEqual(1199);
+      expect(Math.abs(composition.horizontalBalance)).toBeLessThanOrEqual(2);
+      expect(composition.sectionGap).toBeGreaterThanOrEqual(55);
+      expect(composition.sectionGap).toBeLessThanOrEqual(105);
+      if (mediaSource.analytics) {
+        expect(composition.expertise).not.toBeNull();
+        expect(composition.expertise?.leftShare).toBeGreaterThanOrEqual(0.62);
+        expect(composition.expertise?.leftShare).toBeLessThanOrEqual(0.68);
+        expect(composition.expertise?.gutter).toBeGreaterThanOrEqual(15);
+      } else expect(composition.expertise).toBeNull();
+      expect(composition.about.gutter).toBeGreaterThanOrEqual(15);
+      expect(composition.about.rowOverlap).toBeGreaterThan(0);
+    }
+    if (width < 640) {
+      const mobileAboutGap = await page.evaluate(() => {
+        const portrait = document
+          .querySelector('#about .about__portrait')!
+          .getBoundingClientRect();
+        const story = document
+          .querySelector('#about .about__intro')!
+          .getBoundingClientRect();
+        return story.top - portrait.bottom;
+      });
+      expect(mobileAboutGap).toBeGreaterThanOrEqual(15);
+    }
+    if (width === 768 && mediaSource.analytics) {
+      const tabletImageGap = await page.evaluate(() => {
+        const content = document
+          .querySelector('#expertise .expertise-content')!
+          .getBoundingClientRect();
+        const image = document
+          .querySelector('#expertise .expertise-visual')!
+          .getBoundingClientRect();
+        return image.top - content.bottom;
+      });
+      expect(tabletImageGap).toBeGreaterThanOrEqual(15);
+    }
     const primaryHeading = page.getByRole('heading', { level: 1 });
     await expect(primaryHeading).toBeVisible();
     const headingBounds = await primaryHeading.boundingBox();
@@ -333,7 +448,31 @@ test('expertise tabs switch distinct content and implement keyboard navigation',
       (skill) => published(skill) && skill.categoryId === categoryId,
     );
     await expect(panel.locator('.skill-row')).toHaveCount(skills.length);
-    for (const skill of skills) await expect(panel).toContainText(skill.name);
+    for (const skill of skills) {
+      await expect(panel).toContainText(skill.name);
+      const namePattern = new RegExp(
+        skill.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'),
+      );
+      const rating = panel.getByRole('meter', {
+        name: namePattern,
+      });
+      if (skill.selfAssessment === null) {
+        await expect(rating).toHaveCount(0);
+      } else {
+        await expect(rating).toHaveCount(1);
+        await expect(rating).toHaveAttribute(
+          'value',
+          String(skill.selfAssessment),
+        );
+        await expect(rating).toHaveAttribute('min', '1');
+        await expect(rating).toHaveAttribute('max', '100');
+        await expect(rating).toHaveAccessibleName(namePattern);
+        await expect(expertise).toContainText(/self-assessed/i);
+      }
+    }
+    await expect(panel.getByRole('meter')).toHaveCount(
+      skills.filter((skill) => skill.selfAssessment !== null).length,
+    );
     if (skills.length === 0)
       await expect(panel).toContainText(ui.expertise.emptySkillsMessage);
     content.add(panelText);
@@ -399,6 +538,78 @@ test('case studies disclose real challenges, contributions and limitations with 
   }
 });
 
+test('career and education preserve published facts, real dates and editorial ordering', async ({
+  page,
+}) => {
+  await openPreview(page);
+  const timeline = page.locator('#experience .career-timeline');
+  if (publicTimeline.length === 0) {
+    await expect(timeline).toHaveCount(0);
+    await expect(page.locator('#experience')).toContainText(
+      ui.journey.emptyMessage,
+    );
+    return;
+  }
+  await expect(timeline).toHaveRole('list');
+  const steps = timeline.locator(':scope > .career-step');
+  expect(
+    await steps.evaluateAll((entries) => entries.map(({ id }) => id)),
+  ).toEqual(publicTimeline.map(({ id }) => id));
+  for (const entry of publicTimeline) {
+    const step = timeline.locator(`[id="${entry.id}"]`);
+    await expect(step.locator('h3')).toHaveText(entry.title);
+    await expect(step.locator('.career-step__organization')).toContainText(
+      entry.organization,
+    );
+    expect(
+      await step
+        .locator('time')
+        .evaluateAll((dates) =>
+          dates.map((date) => date.getAttribute('datetime')),
+        ),
+    ).toEqual(
+      entry.endDate ? [entry.startDate, entry.endDate] : [entry.startDate],
+    );
+    if (!entry.endDate)
+      await expect(step.locator('.career-step__date')).toContainText(
+        entry.kind === 'education'
+          ? ui.common.ongoingLabel
+          : ui.journey.presentLabel,
+      );
+    const details = step.locator('details');
+    const hasDisclosure = (await details.count()) > 0;
+    if (hasDisclosure) {
+      await expect(details).not.toHaveAttribute('open');
+      await details.locator('summary').focus();
+      await page.keyboard.press('Enter');
+      await expect(details).toHaveAttribute('open', '');
+    }
+    if (entry.summary) {
+      await expect(step.locator('.career-step__summary')).toHaveText(
+        entry.summary,
+      );
+      await expect(step.locator('.career-step__summary')).toBeVisible();
+    }
+    for (const achievement of entry.achievements)
+      await expect(step).toContainText(achievement);
+    if (entry.kind === 'experience') {
+      for (const id of entry.skillIds) {
+        const skill = skillsSource.find(
+          (skill) => skill.id === id && published(skill),
+        );
+        if (skill)
+          await expect(
+            step.getByText(skill.name, { exact: true }),
+          ).toBeVisible();
+      }
+    }
+    if (hasDisclosure) {
+      await page.keyboard.press('Enter');
+      await expect(details).not.toHaveAttribute('open');
+    }
+  }
+});
+
 test('expanded portfolio interactions retain WCAG 2.2 AA semantics and contrast', async ({
   page,
 }) => {
@@ -422,7 +633,7 @@ test('expanded portfolio interactions retain WCAG 2.2 AA semantics and contrast'
   expect(results.violations).toEqual([]);
 });
 
-test('CV, translation and contact controls use their real available destinations', async ({
+test('CV and contact controls use real destinations while the header shows truthful availability', async ({
   page,
 }) => {
   await openPreview(page);
@@ -442,6 +653,18 @@ test('CV, translation and contact controls use their real available destinations
         currentProfile.cv.filename,
       );
     }
+    const href = await cv.first().getAttribute('href');
+    expect(href).toBeTruthy();
+    const pdf = await page.request.get(new URL(href!, page.url()).href);
+    expect(pdf.status()).toBe(200);
+    expect(pdf.headers()['content-type']).toMatch(/application\/pdf/i);
+    expect((await pdf.body()).subarray(0, 5).toString()).toBe('%PDF-');
+    const download = await Promise.all([
+      page.waitForEvent('download'),
+      cv.first().click(),
+    ]).then(([download]) => download);
+    expect(download.suggestedFilename()).toBe(currentProfile.cv.filename);
+    expect(await download.failure()).toBeNull();
   } else if (currentProfile.cvPreviewUrl) {
     const previewCV = page.locator('a[data-analytics-event="cv_view"]');
     expect(await previewCV.count()).toBeGreaterThanOrEqual(2);
@@ -477,18 +700,12 @@ test('CV, translation and contact controls use their real available destinations
     ).toBe(currentProfile.contact.email);
   } else await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
-  const languageControl = page.getByLabel(/^Language:.*English/);
-  await expect(languageControl).toHaveJSProperty('tagName', 'SUMMARY');
-  const language = page.locator('details').filter({ has: languageControl });
-  await languageControl.focus();
-  await page.keyboard.press('Enter');
-  await expect(language).toHaveAttribute('open', '');
-  await expect(
-    language.getByText('Other translations are not available yet.', {
-      exact: true,
-    }),
-  ).toBeVisible();
-  await language.locator('summary').click();
+  await expect(page.getByLabel(/^Language:/)).toHaveCount(0);
+  const availability = page.locator('header .header-availability');
+  if (profileSource.contact.availability) {
+    await expect(availability).toHaveText(profileSource.contact.availability);
+    await expect(availability).toBeVisible();
+  } else await expect(availability).toHaveCount(0);
 });
 
 test('responsive images reserve space and load locally without broken sources', async ({

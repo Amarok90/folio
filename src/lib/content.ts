@@ -51,6 +51,7 @@ export const mediaSchema = z
       .strict(),
     alpine: z.object({ path: imageAssetPathSchema }).strict(),
     contact: z.object({ path: imageAssetPathSchema }).strict(),
+    analytics: optionalObject(imageSchema),
     logo: optionalObject(
       z.object({ path: imageAssetPathSchema, alt: text }).strict(),
     ),
@@ -257,6 +258,11 @@ export const skillSchema = recordSchema
     proficiency: z.preprocess(
       (value) => (value === '' || value === undefined ? null : value),
       z.enum(['foundational', 'working', 'advanced', 'expert']).nullable(),
+    ),
+    // An owner-provided self-assessment is separate from an evidenced proficiency level.
+    selfAssessment: z.preprocess(
+      (value) => (value === '' || value === undefined ? null : value),
+      z.number().int().min(1).max(100).nullable(),
     ),
   })
   .strict();

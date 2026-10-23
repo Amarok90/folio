@@ -1,8 +1,19 @@
 import { describe, expect, it } from 'vitest';
-import { readFileSync } from 'node:fs';
+import {
+  cpSync,
+  mkdtempSync,
+  readFileSync,
+  rmSync,
+  writeFileSync,
+} from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import interfaceSource from '../../src/data/interface.json';
 import { usesSignatureFont } from '../../src/data/interface';
-import { validateCMSConfiguration } from '../../scripts/validate-content.mjs';
+import {
+  validateCMSConfiguration,
+  validateRepositoryContent,
+} from '../../scripts/validate-content.mjs';
 import { profile } from '../../src/data/profile';
 import mediaSource from '../../src/data/media.json';
 import {
@@ -12,6 +23,7 @@ import {
   mediaSchema,
   interfaceSchema,
   profileSchema,
+  skillSchema,
 } from '../../src/lib/content';
 
 describe('CMS-compatible media contracts', () => {
@@ -51,6 +63,125 @@ describe('CMS-compatible media contracts', () => {
     expect(mediaSchema.safeParse({ ...mediaSource, portrait }).success).toBe(
       false,
     );
+  });
+  it('allows an optional analytics illustration without weakening image validation', () => {
+    const analytics = {
+      path: '/src/assets/fintech-review.webp',
+      alt: 'Illustrative analytics workspace',
+      illustrative: true,
+    };
+    expect(mediaSchema.parse({ ...mediaSource, analytics }).analytics).toEqual(
+      analytics,
+    );
+    for (const value of [
+      undefined,
+      null,
+      '',
+      { path: '', alt: '', illustrative: true },
+    ])
+      expect(
+        mediaSchema.parse({ ...mediaSource, analytics: value }).analytics,
+      ).toBeNull();
+    for (const value of [
+      { ...analytics, path: '/src/assets/analytics.svg' },
+      { ...analytics, path: 'https://example.com/analytics.webp' },
+      { ...analytics, alt: '' },
+      { path: '', alt: 'A partial description', illustrative: true },
+    ])
+      expect(
+        mediaSchema.safeParse({ ...mediaSource, analytics: value }).success,
+      ).toBe(false);
+  });
+  it('validates an analytics image as a real raster source before publishing', async () => {
+    const fixtureRoot = mkdtempSync(join(tmpdir(), 'folio-analytics-media-'));
+    const repositoryRoot = new URL('../../', import.meta.url);
+    try {
+      for (const path of [
+        'src/data',
+        'src/content',
+        'src/assets',
+        '.pages.yml',
+      ])
+        cpSync(new URL(path, repositoryRoot), join(fixtureRoot, path), {
+          recursive: true,
+        });
+      const fixtureMedia = {
+        ...mediaSource,
+        analytics: {
+          path: '/src/assets/alpine.webp',
+          alt: 'Isolated analytics image validation fixture',
+          illustrative: true,
+        },
+      };
+      const saveMedia = () =>
+        writeFileSync(
+          join(fixtureRoot, 'src/data/media.json'),
+          JSON.stringify(fixtureMedia),
+        );
+      saveMedia();
+      expect(
+        (await validateRepositoryContent(fixtureRoot)).media.analytics?.path,
+      ).toBe('/src/assets/alpine.webp');
+      fixtureMedia.analytics.path = '/src/assets/missing-analytics.webp';
+      saveMedia();
+      await expect(validateRepositoryContent(fixtureRoot)).rejects.toThrow(
+        /ENOENT|no such file/i,
+      );
+      fixtureMedia.analytics.path = '/src/assets/invalid-analytics.webp';
+      writeFileSync(
+        join(fixtureRoot, 'src/assets/invalid-analytics.webp'),
+        'This is not a raster image.',
+      );
+      saveMedia();
+      await expect(validateRepositoryContent(fixtureRoot)).rejects.toThrow();
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  });
+});
+
+describe('owner-provided skill self-assessment', () => {
+  const skill = {
+    id: 'assessment-fixture',
+    order: 0,
+    status: 'draft',
+    visible: false,
+    name: 'Isolated schema fixture',
+    categoryId: 'example-category',
+    proficiency: null,
+  };
+  it.each([undefined, null, ''])(
+    'keeps an unfilled assessment unknown: %s',
+    (value) => {
+      const parsed = skillSchema.parse({ ...skill, selfAssessment: value });
+      expect(parsed.selfAssessment).toBeNull();
+      expect(parsed.proficiency).toBeNull();
+    },
+  );
+  it.each([1, 50, 100])(
+    'accepts an explicit integer self-assessment of %i',
+    (value) => {
+      const parsed = skillSchema.parse({
+        ...skill,
+        selfAssessment: value,
+        proficiency: 'advanced',
+      });
+      expect(parsed.selfAssessment).toBe(value);
+      expect(parsed.proficiency).toBe('advanced');
+    },
+  );
+  it.each([0, -1, 101, 50.5, '75', true, Number.NaN, Number.POSITIVE_INFINITY])(
+    'rejects invalid self-assessment instead of coercing it: %s',
+    (value) => {
+      expect(
+        skillSchema.safeParse({ ...skill, selfAssessment: value }).success,
+      ).toBe(false);
+    },
+  );
+  it('keeps existing proficiency independent when the numerical assessment is omitted', () => {
+    const parsed = skillSchema.parse({ ...skill, proficiency: 'expert' });
+    expect(parsed.proficiency).toBe('expert');
+    expect(parsed.selfAssessment).toBeNull();
   });
 });
 
@@ -255,6 +386,34 @@ describe('owner-managed website wording and actions', () => {
     );
     editor.fields = editor.fields.filter(
       (field: { name: string }) => field.name !== 'contact',
+    );
+    expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
+      /field coverage/i,
+    );
+  });
+  it('exposes bounded self-assessments and removable analytics media through CMS', () => {
+    const config = validateCMSConfiguration(
+      readFileSync(new URL('../../.pages.yml', import.meta.url), 'utf8'),
+    );
+    const skillEditor = config.content.find(
+      (entry: { name: string }) => entry.name === 'skills',
+    );
+    const assessment = skillEditor.fields.find(
+      (field: { name: string }) => field.name === 'selfAssessment',
+    );
+    expect(assessment.type).toBe('number');
+    expect(assessment.required).toBe(false);
+    expect(assessment.options).toEqual({ min: 1, max: 100 });
+    const mediaEditor = config.content.find(
+      (entry: { name: string }) => entry.name === 'media',
+    );
+    expect(
+      mediaEditor.fields.some(
+        (field: { name: string }) => field.name === 'analytics',
+      ),
+    ).toBe(true);
+    skillEditor.fields = skillEditor.fields.filter(
+      (field: { name: string }) => field.name !== 'selfAssessment',
     );
     expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
       /field coverage/i,

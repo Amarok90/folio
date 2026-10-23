@@ -5,6 +5,7 @@ import CVAction from '../ui/CVAction.astro';
 import { Image } from 'astro:assets';
 import { media } from '../../config/media';
 import { site } from '../../config/site';
+import { profile } from '../../data/profile';
 import { withBasePath } from '../../lib/urls';
 const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 ---
@@ -42,19 +43,12 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
       ))}
     </nav>
     <div class="header-actions">
-      <details class="language-control">
-        <summary aria-label="Language: EN (English)">
-          <Icon name="globe" />
-          <span>EN</span>
-          <Icon name="chevron" />
-        </summary>
-        <div class="language-panel">
-          <strong>
-            English <span aria-hidden="true">✓</span>
-          </strong>
-          <p>Other translations are not available yet.</p>
-        </div>
-      </details>
+      {profile.contact.availability && (
+        <span class="header-availability">
+          <Icon name="complete" />
+          <span>{profile.contact.availability}</span>
+        </span>
+      )}
       <CVAction variant="primary" class="header-cv" />
     </div>
   </Container>
@@ -170,6 +164,25 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
     }
   }
 
+  .header-availability {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    max-width: 12rem;
+    font-size: 0.6875rem;
+    line-height: 1.45;
+    color: var(--color-text-secondary);
+  }
+  .header-availability :global(.icon) {
+    width: 0.875rem;
+    height: 0.875rem;
+    color: var(--color-primary-text);
+  }
+  @media (width < 68rem) {
+    .header-availability {
+      display: none;
+    }
+  }
   .brand-wordmark {
     min-width: 0;
     overflow-wrap: anywhere;

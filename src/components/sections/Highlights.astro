@@ -39,8 +39,8 @@ const icons: IconName[] = ['clipboard', 'briefcase', 'workflow', 'building'];
   .highlights {
     position: relative;
     z-index: 4;
-    margin: calc(-1 * var(--space-8)) var(--space-4) 0;
-    padding: var(--space-6) var(--space-5);
+    margin: calc(-1 * var(--section-gap) - var(--space-8)) var(--space-4) 0;
+    padding: var(--space-8) var(--space-5);
     background: rgb(255 255 255 / 97%);
     border: 1px solid var(--color-divider);
     border-radius: var(--radius-card);
@@ -66,7 +66,7 @@ const icons: IconName[] = ['clipboard', 'briefcase', 'workflow', 'building'];
     border: 0;
   }
   .highlight :global(.icon) {
-    color: var(--color-primary);
+    color: var(--color-primary-text);
     margin-bottom: var(--space-2);
   }
   dt {
@@ -99,7 +99,7 @@ const icons: IconName[] = ['clipboard', 'briefcase', 'workflow', 'building'];
   }
   @media (width < 48rem) {
     .highlights {
-      margin: 0;
+      margin: calc(-1 * var(--section-gap)) 0 0;
       padding: var(--space-5);
     }
     dl {

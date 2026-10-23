@@ -225,6 +225,7 @@ export async function validateRepositoryContent(root = defaultRoot) {
     media.portrait.path,
     media.alpine.path,
     media.contact.path,
+    ...(media.analytics ? [media.analytics.path] : []),
     ...(media.logo ? [media.logo.path] : []),
     ...media.projects.map((image) => image.path),
     ...(profile.seo.socialImage ? [profile.seo.socialImage.path] : []),
