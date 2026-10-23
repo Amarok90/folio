@@ -28,6 +28,20 @@ describe('production publication boundaries', () => {
     }
   });
 
+  it('installs both locked Playwright Chromium builds on the pre-provisioned Ubuntu runner without apt', () => {
+    for (const job of [pages.jobs.build, quality.jobs.quality]) {
+      expect(job['runs-on']).toBe('ubuntu-24.04');
+      const install = job.steps.find(
+        (step: { name?: string }) => step.name === 'Install Chromium',
+      );
+      expect(install?.run).toBe('npx playwright install chromium');
+      expect(job.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH).toBeUndefined();
+      expect(
+        job.env.PLAYWRIGHT_SKIP_VALIDATE_HOST_REQUIREMENTS,
+      ).toBeUndefined();
+    }
+  });
+
   it('uploads only static output after all required validation and browser gates', () => {
     const steps = pages.jobs.build.steps;
     const upload = steps.findIndex((step: { uses?: string }) =>

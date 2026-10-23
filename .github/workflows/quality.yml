@@ -47,7 +47,8 @@ jobs:
       - name: Audit dependencies
         run: npm run audit
       - name: Install Chromium
-        run: npx playwright install --with-deps chromium
+        # The official Ubuntu 24.04 runner already supplies browser system libraries; avoid redundant apt mirror traffic.
+        run: npx playwright install chromium
       - name: Verify static output and all browser tests under /folio/
         run: npm run test:base
       - name: Build static site
