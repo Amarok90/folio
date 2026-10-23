@@ -1,6 +1,7 @@
 import { readFileSync } from 'node:fs';
 import { parse } from 'yaml';
 import { describe, expect, it } from 'vitest';
+import { resolveAnalytics } from '../../src/config/analytics';
 
 const pages = parse(readFileSync('.github/workflows/pages.yml', 'utf8'));
 const quality = parse(readFileSync('.github/workflows/quality.yml', 'utf8'));
@@ -21,11 +22,27 @@ describe('production publication boundaries', () => {
     );
   });
 
-  it('keeps Clarity inactive in both CI and production regardless of repository variables', () => {
-    for (const job of [pages.jobs.build, quality.jobs.quality]) {
-      expect(job.env.CLARITY_ENABLED).toBe('false');
-      expect(job.env.CLARITY_PROJECT_ID).toBe('');
-    }
+  it('activates only the owner-authorized production project and retains a deployment kill switch', () => {
+    const env = pages.jobs.build.env;
+    expect(env.CLARITY_ENABLED).toBe("${{ vars.CLARITY_ENABLED || 'true' }}");
+    expect(env.CLARITY_PROJECT_ID).toBe('z26yinj7ob');
+    expect(
+      resolveAnalytics({
+        CLARITY_ENABLED: 'true',
+        CLARITY_PROJECT_ID: env.CLARITY_PROJECT_ID,
+      }),
+    ).toEqual({ enabled: true, projectId: 'z26yinj7ob' });
+    expect(
+      resolveAnalytics({
+        CLARITY_ENABLED: 'false',
+        CLARITY_PROJECT_ID: env.CLARITY_PROJECT_ID,
+      }),
+    ).toEqual({ enabled: false, projectId: '' });
+  });
+
+  it('keeps the Quality workflow offline regardless of production analytics configuration', () => {
+    expect(quality.jobs.quality.env.CLARITY_ENABLED).toBe('false');
+    expect(quality.jobs.quality.env.CLARITY_PROJECT_ID).toBe('');
   });
 
   it('installs both locked Playwright Chromium builds on the pre-provisioned Ubuntu runner without apt', () => {

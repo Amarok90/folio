@@ -39,8 +39,9 @@ jobs:
       ASTRO_TELEMETRY_DISABLED: '1'
       SITE_URL: ${{ inputs.site_origin || vars.SITE_ORIGIN || 'https://amarok90.github.io' }}
       BASE_PATH: ${{ inputs.base_path || vars.SITE_BASE_PATH || '/folio/' }}
-      CLARITY_ENABLED: 'false'
-      CLARITY_PROJECT_ID: ''
+      # Set the repository variable CLARITY_ENABLED=false and redeploy to disable recording.
+      CLARITY_ENABLED: ${{ vars.CLARITY_ENABLED || 'true' }}
+      CLARITY_PROJECT_ID: z26yinj7ob
       SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE || 'true' }}
     steps:
       - name: Check out source
