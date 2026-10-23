@@ -1,0 +1,22 @@
+---
+import SiteLayout from '../layouts/SiteLayout.astro';
+import Container from '../components/layout/Container.astro';
+import Button from '../components/ui/Button.astro';
+import { withBasePath } from '../lib/urls';
+const homeURL = withBasePath('/', import.meta.env.BASE_URL);
+---
+
+<SiteLayout title="Page not found — FOLIO" noindex>
+  <div class="section">
+    <Container>
+      <p class="eyebrow">404 / Page not found</p>
+      <h1 class="my-6">A small detour.</h1>
+      <p class="mb-8">
+        This page doesn’t exist. Let’s get you back to the foundation.
+      </p>
+      <Button href={homeURL} icon="arrow">
+        Return to FOLIO
+      </Button>
+    </Container>
+  </div>
+</SiteLayout>

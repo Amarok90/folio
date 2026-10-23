@@ -1,0 +1,19 @@
+---
+import Icon from './Icon.astro';
+interface Props {
+  href: string;
+  external?: boolean;
+}
+const { href, external = false } = Astro.props;
+---
+
+<a
+  class="text-link"
+  href={href}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+>
+  <slot />
+  <Icon name={external ? 'external' : 'arrow'} />
+  {external && <span class="sr-only"> (opens in a new tab)</span>}
+</a>

@@ -1,0 +1,29 @@
+{
+  "status": "draft",
+  "visible": false,
+  "identity": {
+    "name": "Konstantin Arutjunov",
+    "jobTitle": "Senior IT Business Analyst"
+  },
+  "hero": {
+    "headline": null,
+    "summary": null
+  },
+  "about": {
+    "summary": null,
+    "interests": []
+  },
+  "contact": {
+    "email": null,
+    "location": null,
+    "openToRelocation": null,
+    "availability": null,
+    "links": []
+  },
+  "cv": null,
+  "seo": {
+    "title": null,
+    "description": null,
+    "socialImage": null
+  }
+}

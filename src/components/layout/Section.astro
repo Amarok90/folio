@@ -1,0 +1,18 @@
+---
+import Container from './Container.astro';
+interface Props {
+  id: string;
+  class?: string;
+}
+const { id, class: className } = Astro.props;
+---
+
+<section
+  id={id}
+  aria-labelledby={`${id}-title`}
+  class:list={['section', className]}
+>
+  <Container>
+    <slot />
+  </Container>
+</section>

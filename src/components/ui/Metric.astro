@@ -1,0 +1,17 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+interface Props {
+  value: string;
+  label: string;
+  description?: string;
+  icon: IconName;
+}
+const { value, label, description, icon } = Astro.props;
+---
+
+<div class="metric">
+  <Icon name={icon} class="metric__icon" />
+  <p class="metric__value">{value}</p>
+  <p class="metric__label">{label}</p>
+  {description && <p class="metric__description">{description}</p>}
+</div>

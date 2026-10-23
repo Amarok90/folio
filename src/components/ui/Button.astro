@@ -1,0 +1,45 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+type Props = {
+  variant?: 'primary' | 'secondary';
+  icon?: IconName;
+  class?: string;
+} & (
+  | { href: string; disabled?: never; type?: never; download?: boolean }
+  | {
+      href?: never;
+      disabled?: boolean;
+      type?: 'button' | 'submit' | 'reset';
+      download?: never;
+    }
+);
+const {
+  href,
+  variant = 'primary',
+  icon,
+  disabled,
+  type = 'button',
+  download,
+  class: className,
+} = Astro.props;
+---
+
+{href ? (
+  <a
+    href={href}
+    download={download}
+    class:list={['button', `button--${variant}`, className]}
+  >
+    <slot />
+    {icon && <Icon name={icon} />}
+  </a>
+) : (
+  <button
+    type={type}
+    disabled={disabled}
+    class:list={['button', `button--${variant}`, className]}
+  >
+    <slot />
+    {icon && <Icon name={icon} />}
+  </button>
+)}

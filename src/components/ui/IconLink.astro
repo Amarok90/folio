@@ -1,0 +1,20 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+interface Props {
+  href: string;
+  label: string;
+  icon: IconName;
+  external?: boolean;
+}
+const { href, label, icon, external = false } = Astro.props;
+---
+
+<a
+  class="icon-link"
+  href={href}
+  aria-label={`${label}${external ? ' (opens in a new tab)' : ''}`}
+  target={external ? '_blank' : undefined}
+  rel={external ? 'noopener noreferrer' : undefined}
+>
+  <Icon name={icon} />
+</a>

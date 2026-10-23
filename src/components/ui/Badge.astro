@@ -1,0 +1,12 @@
+---
+import Icon, { type IconName } from './Icon.astro';
+interface Props {
+  icon?: IconName;
+}
+const { icon } = Astro.props;
+---
+
+<span class="badge">
+  {icon && <Icon name={icon} />}
+  <slot />
+</span>

@@ -1,0 +1,25 @@
+---
+import Container from './Container.astro';
+import Icon from '../ui/Icon.astro';
+import { site } from '../../config/site';
+import { withBasePath } from '../../lib/urls';
+const overviewURL = `${withBasePath('/', import.meta.env.BASE_URL)}#overview`;
+---
+
+<footer class="footer-shell">
+  <Container class="footer-inner">
+    <div>
+      <a href={overviewURL} class="brand">
+        <Icon name="feather" />
+        {site.brand}
+      </a>
+      <p>
+        {site.identity.name} · {site.identity.jobTitle}
+      </p>
+    </div>
+    <p>Foundation 01 · Development preview</p>
+    <a class="footer-link" href={overviewURL}>
+      Back to top
+    </a>
+  </Container>
+</footer>

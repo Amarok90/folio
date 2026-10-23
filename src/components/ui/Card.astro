@@ -1,0 +1,12 @@
+---
+import type { HTMLAttributes } from 'astro/types';
+type Props = HTMLAttributes<'div'> & {
+  variant?: 'default' | 'elevated' | 'tinted';
+  class?: string;
+};
+const { variant = 'default', class: className, ...attributes } = Astro.props;
+---
+
+<div {...attributes} class:list={['card', `card--${variant}`, className]}>
+  <slot />
+</div>

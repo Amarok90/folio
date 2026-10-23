@@ -1,0 +1,71 @@
+---
+import Container from '../layout/Container.astro';
+import Icon from '../ui/Icon.astro';
+import { site } from '../../config/site';
+import { withBasePath } from '../../lib/urls';
+const homeURL = withBasePath('/', import.meta.env.BASE_URL);
+---
+
+<header class="header-shell" data-header>
+  <Container class="header-inner">
+    <a href={homeURL} class="brand" aria-label="FOLIO home">
+      <Icon name="feather" />
+      {site.brand}
+    </a>
+    <button
+      class="menu-toggle"
+      type="button"
+      aria-expanded="false"
+      aria-controls="main-navigation"
+      aria-label="Open menu"
+      data-menu-toggle
+    >
+      <span data-menu-label>Menu</span>
+      <Icon name="menu" />
+    </button>
+    <nav id="main-navigation" aria-label="Main navigation" class="main-nav">
+      {site.navigation.map((item) => (
+        <a href={`${homeURL}${item.href}`}>{item.label}</a>
+      ))}
+    </nav>
+  </Container>
+</header>
+<script>
+  const header = document.querySelector<HTMLElement>('[data-header]');
+  const toggle =
+    document.querySelector<HTMLButtonElement>('[data-menu-toggle]');
+  const nav = document.querySelector<HTMLElement>('#main-navigation');
+  if (header && toggle && nav) {
+    const compact = window.matchMedia('(width < 56.25rem)');
+    const setOpen = (open: boolean) => {
+      toggle.setAttribute('aria-expanded', String(open));
+      toggle.setAttribute('aria-label', open ? 'Close menu' : 'Open menu');
+      nav.hidden = compact.matches && !open;
+    };
+    setOpen(false);
+    header.dataset['enhanced'] = '';
+    toggle.addEventListener('click', () =>
+      setOpen(toggle.getAttribute('aria-expanded') !== 'true'),
+    );
+    header.addEventListener('keydown', (event) => {
+      if (
+        event.key === 'Escape' &&
+        toggle.getAttribute('aria-expanded') === 'true'
+      ) {
+        setOpen(false);
+        toggle.focus();
+      }
+    });
+    nav.querySelectorAll('a').forEach((link) =>
+      link.addEventListener('click', () => {
+        setOpen(false);
+        const target = document.querySelector<HTMLElement>(link.hash);
+        if (target) {
+          target.tabIndex = -1;
+          target.focus({ preventScroll: true });
+        }
+      }),
+    );
+    compact.addEventListener('change', () => setOpen(false));
+  }
+</script>

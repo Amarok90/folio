@@ -1,0 +1,58 @@
+---
+import {
+  ArrowRight,
+  ArrowUpRight,
+  ArrowUp,
+  Check,
+  ChevronDown,
+  CodeXml,
+  Download,
+  Feather,
+  FileCheck,
+  Layers,
+  Menu,
+  Palette,
+  ShieldCheck,
+  Type,
+  X,
+  Image,
+  CircleCheck,
+} from '@lucide/astro';
+
+const icons = {
+  arrow: ArrowRight,
+  external: ArrowUpRight,
+  up: ArrowUp,
+  check: Check,
+  chevron: ChevronDown,
+  code: CodeXml,
+  download: Download,
+  feather: Feather,
+  file: FileCheck,
+  layers: Layers,
+  menu: Menu,
+  palette: Palette,
+  shield: ShieldCheck,
+  type: Type,
+  close: X,
+  image: Image,
+  complete: CircleCheck,
+};
+export type IconName = keyof typeof icons;
+interface Props {
+  name: IconName;
+  label?: string;
+  class?: string;
+}
+const { name, label, class: className } = Astro.props;
+const Glyph = icons[name];
+---
+
+<span
+  role={label ? 'img' : undefined}
+  aria-label={label}
+  aria-hidden={label ? undefined : 'true'}
+  class:list={['icon', className]}
+>
+  <Glyph size={20} stroke-width={1.7} aria-hidden="true" focusable="false" />
+</span>
