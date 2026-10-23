@@ -60,13 +60,23 @@ test.describe('CMS-managed navigation layout boundaries', () => {
     );
     input.brand = 'Professional FOLIO Brand';
     input.navigation = labels;
-    input.actions.cvViewLabel =
-      'Open professional experience and project CV on LinkedIn now...'.slice(
-        0,
-        60,
-      );
+    const profile = JSON.parse(
+      readFileSync(join(fixture, 'src/data/profile.json'), 'utf8'),
+    );
+    const cvLabel = profile.cv
+      ? 'cvDownloadLabel'
+      : profile.cvPreviewUrl
+        ? 'cvViewLabel'
+        : 'cvPendingLabel';
+    input.actions[cvLabel] = (
+      profile.cv
+        ? 'Download professional experience and project CV document now...'
+        : profile.cvPreviewUrl
+          ? 'Open professional experience and project CV on LinkedIn now...'
+          : 'CV currently unavailable; contact Konstantin for further information.'
+    ).slice(0, 60);
     expect(input.brand).toHaveLength(24);
-    expect(input.actions.cvViewLabel).toHaveLength(60);
+    expect(input.actions[cvLabel]).toHaveLength(60);
     expect(labels.every((link) => link.label.length === 28)).toBe(true);
     const ui = interfaceSchema.parse(input);
     writeFileSync(join(fixture, 'src/data/interface.json'), JSON.stringify(ui));

@@ -100,6 +100,7 @@ describe('CMS-compatible media contracts', () => {
         'src/data',
         'src/content',
         'src/assets',
+        'public/documents',
         '.pages.yml',
       ])
         cpSync(new URL(path, repositoryRoot), join(fixtureRoot, path), {

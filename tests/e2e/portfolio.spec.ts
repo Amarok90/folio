@@ -643,6 +643,9 @@ test('CV and contact controls use real destinations while the header shows truth
     contact: { email: string | null };
   };
   if (currentProfile.cv) {
+    await expect(page.locator('[data-analytics-event="cv_view"]')).toHaveCount(
+      0,
+    );
     const cv = page.locator('a[data-analytics-event="cv_download"]');
     expect(await cv.count()).toBeGreaterThanOrEqual(2);
     for (const link of await cv.all()) {

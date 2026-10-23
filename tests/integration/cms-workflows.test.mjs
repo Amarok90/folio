@@ -126,7 +126,16 @@ test(
     saveJSON('src/data/profile.json', profile);
     const ui = readJSON('src/data/interface.json');
     ui.navigation[0].label = 'CMS navigation fixture';
-    ui.actions.cvViewLabel = 'Open profile CV';
+    const cvLabel = profile.cv
+      ? 'cvDownloadLabel'
+      : profile.cvPreviewUrl
+        ? 'cvViewLabel'
+        : 'cvPendingLabel';
+    ui.actions[cvLabel] = profile.cv
+      ? 'Download CMS CV fixture'
+      : profile.cvPreviewUrl
+        ? 'Open profile CV'
+        : 'CV unavailable in CMS fixture';
     ui.contact.primaryActionLabel = 'CMS contact fixture';
     ui.hero.primaryAction = { label: 'CMS hero fixture', href: '#contact' };
     ui.expertise.titleLines = ['CMS expertise', 'fixture'];
@@ -138,7 +147,7 @@ test(
     assert.match(html, /hero-signature--custom/);
     for (const text of [
       ui.navigation[0].label,
-      ui.actions.cvViewLabel,
+      ui.actions[cvLabel],
       ui.hero.primaryAction.label,
       ...ui.expertise.titleLines,
     ])

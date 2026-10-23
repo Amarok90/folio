@@ -1,3 +1,19 @@
+# FOLIO — approved skill assessments and public CV, 2026-10-23
+
+The owner explicitly confirmed the twelve numeric self-assessments from the latest reference and authorized publication of the reviewed CV after factual verification and removal of its review label. These approvals supersede the corresponding pending-content notes in the historical reports below.
+
+Twelve approved 1–100 assessments are stored in the existing Skills collection. Existing stable IDs are retained; the combined SQL & Data Analysis label preserves the exact scope of its score. Five absent approved skills have their own records rather than assigning their scores to different existing skills. All other scores and qualitative proficiency remain unknown. Categories, ordering, accessible native meters and CMS controls continue to use the canonical schema.
+
+The real public document is `public/documents/konstantin-arutjunov-cv.pdf` (two A4 pages, 68,537 bytes, SHA-256 `ac6529ad0dc6f9c572f51b730377eae3a0ef3152508da1f4a1276ffa33d8a27f`). It retains the owner-approved review's professional text, removes the review-only footer and metadata, and includes only approved email/LinkedIn contacts. Both rendered pages were inspected; chronology, education and reported outcomes were checked against source-backed records. No private phone/DOB, unsupported qualifications, hidden original pages, active content or embedded files are included. It is searchable but untagged; PDF/UA certification is not claimed. Original private/review files remain outside Git.
+
+`profile.cv` selects the validated document for every native Download CV action, including the /folio/ base path and cv_download event; the existing external View CV remains a fallback only if local metadata is cleared. CMS profile fields and public documents storage remain the single replacement workflow. Publication of this file does not certify authenticated live Pages CMS uploading or the Clarity dashboard. Original portrait remains pending.
+
+Local canonical `make folio.check` passed: strict Astro/TypeScript, ESLint, formatting, 153 unit tests, 7 isolated CMS workflows, 37 base-path plus 37 main E2E tests, 19 consent/resilience tests, zero audit vulnerabilities and static build verification. Local Lighthouse: mobile 99/100/100/100; desktop 100/100/100/100. Evidence: `artifacts/approved-content/local/quality-network-enabled.log`. The first sandboxed run could not reach the npm audit registry; the authorized network-enabled rerun passed the full unchanged gate. A real stale unit fixture initially omitted the newly selected public PDF; copying that dependency fixed the fixture rather than weakening production validation. Test fixtures now follow the selected CV action, preserve both event contracts and exercise genuine downloads despite analytics failures.
+
+Native local Opera inspected the new meters and Download CV at 768 and 1440px (`artifacts/approved-content/opera/`). Browser Connector was disconnected; native UI access was used. The two rendered PDF pages were inspected independently. Remote CI, actual deployment and public post-deployment results must be verified for the final commit; these local results alone do not certify publication.
+
+---
+
 # FOLIO — Signature Executive design verification, 2026-10-23
 
 **Visual implementation: passed within the explicit layout and verified-content constraints below. Full owner-content acceptance remains pending.** No pixel-perfect or 17/17 certification is asserted: the available request supplies the current requirements but no separate list of seventeen prior objectives.

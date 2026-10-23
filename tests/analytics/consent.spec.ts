@@ -1,8 +1,15 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import interfaceInput from '../../src/data/interface.json' with { type: 'json' };
-import { interfaceSchema } from '../../src/lib/content';
+import profileInput from '../../src/data/profile.json' with { type: 'json' };
+import { interfaceSchema, profileSchema } from '../../src/lib/content';
 const ui = interfaceSchema.parse(interfaceInput);
+const profile = profileSchema.parse(profileInput);
+const cvEvent = profile.cv
+  ? 'cv_download'
+  : profile.cvPreviewUrl
+    ? 'cv_view'
+    : null;
 const heroDestination = new RegExp(`${ui.hero.primaryAction.href}$`);
 
 const scriptURL = 'https://www.clarity.ms/tag/folio1234';
@@ -48,6 +55,33 @@ async function preventExternalNavigation(page: Page) {
       { capture: true },
     );
   });
+}
+
+async function exerciseAvailableCVAction(page: Page) {
+  if (profile.cv) {
+    const link = page.locator('[data-analytics-event="cv_download"]').first();
+    await expect(link).toHaveAttribute('download', profile.cv.filename);
+    const [download] = await Promise.all([
+      page.waitForEvent('download'),
+      link.click(),
+    ]);
+    expect(download.suggestedFilename()).toBe(profile.cv.filename);
+    expect(await download.failure()).toBeNull();
+  } else if (profile.cvPreviewUrl) {
+    const link = page.locator('[data-analytics-event="cv_view"]').first();
+    await expect(link).toHaveAttribute('href', profile.cvPreviewUrl);
+    // Exercise the real view action without visiting a third-party account.
+    await link.evaluate((element) =>
+      element.addEventListener('click', (event) => event.preventDefault(), {
+        once: true,
+      }),
+    );
+    await link.click();
+  } else {
+    await expect(
+      page.getByRole('button', { name: ui.actions.cvPendingLabel }).first(),
+    ).toBeDisabled();
+  }
 }
 
 test.beforeEach(async ({ page }) => {
@@ -112,7 +146,7 @@ test('eligible real actions emit one allowlisted event each with no personal pay
   await accept(page);
   await preventExternalNavigation(page);
   const expected = [
-    'cv_view',
+    ...(cvEvent ? [cvEvent] : []),
     'linkedin_click',
     'email_click',
     'explore_work',
@@ -154,28 +188,38 @@ test('nested SVG activation is tracked once and unknown event values are ignored
   ).toHaveLength(1);
 });
 
-test('CV download uses the same static event contract without sending filename or URL', async ({
+test('both CV event contracts contain only fixed names without filenames or URLs', async ({
   page,
 }) => {
   await open(page);
   await accept(page);
   await preventExternalNavigation(page);
-  // The real local PDF is absent. Exercise the shared delegated download hook
-  // with an isolated DOM fixture; the CMS suite verifies actual PDF rendering.
-  await page.evaluate(() => {
-    const fixture = document.createElement('a');
-    fixture.href = '/folio/documents/test.pdf';
-    fixture.download = 'test.pdf';
-    fixture.dataset['analyticsEvent'] = 'cv_download';
-    fixture.textContent = 'Download integration fixture';
-    document.body.append(fixture);
-  });
-  await page
-    .getByRole('link', { name: 'Download integration fixture' })
-    .click();
-  expect((await calls(page)).filter((call) => call[0] === 'event')).toEqual([
-    ['event', 'cv_download'],
-  ]);
+  // These isolated DOM fixtures protect both delegated event contracts,
+  // independently of which genuine CV action is currently published.
+  const events = ['cv_view', 'cv_download'] as const;
+  await page.evaluate((names) => {
+    for (const name of names) {
+      const fixture = document.createElement('a');
+      fixture.href = new URL(
+        'documents/analytics-contract.pdf',
+        location.href,
+      ).href;
+      if (name === 'cv_download') fixture.download = 'analytics-contract.pdf';
+      fixture.dataset['analyticsEvent'] = name;
+      fixture.textContent = `CV analytics contract fixture ${name}`;
+      document.body.append(fixture);
+    }
+  }, events);
+  for (const name of events)
+    await page
+      .getByRole('link', {
+        name: `CV analytics contract fixture ${name}`,
+        exact: true,
+      })
+      .click();
+  const recorded = (await calls(page)).filter((call) => call[0] === 'event');
+  expect(recorded).toEqual(events.map((name) => ['event', name]));
+  for (const event of recorded) expect(event).toHaveLength(2);
 });
 
 test('withdrawal resets the active recorder, clears its cookies and persists rejection', async ({
@@ -254,8 +298,8 @@ test('blocked Clarity scripts and throwing analytics cannot break core actions',
   );
   await page.locator('[data-analytics-event="explore_work"]').first().click();
   await expect(page).toHaveURL(heroDestination);
+  await exerciseAvailableCVAction(page);
   await preventExternalNavigation(page);
-  await page.locator('[data-analytics-event="cv_view"]').first().click();
   await page.locator('[data-analytics-event="email_click"]').first().click();
   expect(await calls(page)).toEqual([]);
   expect(errors).toEqual([]);
@@ -276,11 +320,18 @@ test('a loaded analytics function throwing does not cancel navigation or contact
   await accept(page);
   await page.locator('[data-analytics-event="explore_work"]').first().click();
   await expect(page).toHaveURL(heroDestination);
-  await expect(
-    page
-      .locator('#contact a[href="mailto:konstantin.arutjunov@gmail.com"]')
-      .first(),
-  ).toBeVisible();
+  await exerciseAvailableCVAction(page);
+  await preventExternalNavigation(page);
+  if (profile.contact.email) {
+    const email = page
+      .locator('#contact [data-analytics-event="email_click"]')
+      .first();
+    await expect(email).toHaveAttribute(
+      'href',
+      `mailto:${profile.contact.email}`,
+    );
+    await email.click();
+  }
   expect(errors).toEqual([]);
 });
 

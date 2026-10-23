@@ -6,29 +6,32 @@
     "visible": true,
     "name": "Business Analysis",
     "categoryId": "business-analytical",
-    "proficiency": null
+    "proficiency": null,
+    "selfAssessment": 95
   },
   {
     "id": "system-analysis",
-    "order": 2,
+    "order": 3,
     "status": "published",
     "visible": true,
     "name": "System Analysis",
     "categoryId": "business-analytical",
-    "proficiency": null
+    "proficiency": null,
+    "selfAssessment": 90
   },
   {
     "id": "requirements-engineering",
-    "order": 3,
+    "order": 2,
     "status": "published",
     "visible": true,
     "name": "Requirements Engineering",
     "categoryId": "business-analytical",
-    "proficiency": null
+    "proficiency": null,
+    "selfAssessment": 92
   },
   {
     "id": "requirements-elicitation",
-    "order": 4,
+    "order": 7,
     "status": "published",
     "visible": true,
     "name": "Requirements Elicitation",
@@ -37,7 +40,7 @@
   },
   {
     "id": "user-stories-use-cases",
-    "order": 5,
+    "order": 8,
     "status": "published",
     "visible": true,
     "name": "User Stories & Use Cases",
@@ -46,25 +49,27 @@
   },
   {
     "id": "bpmn-process-modelling",
-    "order": 6,
+    "order": 4,
     "status": "published",
     "visible": true,
     "name": "BPMN & Process Modelling",
     "categoryId": "business-analytical",
-    "proficiency": null
+    "proficiency": null,
+    "selfAssessment": 88
   },
   {
     "id": "stakeholder-management",
-    "order": 7,
+    "order": 5,
     "status": "published",
     "visible": true,
     "name": "Stakeholder Management",
     "categoryId": "business-analytical",
-    "proficiency": null
+    "proficiency": null,
+    "selfAssessment": 90
   },
   {
     "id": "requirements-workshops",
-    "order": 8,
+    "order": 9,
     "status": "published",
     "visible": true,
     "name": "Requirements Workshops",
@@ -73,25 +78,27 @@
   },
   {
     "id": "rest-soap-apis",
-    "order": 1,
+    "order": 2,
     "status": "published",
     "visible": true,
     "name": "REST / SOAP APIs",
     "categoryId": "technical-tools",
-    "proficiency": null
+    "proficiency": null,
+    "selfAssessment": 85
   },
   {
     "id": "sql",
-    "order": 2,
+    "order": 1,
     "status": "published",
     "visible": true,
-    "name": "SQL",
+    "name": "SQL & Data Analysis",
     "categoryId": "technical-tools",
-    "proficiency": null
+    "proficiency": null,
+    "selfAssessment": 88
   },
   {
     "id": "excel",
-    "order": 3,
+    "order": 6,
     "status": "published",
     "visible": true,
     "name": "Excel",
@@ -100,7 +107,7 @@
   },
   {
     "id": "tableau",
-    "order": 4,
+    "order": 7,
     "status": "published",
     "visible": true,
     "name": "Tableau",
@@ -109,7 +116,7 @@
   },
   {
     "id": "swagger",
-    "order": 5,
+    "order": 8,
     "status": "published",
     "visible": true,
     "name": "Swagger",
@@ -118,7 +125,7 @@
   },
   {
     "id": "postman",
-    "order": 6,
+    "order": 9,
     "status": "published",
     "visible": true,
     "name": "Postman",
@@ -127,7 +134,7 @@
   },
   {
     "id": "soapui",
-    "order": 7,
+    "order": 10,
     "status": "published",
     "visible": true,
     "name": "SoapUI",
@@ -136,7 +143,7 @@
   },
   {
     "id": "javascript",
-    "order": 8,
+    "order": 11,
     "status": "published",
     "visible": true,
     "name": "JavaScript",
@@ -145,7 +152,7 @@
   },
   {
     "id": "xml-xslt",
-    "order": 9,
+    "order": 12,
     "status": "published",
     "visible": true,
     "name": "XML / XSLT",
@@ -154,7 +161,7 @@
   },
   {
     "id": "agile-delivery",
-    "order": 1,
+    "order": 2,
     "status": "published",
     "visible": true,
     "name": "Agile Delivery",
@@ -163,7 +170,7 @@
   },
   {
     "id": "scrum",
-    "order": 2,
+    "order": 3,
     "status": "published",
     "visible": true,
     "name": "Scrum",
@@ -172,7 +179,7 @@
   },
   {
     "id": "functional-testing",
-    "order": 3,
+    "order": 4,
     "status": "published",
     "visible": true,
     "name": "Functional Testing",
@@ -181,7 +188,7 @@
   },
   {
     "id": "integration-testing",
-    "order": 4,
+    "order": 5,
     "status": "published",
     "visible": true,
     "name": "Integration Testing",
@@ -190,7 +197,7 @@
   },
   {
     "id": "uat",
-    "order": 5,
+    "order": 6,
     "status": "published",
     "visible": true,
     "name": "User Acceptance Testing",
@@ -199,7 +206,7 @@
   },
   {
     "id": "root-cause-analysis",
-    "order": 6,
+    "order": 7,
     "status": "published",
     "visible": true,
     "name": "Root Cause Analysis",
@@ -208,7 +215,7 @@
   },
   {
     "id": "change-management",
-    "order": 7,
+    "order": 8,
     "status": "published",
     "visible": true,
     "name": "Change Management",
@@ -289,7 +296,7 @@
   },
   {
     "id": "google-cloud-services",
-    "order": 10,
+    "order": 13,
     "status": "published",
     "visible": true,
     "name": "Google Cloud Services",
@@ -298,7 +305,7 @@
   },
   {
     "id": "rpa-automation",
-    "order": 11,
+    "order": 14,
     "status": "published",
     "visible": true,
     "name": "RPA Automation",
@@ -307,7 +314,7 @@
   },
   {
     "id": "chatgpt",
-    "order": 12,
+    "order": 15,
     "status": "published",
     "visible": true,
     "name": "ChatGPT",
@@ -316,7 +323,7 @@
   },
   {
     "id": "copilot",
-    "order": 13,
+    "order": 16,
     "status": "published",
     "visible": true,
     "name": "Copilot",
@@ -325,11 +332,61 @@
   },
   {
     "id": "codex",
-    "order": 14,
+    "order": 17,
     "status": "published",
     "visible": true,
     "name": "Codex",
     "categoryId": "technical-tools",
     "proficiency": null
+  },
+  {
+    "id": "solution-design",
+    "order": 6,
+    "status": "published",
+    "visible": true,
+    "name": "Solution Design",
+    "categoryId": "business-analytical",
+    "proficiency": null,
+    "selfAssessment": 87
+  },
+  {
+    "id": "json-xml",
+    "order": 3,
+    "status": "published",
+    "visible": true,
+    "name": "JSON / XML",
+    "categoryId": "technical-tools",
+    "proficiency": null,
+    "selfAssessment": 83
+  },
+  {
+    "id": "jira-confluence",
+    "order": 4,
+    "status": "published",
+    "visible": true,
+    "name": "Jira & Confluence",
+    "categoryId": "technical-tools",
+    "proficiency": null,
+    "selfAssessment": 90
+  },
+  {
+    "id": "testing-qa",
+    "order": 1,
+    "status": "published",
+    "visible": true,
+    "name": "Testing & QA",
+    "categoryId": "methodologies",
+    "proficiency": null,
+    "selfAssessment": 82
+  },
+  {
+    "id": "integration-analysis",
+    "order": 5,
+    "status": "published",
+    "visible": true,
+    "name": "Integration Analysis",
+    "categoryId": "technical-tools",
+    "proficiency": null,
+    "selfAssessment": 86
   }
 ]

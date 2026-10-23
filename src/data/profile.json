@@ -49,7 +49,12 @@
       }
     ]
   },
-  "cv": null,
+  "cv": {
+    "path": "/documents/konstantin-arutjunov-cv.pdf",
+    "filename": "konstantin-arutjunov-cv.pdf",
+    "updatedAt": "2026-10-23",
+    "language": "en"
+  },
   "seo": {
     "title": "Konstantin Arutjunov — Senior IT Business Analyst",
     "description": "Senior IT Business Analyst with 10+ years across banking, lending and financial services. Based in Estonia and open to opportunities in Switzerland.",
