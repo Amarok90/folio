@@ -1,0 +1,234 @@
+---
+import { analytics } from '../../config/analytics';
+import { withBasePath } from '../../lib/urls';
+const privacyURL = withBasePath('/privacy/', import.meta.env.BASE_URL);
+---
+
+<div
+  data-consent-root
+  data-enabled={String(analytics.enabled)}
+  data-project-id={analytics.projectId}
+>
+  <section
+    id="consent-banner"
+    class="consent-banner"
+    aria-labelledby="consent-banner-title"
+    hidden
+  >
+    <div>
+      <h2 id="consent-banner-title">Your privacy, your choice.</h2>
+      <p>
+        With your permission, Microsoft Clarity helps improve this portfolio
+        through usage insights and masked session recordings. All features work
+        without optional analytics. <a href={privacyURL}>Privacy policy</a>
+      </p>
+    </div>
+    <div class="consent-actions">
+      <button
+        class="button button--secondary"
+        type="button"
+        data-consent-choice="rejected"
+      >
+        Reject analytics
+      </button>
+      <button
+        class="button button--secondary"
+        type="button"
+        data-consent-choice="accepted"
+      >
+        Accept analytics
+      </button>
+      <button
+        class="consent-preferences-link"
+        type="button"
+        data-consent-open
+        hidden
+      >
+        Preferences
+      </button>
+    </div>
+  </section>
+
+  <dialog
+    id="consent-preferences"
+    class="consent-dialog"
+    aria-labelledby="consent-title"
+    aria-describedby="consent-description"
+  >
+    <div class="consent-dialog-heading">
+      <h2 id="consent-title">Privacy preferences</h2>
+      <button
+        type="button"
+        class="consent-close"
+        data-consent-close
+        aria-label="Close privacy preferences"
+      >
+        ×
+      </button>
+    </div>
+    <p id="consent-description">
+      Essential features always work. Optional analytics is your choice and is
+      never required to view projects, open the CV or get in touch.
+    </p>
+    <div class="consent-purpose">
+      <h3>Microsoft Clarity · optional</h3>
+      <p>
+        Usage insights, heatmaps and masked session recordings help improve
+        navigation and readability. Advertising storage is denied. Our custom
+        events contain only fixed action names, without personal details.
+      </p>
+    </div>
+    <p class="consent-status" id="consent-status" role="status"></p>
+    <div class="consent-actions">
+      <button
+        class="button button--secondary"
+        type="button"
+        data-consent-choice="rejected"
+      >
+        Reject analytics
+      </button>
+      <button
+        class="button button--secondary"
+        type="button"
+        data-consent-choice="accepted"
+      >
+        Accept analytics
+      </button>
+    </div>
+    <p class="consent-note">
+      Change your choice here at any time. Withdrawing consent refreshes the
+      page to stop an active analytics session.{' '}
+      <a href={privacyURL}>Privacy policy</a>
+    </p>
+  </dialog>
+</div>
+
+<script>
+  import '../../scripts/consent';
+</script>
+
+<style>
+  .consent-banner {
+    position: fixed;
+    inset: auto var(--space-4) var(--space-4);
+    z-index: var(--z-menu);
+    max-width: var(--content-width);
+    margin-inline: auto;
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: var(--space-6);
+    align-items: center;
+    padding: var(--space-6);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-section);
+    box-shadow: var(--shadow-elevated);
+    background: var(--color-surface);
+  }
+  .consent-banner[hidden] {
+    display: none;
+  }
+  .consent-banner h2,
+  .consent-dialog h2 {
+    font-size: var(--text-h4);
+    letter-spacing: -0.025em;
+    line-height: 1.3;
+    margin: 0 0 var(--space-2);
+  }
+  .consent-banner p,
+  .consent-dialog p {
+    font-size: var(--text-small);
+    line-height: var(--leading-body);
+    color: var(--color-text-secondary);
+    margin: 0;
+  }
+  .consent-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+  }
+  .consent-actions .button {
+    font-size: var(--text-small);
+    min-width: 10rem;
+    flex: 1 0 auto;
+  }
+  .consent-preferences-link,
+  .consent-close {
+    border: 0;
+    background: transparent;
+    color: var(--color-primary);
+    cursor: pointer;
+    min-height: var(--touch-target);
+    min-width: var(--touch-target);
+    font: inherit;
+  }
+  .consent-preferences-link {
+    text-decoration: underline;
+    font-size: var(--text-small);
+  }
+  .consent-dialog {
+    inset: 0;
+    margin: auto;
+    width: min(calc(100% - var(--space-8)), 34rem);
+    max-height: calc(100dvh - var(--space-8));
+    overflow-y: auto;
+    padding: var(--space-8);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-section);
+    box-shadow: var(--shadow-elevated);
+    color: var(--color-text);
+    background: var(--color-surface);
+  }
+  .consent-dialog::backdrop {
+    background: rgb(7 45 73 / 35%);
+  }
+  .consent-dialog-heading {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+  }
+  .consent-close {
+    font-size: 1.8rem;
+    line-height: 1;
+  }
+  .consent-purpose {
+    margin-block: var(--space-5);
+    padding: var(--space-4);
+    border-radius: var(--radius-card);
+    background: var(--color-background-secondary);
+  }
+  .consent-purpose h3 {
+    font-size: var(--text-small);
+    margin: 0 0 var(--space-2);
+    letter-spacing: normal;
+  }
+  .consent-dialog .consent-status {
+    margin-block: var(--space-4);
+    font-weight: var(--weight-medium);
+  }
+  .consent-dialog .consent-note {
+    font-size: var(--text-caption);
+    margin-top: var(--space-5);
+  }
+  .consent-banner a,
+  .consent-dialog a {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+  @media (max-width: 64rem) {
+    .consent-banner {
+      grid-template-columns: 1fr;
+      gap: var(--space-3);
+    }
+  }
+  @media (max-width: 30rem) {
+    .consent-banner {
+      padding: var(--space-4);
+      inset-inline: var(--space-3);
+    }
+    .consent-dialog {
+      padding: var(--space-5);
+    }
+  }
+</style>

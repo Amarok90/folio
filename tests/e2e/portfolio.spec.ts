@@ -1,6 +1,37 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { join } from 'node:path';
+import profileInput from '../../src/data/profile.json' with { type: 'json' };
+import expertiseInput from '../../src/content/expertise.json' with { type: 'json' };
+import projectsInput from '../../src/content/case-studies.json' with { type: 'json' };
+import skillsInput from '../../src/content/skills.json' with { type: 'json' };
+import {
+  caseStudySchema,
+  expertiseSchema,
+  profileSchema,
+  skillSchema,
+} from '../../src/lib/content';
+
+const profileSource = profileSchema.parse(profileInput);
+const expertiseSource = expertiseSchema.array().parse(expertiseInput);
+const projectsSource = caseStudySchema.array().parse(projectsInput);
+const skillsSource = skillSchema.array().parse(skillsInput);
+
+const published = (record: { status: string; visible: boolean }) =>
+  record.status === 'published' && record.visible;
+const categoryCount = expertiseSource.filter(published).length;
+const projectCount = projectsSource.filter(published).length;
+const publicProjects = projectsSource
+  .filter(published)
+  .sort(
+    (left, right) =>
+      left.order - right.order ||
+      (left.id < right.id ? -1 : left.id > right.id ? 1 : 0),
+  );
+const indexable = process.env['SITE_INDEXABLE'] === 'true';
+const analyticsEnabled =
+  process.env['CLARITY_ENABLED'] === 'true' &&
+  /^[a-z0-9]{6,20}$/i.test(process.env['CLARITY_PROJECT_ID']?.trim() ?? '');
 
 const navigation = [
   ['About', 'about'],
@@ -14,6 +45,11 @@ async function openPreview(page: Page) {
   const response = await page.goto('./');
   expect(response?.status()).toBe(200);
   await page.evaluate(() => document.fonts.ready);
+  if (analyticsEnabled)
+    await page
+      .locator('#consent-banner')
+      .getByRole('button', { name: 'Reject analytics', exact: true })
+      .click();
 }
 
 test('preview has meaningful landmarks, navigation, and honest indexing metadata', async ({
@@ -27,7 +63,7 @@ test('preview has meaningful landmarks, navigation, and honest indexing metadata
   await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   await expect(page.locator('meta[name="robots"]')).toHaveAttribute(
     'content',
-    /noindex/,
+    indexable ? 'index, follow' : 'noindex, nofollow',
   );
   await expect(
     page.getByText('Design preview', { exact: true }).first(),
@@ -258,9 +294,16 @@ test('expertise tabs switch distinct content and implement keyboard navigation',
   await openPreview(page);
   const expertise = page.locator('#expertise');
   const tablist = expertise.getByRole('tablist');
+  if (categoryCount === 0) {
+    await expect(tablist).toHaveCount(0);
+    await expect(expertise).toContainText(
+      'Expertise details are being updated.',
+    );
+    return;
+  }
   await expect(tablist).toHaveCount(1);
   const tabs = tablist.getByRole('tab');
-  await expect(tabs).toHaveCount(4);
+  await expect(tabs).toHaveCount(categoryCount);
   const content = new Set<string>();
   for (let index = 0; index < (await tabs.count()); index += 1) {
     const tab = tabs.nth(index);
@@ -273,7 +316,16 @@ test('expertise tabs switch distinct content and implement keyboard navigation',
     await expect(panel).toBeVisible();
     await expect(panel).toHaveAttribute('role', 'tabpanel');
     const panelText = (await panel.innerText()).trim();
-    expect(panelText.length).toBeGreaterThan(30);
+    const categoryId = panelId?.replace('expertise-panel-', '');
+    const skills = skillsSource.filter(
+      (skill) => published(skill) && skill.categoryId === categoryId,
+    );
+    await expect(panel.locator('.skill-row')).toHaveCount(skills.length);
+    for (const skill of skills) await expect(panel).toContainText(skill.name);
+    if (skills.length === 0)
+      await expect(panel).toContainText(
+        'Skills for this category will appear after review and publication.',
+      );
     content.add(panelText);
     await expect(expertise.getByRole('tabpanel')).toHaveCount(1);
     for (let other = 0; other < (await tabs.count()); other += 1) {
@@ -283,11 +335,14 @@ test('expertise tabs switch distinct content and implement keyboard navigation',
       }
     }
   }
-  expect(content.size).toBe(4);
+  expect(content.size).toBe(categoryCount);
   await tabs.first().click();
   await page.keyboard.press('ArrowRight');
-  await expect(tabs.nth(1)).toBeFocused();
-  await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+  await expect(tabs.nth(categoryCount === 1 ? 0 : 1)).toBeFocused();
+  await expect(tabs.nth(categoryCount === 1 ? 0 : 1)).toHaveAttribute(
+    'aria-selected',
+    'true',
+  );
   await page.keyboard.press('End');
   await expect(tabs.last()).toBeFocused();
   await expect(tabs.last()).toHaveAttribute('aria-selected', 'true');
@@ -304,23 +359,28 @@ test('case studies disclose real challenges, contributions and limitations with 
   await openPreview(page);
   const projects = page.locator('#projects');
   const disclosures = projects.locator('details');
-  await expect(disclosures).toHaveCount(3);
-  for (const disclosure of await disclosures.all()) {
+  await expect(disclosures).toHaveCount(projectCount);
+  for (const [index, disclosure] of (await disclosures.all()).entries()) {
     const summary = disclosure.locator('summary');
     await expect(disclosure).not.toHaveAttribute('open');
     await summary.focus();
     await page.keyboard.press('Enter');
     await expect(disclosure).toHaveAttribute('open', '');
-    expect((await disclosure.innerText()).trim().length).toBeGreaterThan(100);
-    for (const name of [
-      'The challenge',
-      'My contribution',
-      'Context & limitations',
-    ]) {
+    const project = publicProjects[index]!;
+    await expect(disclosure).toContainText(project.challenge);
+    await expect(disclosure).toContainText(project.contribution);
+    for (const name of ['The challenge', 'My contribution']) {
       await expect(
         disclosure.getByRole('heading', { name, exact: true }),
       ).toBeVisible();
     }
+    if (project.limitations.length > 0)
+      await expect(
+        disclosure.getByRole('heading', {
+          name: 'Context & limitations',
+          exact: true,
+        }),
+      ).toBeVisible();
     await page.keyboard.press('Enter');
     await expect(disclosure).not.toHaveAttribute('open');
   }
@@ -353,22 +413,34 @@ test('CV, translation and contact controls use their real available destinations
   page,
 }) => {
   await openPreview(page);
-  const previewCV = page.getByRole('link', { name: /^View CV/ });
-  expect(await previewCV.count()).toBeGreaterThanOrEqual(2);
-  for (const link of await previewCV.all()) {
-    await expect(link).toHaveAttribute(
-      'href',
-      'https://www.linkedin.com/in/konstantin-arutjunov/overlay/1753005451683/single-media-viewer/',
-    );
-    await expect(link).toHaveAttribute('target', '_blank');
-    await expect(link).toHaveAttribute('rel', /noopener/);
-  }
-  await expect(
-    page.getByRole('button', { name: 'CV pending', exact: true }),
-  ).toHaveCount(0);
-  await expect(page.locator('a[download]')).toHaveCount(0);
+  const currentProfile = profileSource as {
+    cv: null | { path: string; filename: string };
+    cvPreviewUrl: string | null;
+    contact: { email: string | null };
+  };
+  if (currentProfile.cv) {
+    const cv = page.getByRole('link', { name: /^Download CV/ });
+    expect(await cv.count()).toBeGreaterThanOrEqual(2);
+    for (const link of await cv.all())
+      await expect(link).toHaveAttribute(
+        'download',
+        currentProfile.cv.filename,
+      );
+  } else if (currentProfile.cvPreviewUrl) {
+    const previewCV = page.getByRole('link', { name: /^View CV/ });
+    expect(await previewCV.count()).toBeGreaterThanOrEqual(2);
+    for (const link of await previewCV.all()) {
+      await expect(link).toHaveAttribute('href', currentProfile.cvPreviewUrl);
+      await expect(link).toHaveAttribute('target', '_blank');
+      await expect(link).toHaveAttribute('rel', /noopener/);
+    }
+    await expect(page.locator('a[download]')).toHaveCount(0);
+  } else
+    await expect(
+      page.getByRole('button', { name: 'CV pending', exact: true }).first(),
+    ).toBeDisabled();
   const email = page.locator(
-    '#contact a[href="mailto:konstantin.arutjunov@gmail.com"]',
+    `#contact a[href="mailto:${currentProfile.contact.email}"]`,
   );
   expect(await email.count()).toBeGreaterThanOrEqual(1);
   await expect(email.first()).toBeVisible();
@@ -489,7 +561,7 @@ test('navigation remains usable without JavaScript', async ({
     const expertisePanels = page.locator(
       '#expertise [role="tabpanel"], #expertise [data-expertise-panel]',
     );
-    expect(await expertisePanels.count()).toBeGreaterThanOrEqual(4);
+    expect(await expertisePanels.count()).toBe(categoryCount);
     for (const panel of await expertisePanels.all())
       await expect(panel).toBeVisible();
   } finally {
@@ -534,4 +606,153 @@ test('404 footer navigation returns home with the deployment base', async ({
     await expect(page.locator('#home')).toBeInViewport();
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   }
+});
+
+test('optional analytics stays off without consent and privacy preferences remain accessible', async ({
+  page,
+}) => {
+  const requests: string[] = [];
+  page.on('request', (request) => {
+    if (/clarity\.(?:ms|microsoft\.com)/.test(request.url()))
+      requests.push(request.url());
+  });
+  await openPreview(page);
+  await expect(page.locator('[data-consent-root]')).toHaveAttribute(
+    'data-enabled',
+    String(analyticsEnabled),
+  );
+  await expect(page.locator('#consent-banner')).toBeHidden();
+  const opener = page
+    .getByRole('contentinfo')
+    .getByRole('button', { name: 'Privacy preferences', exact: true });
+  await opener.click();
+  const dialog = page.getByRole('dialog', {
+    name: 'Privacy preferences',
+    exact: true,
+  });
+  await expect(dialog).toBeVisible();
+  const dialogBounds = await dialog.boundingBox();
+  const viewport = page.viewportSize()!;
+  expect(dialogBounds).not.toBeNull();
+  expect(
+    Math.abs(
+      (dialogBounds?.x ?? 0) +
+        (dialogBounds?.width ?? 0) / 2 -
+        viewport.width / 2,
+    ),
+  ).toBeLessThanOrEqual(2);
+  expect(
+    Math.abs(
+      (dialogBounds?.y ?? 0) +
+        (dialogBounds?.height ?? 0) / 2 -
+        viewport.height / 2,
+    ),
+  ).toBeLessThanOrEqual(2);
+  await expect(dialog.getByRole('status')).toHaveText(
+    analyticsEnabled ? /rejected/ : /currently disabled/,
+  );
+  for (const name of ['Accept analytics', 'Reject analytics']) {
+    const choice = dialog.getByRole('button', { name, exact: true });
+    if (analyticsEnabled) await expect(choice).toBeEnabled();
+    else await expect(choice).toBeDisabled();
+  }
+  await page.keyboard.press('Escape');
+  await expect(dialog).toBeHidden();
+  await expect(opener).toBeFocused();
+  await expect(page.locator('#folio-clarity-script')).toHaveCount(0);
+  expect(requests).toEqual([]);
+});
+
+test('privacy page has useful content, working home navigation and WCAG 2.2 AA semantics', async ({
+  page,
+}) => {
+  await openPreview(page);
+  await page
+    .getByRole('contentinfo')
+    .getByRole('link', { name: 'Privacy policy', exact: true })
+    .click();
+  await expect(page).toHaveURL(/\/privacy\/$/);
+  await expect(
+    page.getByRole('heading', {
+      name: 'Privacy policy',
+      level: 1,
+      exact: true,
+    }),
+  ).toBeVisible();
+  for (const title of [
+    'Contact and personal information',
+    'Hosting and essential features',
+    'Optional Microsoft Clarity',
+    'Your choice and withdrawal',
+    'Your rights',
+  ]) {
+    await expect(
+      page.getByRole('heading', { name: title, exact: true }),
+    ).toBeVisible();
+  }
+  await expect(
+    page.getByText(
+      analyticsEnabled
+        ? /Optional analytics is configured\. Clarity starts only after you accept analytics\./
+        : /Optional analytics is currently disabled\. This version does not load Microsoft Clarity\./,
+    ),
+  ).toBeVisible();
+  const privacyContact = page.getByText(/is responsible for the use/);
+  await expect(privacyContact).toContainText(
+    /portfolio\.\s+(For privacy requests|Contact details)/,
+  );
+  await expect(privacyContact).toContainText(/\.\s+An email link/);
+  expect(
+    (
+      await new AxeBuilder({ page })
+        .withTags(['wcag2a', 'wcag2aa', 'wcag21a', 'wcag21aa', 'wcag22aa'])
+        .analyze()
+    ).violations,
+  ).toEqual([]);
+  await page
+    .getByRole('link', { name: '← Back to FOLIO', exact: true })
+    .click();
+  await expect(page.locator('#home')).toBeVisible();
+});
+
+test('canonical, sharing metadata, robots and sitemap obey the configured origin and base', async ({
+  page,
+  request,
+}, testInfo) => {
+  await openPreview(page);
+  const origin = process.env['SITE_URL'];
+  const localBase = new URL(testInfo.project.use.baseURL as string).pathname;
+  if (origin) {
+    const canonical = `${new URL(origin).origin}${localBase}`;
+    await expect(page.locator('link[rel="canonical"]')).toHaveAttribute(
+      'href',
+      canonical,
+    );
+    await expect(page.locator('meta[property="og:url"]')).toHaveAttribute(
+      'content',
+      canonical,
+    );
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute(
+      'content',
+      new RegExp(`^${new URL(origin).origin.replaceAll('.', '\\.')}.*\\.webp$`),
+    );
+    const sitemap = await request.get('./sitemap-index.xml');
+    expect(sitemap.status()).toBe(200);
+    expect(await sitemap.text()).toContain(new URL(origin).origin);
+  } else await expect(page.locator('link[rel="canonical"]')).toHaveCount(0);
+  const robots = await request.get('./robots.txt');
+  expect(robots.status()).toBe(200);
+  expect(await robots.text()).toBe(
+    indexable && origin
+      ? `User-agent: *\nAllow: /\nSitemap: ${new URL(origin).origin}${localBase}sitemap-index.xml\n`
+      : 'User-agent: *\nDisallow: /\n',
+  );
+  const person = JSON.parse(
+    await page.locator('script[type="application/ld+json"]').innerText(),
+  );
+  expect(person.name).toBe(profileSource.identity.name);
+  expect(person.jobTitle).toBe(profileSource.identity.jobTitle);
+  expect(person.sameAs).toEqual(
+    profileSource.contact.links.map((link) => link.url),
+  );
 });

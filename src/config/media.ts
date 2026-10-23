@@ -1,17 +1,35 @@
-import portrait from '../assets/portrait.png';
-import alpine from '../assets/alpine.webp';
-import contact from '../assets/contact.webp';
-import banking from '../assets/banking-review.webp';
-import fintech from '../assets/fintech-review.webp';
-import insurance from '../assets/insurance-review.webp';
+import type { ImageMetadata } from 'astro';
+import source from '../data/media.json';
+import { profile } from '../data/profile';
+import { imageAssetPathSchema, mediaSchema } from '../lib/content';
 
-/** Replace portrait.png once to update both Hero and About. See README. */
+// Vite resolves only these code-owned, local raster files. Uploaded SVG/remote URLs never execute.
+const images = import.meta.glob<{ default: ImageMetadata }>(
+  '/src/assets/**/*.{[pP][nN][gG],[jJ][pP][gG],[jJ][pP][eE][gG],[wW][eE][bB][pP],[aA][vV][iI][fF]}',
+  { eager: true },
+);
+
+export function resolveImage(path: string): ImageMetadata {
+  imageAssetPathSchema.parse(path);
+  const image = images[path]?.default;
+  if (!image) throw new Error(`The selected image does not exist: ${path}`);
+  return image;
+}
+
+export const mediaConfig = mediaSchema.parse(source);
+
+/** Owner-managed paths remain independent of the optimized, base-aware generated URLs. */
 export const media = {
-  portrait,
-  portraitAlt:
-    'Temporary professional portrait, to be replaced with Konstantin’s own photo',
-  portraitTemporary: true,
-  alpine,
-  contact,
-  projects: [banking, fintech, insurance],
+  portrait: resolveImage(mediaConfig.portrait.path),
+  portraitAlt: mediaConfig.portrait.alt,
+  portraitTemporary: mediaConfig.portrait.temporary,
+  alpine: resolveImage(mediaConfig.alpine.path),
+  contact: resolveImage(mediaConfig.contact.path),
+  logo: mediaConfig.logo ? resolveImage(mediaConfig.logo.path) : null,
+  logoAlt: mediaConfig.logo?.alt ?? '',
+  socialImage: profile.seo.socialImage
+    ? resolveImage(profile.seo.socialImage.path)
+    : null,
+  socialImageAlt: profile.seo.socialImage?.alt ?? '',
+  projects: mediaConfig.projects.map((image) => resolveImage(image.path)),
 } as const;

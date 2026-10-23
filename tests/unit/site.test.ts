@@ -1,5 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolveDeployment } from '../../src/config/deployment';
+import {
+  resolveDeployment,
+  resolveIndexability,
+} from '../../src/config/deployment';
 import { site } from '../../src/config/site';
 import {
   canonicalURL,
@@ -48,8 +51,25 @@ describe('deployment authority', () => {
 });
 
 describe('site contracts', () => {
+  it('requires a separate explicit launch switch and known origin before indexing', () => {
+    expect(resolveIndexability({})).toBe(false);
+    expect(
+      resolveIndexability({ SITE_URL: 'https://amarok90.github.io' }),
+    ).toBe(false);
+    expect(resolveIndexability({ SITE_INDEXABLE: 'false' })).toBe(false);
+    expect(
+      resolveIndexability({
+        SITE_INDEXABLE: 'true',
+        SITE_URL: 'https://amarok90.github.io',
+      }),
+    ).toBe(true);
+    expect(() => resolveIndexability({ SITE_INDEXABLE: 'true' })).toThrow(
+      /SITE_URL/,
+    );
+    expect(() => resolveIndexability({ SITE_INDEXABLE: 'yes' })).toThrow();
+  });
   it('keeps preview non-indexable and navigation unique and anchored', () => {
-    expect(site.indexable).toBe(false);
+    expect(site.indexable).toBe(resolveIndexability(process.env));
     expect(site.language).toBe('en');
     expect(new Set(site.navigation.map((item) => item.href)).size).toBe(
       site.navigation.length,

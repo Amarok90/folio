@@ -10,25 +10,29 @@ const icons: IconName[] = ['clipboard', 'briefcase', 'workflow', 'building'];
   <h2 id="highlights-title" class="sr-only">
     Professional highlights
   </h2>
-  <dl>
-    {entries.map((entry, index) => (
-      <div class="highlight">
-        <Icon name={icons[index] ?? 'complete'} />
-        <dt>{entry.data.label}</dt>
-        <dd
-          class:list={[
-            'highlight-value',
-            { 'highlight-value--long': String(entry.data.value).length > 11 },
-          ]}
-        >
-          {entry.data.value}
-        </dd>
-        {entry.data.context && (
-          <dd class="highlight-context">{entry.data.context}</dd>
-        )}
-      </div>
-    ))}
-  </dl>
+  {entries.length > 0 ? (
+    <dl>
+      {entries.map((entry, index) => (
+        <div class="highlight">
+          <Icon name={icons[index] ?? 'complete'} />
+          <dt>{entry.data.label}</dt>
+          <dd
+            class:list={[
+              'highlight-value',
+              { 'highlight-value--long': String(entry.data.value).length > 11 },
+            ]}
+          >
+            {entry.data.value}
+          </dd>
+          {entry.data.context && (
+            <dd class="highlight-context">{entry.data.context}</dd>
+          )}
+        </div>
+      ))}
+    </dl>
+  ) : (
+    <p>Professional highlights are being updated.</p>
+  )}
 </section>
 <style>
   .highlights {

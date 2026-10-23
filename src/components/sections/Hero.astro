@@ -6,12 +6,11 @@ import Button from '../ui/Button.astro';
 import CVAction from '../ui/CVAction.astro';
 import Icon from '../ui/Icon.astro';
 const [givenName, ...familyName] = profile.identity.name.split(' ');
-const approach = [
-  { icon: 'clipboard' as const, text: 'Understand business needs' },
-  { icon: 'workflow' as const, text: 'Analyze and design solutions' },
-  { icon: 'users' as const, text: 'Collaborate with teams' },
-  { icon: 'target' as const, text: 'Deliver measurable business value' },
-];
+const approachIcons = ['clipboard', 'workflow', 'users', 'target'] as const;
+const approach = profile.hero.approach.map((text, index) => ({
+  icon: approachIcons[index] ?? 'target',
+  text,
+}));
 ---
 
 <section id="home" class="hero" aria-labelledby="home-title">
@@ -19,6 +18,8 @@ const approach = [
     src={media.alpine}
     alt=""
     class="hero-landscape"
+    quality={65}
+    fetchpriority="high"
     widths={[640, 960, 1280, 1600]}
     sizes="(max-width: 767px) 100vw, 1216px"
     format="webp"
@@ -40,11 +41,11 @@ const approach = [
       src={media.portrait}
       alt={media.portraitAlt}
       widths={[320, 480, 640, 900]}
-      sizes="(max-width: 767px) 75vw, 46vw"
+      sizes="(max-width: 575px) 240px, (max-width: 767px) 320px, (max-width: 1023px) 40vw, 500px"
       class="hero-person"
       format="webp"
       loading="eager"
-      fetchpriority="high"
+      fetchpriority="auto"
       decoding="async"
     />
     {media.portraitTemporary && (
@@ -61,7 +62,7 @@ const approach = [
     </p>
   </div>
   <div class="hero-actions">
-    <Button href="#projects" icon="arrow">
+    <Button href="#projects" icon="arrow" data-analytics-event="explore_work">
       Explore My Work
     </Button>
     <CVAction />

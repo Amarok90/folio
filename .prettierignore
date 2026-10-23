@@ -4,4 +4,5 @@ dist/
 .cache/
 playwright-report/
 test-results/
+artifacts/
 package-lock.json

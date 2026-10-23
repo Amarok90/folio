@@ -7,11 +7,35 @@
   },
   "hero": {
     "headline": "Bridging business and technology to create real value.",
-    "summary": "10+ years across IT — from software engineering and enterprise systems to business analysis in banking and lending. Turning complex needs into reliable, practical solutions."
+    "summary": "10+ years across IT — from software engineering and enterprise systems to business analysis in banking and lending. Turning complex needs into reliable, practical solutions.",
+    "approach": [
+      "Understand business needs",
+      "Analyze and design solutions",
+      "Collaborate with teams",
+      "Deliver measurable business value"
+    ]
   },
   "about": {
     "summary": "Business analysis backed by hands-on engineering experience. I connect business needs with reliable technology through systems analysis, requirements engineering and API integration. My work spans discovery through testing, UAT and production support, complemented by Google Cloud Services, RPA automation and AI-assisted tools. Based in Estonia, I am open to opportunities in Switzerland.",
-    "interests": []
+    "interests": [],
+    "approach": [
+      {
+        "title": "Understand the Business",
+        "description": "Structured analysis of business needs and requirements."
+      },
+      {
+        "title": "Analyze & Design",
+        "description": "Clear specifications that connect business and technology."
+      },
+      {
+        "title": "Collaborate",
+        "description": "Clear communication with stakeholders and delivery teams."
+      },
+      {
+        "title": "Deliver Real Value",
+        "description": "Focus on quality, practical outcomes, and reliable production."
+      }
+    ]
   },
   "contact": {
     "email": "konstantin.arutjunov@gmail.com",
@@ -31,5 +55,5 @@
     "description": "Senior IT Business Analyst with 10+ years across banking, lending and financial services. Based in Estonia and open to opportunities in Switzerland.",
     "socialImage": null
   },
-  "cvPreviewUrl": "https://www.linkedin.com/in/konstantin-arutjunov/overlay/1753005451683/single-media-viewer/"
+  "cvPreviewUrl": "https://www.linkedin.com/in/konstantin-arutjunov/overlay/1753005451683/single-media-viewer/?profileId=ACoAABmyyD0B2egZyOVt5zRFatDd-ssMM7VpIxA"
 }

@@ -24,3 +24,18 @@ export function resolveDeployment(env: Record<string, string | undefined>) {
   }
   return { site: url.origin, base };
 }
+
+/** Indexing is a separate, explicit launch switch; never infer it from a hostname. */
+export function resolveIndexability(
+  env: Record<string, string | undefined>,
+): boolean {
+  const value = env['SITE_INDEXABLE'];
+  if (value !== undefined && value !== 'true' && value !== 'false') {
+    throw new Error('SITE_INDEXABLE must be true or false.');
+  }
+  if (value !== 'true') return false;
+  if (!resolveDeployment(env).site) {
+    throw new Error('Indexable output requires an explicit HTTPS SITE_URL.');
+  }
+  return true;
+}

@@ -4,59 +4,13 @@ import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
 import { publishedEntries } from '../../lib/content';
-import { withBasePath } from '../../lib/urls';
+import { resolveImage } from '../../config/media';
 
 interface Props {
   thumbnails?: readonly ImageMetadata[];
 }
 const { thumbnails = [] } = Astro.props;
-const base = import.meta.env.BASE_URL;
 const projects = publishedEntries(await getCollection('caseStudies'));
-const isPreview = projects.length === 0;
-const previewBriefs = [
-  {
-    id: 'banking-preview',
-    title: 'Banking case study',
-    sector: 'Banking',
-    summary:
-      'A space for a confirmed banking project, its challenges and the thinking behind the solution.',
-    requirements: [
-      'Business context and problem',
-      'Personal role and contribution',
-      'Verified results and permissions',
-    ],
-    prompt:
-      'A banking project will be published here once its scope, contribution and outcomes have been confirmed. Client confidentiality will be preserved.',
-  },
-  {
-    id: 'fintech-preview',
-    title: 'FinTech case study',
-    sector: 'FinTech',
-    summary:
-      'A space for a confirmed financial technology project, from discovery through delivery.',
-    requirements: [
-      'Product and integration context',
-      'Analysis and delivery approach',
-      'Evidence of the resulting change',
-    ],
-    prompt:
-      'A financial technology project will be published here with an approved account of the problem, analysis approach and supported results.',
-  },
-  {
-    id: 'insurance-preview',
-    title: 'Insurance case study',
-    sector: 'Insurance',
-    summary:
-      'A space for a confirmed insurance project with clear responsibilities and supported outcomes.',
-    requirements: [
-      'Process or customer challenge',
-      'Requirements and decisions',
-      'Measured outcomes and limitations',
-    ],
-    prompt:
-      'An insurance project will be published here only after its relevance, responsibilities and results have been verified. No client or achievement is implied by this preview.',
-  },
-];
 ---
 
 <section
@@ -72,7 +26,7 @@ const previewBriefs = [
       Case Studies
     </h2>
     <p class="section-description">
-      {isPreview
+      {projects.length === 0
         ? 'The context. The challenge. The contribution. The result.'
         : 'Real projects. Clear challenges. Thoughtful solutions.'}
     </p>
@@ -81,162 +35,102 @@ const previewBriefs = [
     </a>
   </div>
   <div class="section-body">
-    <div class="project-grid">
-      {isPreview
-        ? previewBriefs.map((brief, index) => (
-            <article class="project-card" aria-labelledby={`${brief.id}-title`}>
-              <div class="project-image-wrap">
-                {thumbnails[index] ? (
-                  <Image
-                    src={thumbnails[index]}
-                    alt=""
-                    widths={[320, 480, 720]}
-                    sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
-                    width={720}
-                    loading="lazy"
-                    class="project-image"
-                  />
-                ) : (
-                  <div class="project-image-placeholder" aria-hidden="true">
-                    <Icon
-                      name={
-                        index === 0 ? 'layers' : index === 1 ? 'code' : 'shield'
-                      }
-                    />
-                  </div>
-                )}
-                <span class="project-sector">{brief.sector}</span>
-                {thumbnails[index] && (
-                  <span class="project-image-caption">Illustrative image</span>
-                )}
-              </div>
-              <div class="project-content">
-                <p class="project-status">Preview · not a published project</p>
-                <h3 id={`${brief.id}-title`}>{brief.title}</h3>
-                <p class="project-summary">{brief.summary}</p>
-                <ul
-                  class="project-points"
-                  aria-label="Details awaiting confirmation"
-                >
-                  {brief.requirements.map((requirement) => (
+    {projects.length > 0 && (
+      <div class="project-grid">
+        {projects.map((project, index) => (
+          <article class="project-card" aria-labelledby={`${project.id}-title`}>
+            <div class="project-image-wrap">
+              {project.data.image ? (
+                <Image
+                  src={resolveImage(project.data.image.path)}
+                  alt={project.data.image.alt}
+                  widths={[320, 480, 720]}
+                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
+                  width={720}
+                  loading="lazy"
+                  decoding="async"
+                  class="project-image"
+                />
+              ) : thumbnails[index] ? (
+                <Image
+                  src={thumbnails[index]}
+                  alt=""
+                  widths={[320, 480, 720]}
+                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
+                  width={720}
+                  loading="lazy"
+                  class="project-image"
+                />
+              ) : (
+                <div class="project-image-placeholder" aria-hidden="true">
+                  <Icon name="layers" />
+                </div>
+              )}
+              {project.data.sector && (
+                <span class="project-sector">{project.data.sector}</span>
+              )}
+              {(project.data.image?.illustrative ||
+                (!project.data.image && thumbnails[index])) && (
+                <span class="project-image-caption">Illustrative image</span>
+              )}
+            </div>
+            <div class="project-content">
+              <h3 id={`${project.id}-title`}>{project.data.title}</h3>
+              <p class="project-summary">{project.data.summary}</p>
+              {project.data.outcomes.length > 0 && (
+                <ul class="project-points" aria-label="Project outcomes">
+                  {project.data.outcomes.map((outcome) => (
                     <li>
-                      <Icon name="file" />
-                      <span>{requirement}</span>
+                      <Icon name="complete" />
+                      <span>{outcome}</span>
                     </li>
                   ))}
                 </ul>
-                <details class="project-details">
-                  <summary>
-                    View preparation brief <Icon name="arrow" />
-                  </summary>
-                  <div class="project-details-body">
-                    <h4>Prepared for a real story</h4>
-                    <p>{brief.prompt}</p>
-                    <p class="project-image-note">
-                      Illustrative imagery. No client relationship is
-                      represented.
-                    </p>
-                  </div>
-                </details>
-              </div>
-            </article>
-          ))
-        : projects.map((project, index) => (
-            <article
-              class="project-card"
-              aria-labelledby={`${project.id}-title`}
-            >
-              <div class="project-image-wrap">
-                {project.data.image ? (
-                  <img
-                    src={withBasePath(project.data.image.path, base)}
-                    alt={project.data.image.alt}
-                    width="720"
-                    height="420"
-                    loading="lazy"
-                    decoding="async"
-                    class="project-image"
-                  />
-                ) : thumbnails[index] ? (
-                  <Image
-                    src={thumbnails[index]}
-                    alt=""
-                    widths={[320, 480, 720]}
-                    sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
-                    width={720}
-                    loading="lazy"
-                    class="project-image"
-                  />
-                ) : (
-                  <div class="project-image-placeholder" aria-hidden="true">
-                    <Icon name="layers" />
-                  </div>
-                )}
-                {project.data.sector && (
-                  <span class="project-sector">{project.data.sector}</span>
-                )}
-                {!project.data.image && thumbnails[index] && (
-                  <span class="project-image-caption">Illustrative image</span>
-                )}
-              </div>
-              <div class="project-content">
-                <h3 id={`${project.id}-title`}>{project.data.title}</h3>
-                <p class="project-summary">{project.data.summary}</p>
-                {project.data.outcomes.length > 0 && (
-                  <ul class="project-points" aria-label="Project outcomes">
-                    {project.data.outcomes.map((outcome) => (
-                      <li>
-                        <Icon name="complete" />
-                        <span>{outcome}</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-                <details class="project-details">
-                  <summary>
-                    View project details <Icon name="arrow" />
-                  </summary>
-                  <div class="project-details-body">
-                    <h4>The challenge</h4>
-                    <p>{project.data.challenge}</p>
-                    <h4>My contribution</h4>
-                    <p>{project.data.contribution}</p>
-                    {project.data.limitations.length > 0 && (
-                      <>
-                        <h4>Context &amp; limitations</h4>
-                        <ul>
-                          {project.data.limitations.map((limitation) => (
-                            <li>{limitation}</li>
-                          ))}
-                        </ul>
-                      </>
-                    )}
-                    {project.data.link && (
-                      <a
-                        class="project-external"
-                        href={project.data.link}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                      >
-                        {project.data.link.startsWith(
-                          'https://www.linkedin.com/',
-                        )
-                          ? 'Source: LinkedIn'
-                          : 'Supporting source'}
-                        <Icon name="external" />
-                        <span class="sr-only"> (opens in a new tab)</span>
-                      </a>
-                    )}
-                  </div>
-                </details>
-              </div>
-            </article>
-          ))}
-    </div>
-    {isPreview && (
-      <p class="preview-note projects-preview-note">
-        Case study previews · professional details and outcomes await
-        confirmation.
+              )}
+              <details class="project-details">
+                <summary>
+                  View project details <Icon name="arrow" />
+                </summary>
+                <div class="project-details-body">
+                  <h4>The challenge</h4>
+                  <p>{project.data.challenge}</p>
+                  <h4>My contribution</h4>
+                  <p>{project.data.contribution}</p>
+                  {project.data.limitations.length > 0 && (
+                    <>
+                      <h4>Context &amp; limitations</h4>
+                      <ul>
+                        {project.data.limitations.map((limitation) => (
+                          <li>{limitation}</li>
+                        ))}
+                      </ul>
+                    </>
+                  )}
+                  {project.data.link && (
+                    <a
+                      class="project-external"
+                      href={project.data.link}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {project.data.link.startsWith('https://www.linkedin.com/')
+                        ? 'Source: LinkedIn'
+                        : 'Supporting source'}
+                      <Icon name="external" />
+                      <span class="sr-only"> (opens in a new tab)</span>
+                    </a>
+                  )}
+                </div>
+              </details>
+            </div>
+          </article>
+        ))}
+      </div>
+    )}
+    {projects.length === 0 && (
+      <p class="section-description">
+        Case studies are being updated. Explore the professional journey for
+        current experience.
       </p>
     )}
   </div>

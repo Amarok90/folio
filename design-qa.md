@@ -1,3 +1,45 @@
+# FOLIO Task 3 — production-candidate verification
+
+Task 3 local gates are PASS; authenticated CMS, live Clarity and public hosting verification are READY FOR TASK 4. GitHub Pages eligibility is externally BLOCKED for the current private repository/plan. No public deployment was performed. The Task 2 visual audit is retained below as historical design evidence.
+
+## Scope, authority and remediation
+
+Preserved the Astro static architecture, approved visual language, all nine page regions and verified professional facts. `.pages.yml` edits typed JSON sources; no backend or duplicate content authority was introduced. Media uploads resolve through Astro’s optimized raster pipeline, not executable uploaded SVG/HTML. Optional CMS fields normalize cleared inputs honestly; publication/reference/file validation fails closed.
+
+Actual defects resolved during Task 3: partially cleared CMS image objects; mixed-case raster upload contract; nullable privacy email rendering; image/order coupling; missing PDF/file validation; privacy dialog positioned at the corner by the CSS reset; the LinkedIn CV viewer’s missing `profileId` parameter; and missing word spacing around conditional privacy text. The latter was proven by comparing the empty shortened viewer with the already opened complete source URL displaying **CV Konstantin Arutjunov.pdf**. The confirmed website metric remains ≈2 hours → 3 minutes; the older CV has a different measurement and must be synchronized by the owner before launch.
+
+Lighthouse first measured mobile Performance 92. The landscape was the real LCP image, the portrait sizes hint fetched excess pixels, and the uncompressed local fixture distorted delivery cost. Fixed image priority/sizes/compression and made the local static audit explicitly use gzip text plus a 10-minute asset cache. Final local candidate: mobile **99/100/100/100**, desktop **100/100/100/100** (Performance/Accessibility/Best Practices/SEO). These are actual Lighthouse reports, not field Core Web Vitals or a GitHub-hosted score.
+
+## Automated evidence
+
+The complete sequential `npm run validate` passed: strict Astro/TypeScript (57 files, zero diagnostics), ESLint, Prettier, **105 unit tests**, **6 CMS integration workflows**, dependency audit (**0 vulnerabilities**), root static build, **30 root E2E**, **30 `/folio/` E2E**, **19 configured consent/analytics E2E**, and both Lighthouse audits. A local preview initially occupied the base-suite port; stopped that task daemon and reran the pipeline. No gate was bypassed. The empty language collection is intentional; Astro logs its missing-items warning rather than inventing languages.
+
+CMS integration changes isolated source copies and builds real HTML/assets: text edit, mixed-case image/logo replacement, actual PDF signature and download filename/path, project text/image/order, byte-identical rollback, and invalid data refusing successful output. It also verifies cleared email falls back to the approved LinkedIn channel. No live Pages CMS authentication/save/upload/rollback is implied.
+
+Automated browser coverage includes 12 widths from 320 to 1920, no overflow/clipped controls, keyboard/menu/tab/disclosure behavior, reduced motion, no-JavaScript navigation, CV/contact semantics, privacy metadata and axe WCAG 2.2 AA rules. Dialog centering is regression-checked at 320/390/768/1440. This supports the AA target without claiming exhaustive assistive-technology certification.
+
+## Actual Opera evidence
+
+Evidence is local and ignored under `/Users/konstantin.arutjunov/Projects/Folio/artifacts/task3/`; it is not included in the site artifact. Native screenshots contain Opera/DevTools chrome, with explicit responsive CSS dimensions and Fit to window. Visual judgments exclude the browser chrome and emulation scale.
+
+- `screenshots/opera-desktop-1440.png`, `opera-desktop-expertise-projects.png`, `opera-desktop-journey.png`: static `/folio/` header/hero/highlights, real expertise content switching, project imagery and timeline. The approved navy/ice-blue/gradient/Alpine composition remains intact.
+- `screenshots/opera-tablet-consent-banner.png`, `opera-tablet-project-details.png`: 768px composition, equal Accept/Reject clarity and meaningful project contribution/limitations.
+- `screenshots/opera-tablet-preferences-rejected.png`, `opera-tablet-preferences-accepted.png`: centered preference dialog and real state changes. Rejection made no vendor calls; acceptance produced consentv2 analytics granted/advertising denied, one `explore_work` event, then withdrawal produced denial and page reload.
+- `screenshots/opera-mobile-390-top.png`, `opera-mobile-menu.png`, `opera-mobile-blocked-analytics.png`: mobile composition, touch-style menu activation and Escape close, keyboard consent activation and graceful optional-script failure.
+- `screenshots/github-pages-eligibility.png`: actual settings prerequisite. No repository visibility/plan changes were made.
+
+The configured Opera fixture serves the real compiled candidate but rewrites ONLY its vendor endpoint to a local stub; blocked mode returns 503. Its call log is `fixtures/clarity-calls.jsonl`. No Microsoft recording or fake Project ID traffic was sent externally. The expected blocked-script network error and a sub-50ms DevTools reflow advisory are distinguished from an application exception. Core actions remained usable. Live vendor behavior, dashboard events/recordings and heatmaps remain Task 4.
+
+Lighthouse reports are `lighthouse/mobile.report.html` and `desktop.report.html`; the complete pipeline log is `validation-final.log`. `screenshots/opera-mobile-privacy.png` and `opera-cv-viewer-repaired.png` record the final policy and repaired external document viewer. Source, optimized images and CMS-backed content render correctly; temporary portrait/illustrative labels remain deliberate owner-approved preview content.
+
+## Boundaries and handoff
+
+No original portrait/logo or current local PDF was fabricated. PDF replacement/download is locally verified with a temporary document and restored; current controls use the real LinkedIn CV viewer. The external viewer can require LinkedIn access. CMS authorization and live saves need the owner’s GitHub account. Clarity is disabled in the candidate until actual configuration and consent review. Indexing remains off until content approval and intentional Task 4 launch.
+
+See [TASK4-HANDOFF.md](TASK4-HANDOFF.md) for ordered hosting/HTTPS, CMS live acceptance, Clarity activation, production E2E and rollback steps. No known critical locally achievable functional defect remains after the documented remediation and regression gates.
+
+---
+
 # FOLIO Task 2 — design QA
 
 final result: passed

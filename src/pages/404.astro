@@ -6,7 +6,7 @@ import { withBasePath } from '../lib/urls';
 const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 ---
 
-<SiteLayout title="Page not found — FOLIO" noindex>
+<SiteLayout title="Page not found — FOLIO" noindex canonical={false}>
   <div class="section">
     <Container>
       <p class="eyebrow">404 / Page not found</p>

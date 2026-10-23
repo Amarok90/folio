@@ -2,6 +2,8 @@
 import Container from '../layout/Container.astro';
 import Icon from '../ui/Icon.astro';
 import CVAction from '../ui/CVAction.astro';
+import { Image } from 'astro:assets';
+import { media } from '../../config/media';
 import { site } from '../../config/site';
 import { withBasePath } from '../../lib/urls';
 const homeURL = withBasePath('/', import.meta.env.BASE_URL);
@@ -10,7 +12,17 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 <header class="header-shell" data-header>
   <Container class="header-inner">
     <a href={`${homeURL}#home`} class="brand" aria-label="FOLIO home">
-      <Icon name="feather" />
+      {media.logo ? (
+        <Image
+          src={media.logo}
+          alt={media.logoAlt}
+          width={32}
+          height={32}
+          class="brand-logo"
+        />
+      ) : (
+        <Icon name="feather" />
+      )}
       {site.brand}
     </a>
     <button
@@ -116,3 +128,12 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
     });
   }
 </script>
+
+<style>
+  .brand-logo {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+</style>

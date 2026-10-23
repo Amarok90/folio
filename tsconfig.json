@@ -6,7 +6,8 @@
     "node_modules",
     ".cache",
     "playwright-report",
-    "test-results"
+    "test-results",
+    "artifacts"
   ],
   "compilerOptions": {
     "types": ["node"],

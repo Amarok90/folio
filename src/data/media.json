@@ -1,0 +1,31 @@
+{
+  "portrait": {
+    "path": "/src/assets/portrait.png",
+    "alt": "Temporary professional portrait, to be replaced with Konstantin’s own photo",
+    "temporary": true
+  },
+  "alpine": {
+    "path": "/src/assets/alpine.webp"
+  },
+  "contact": {
+    "path": "/src/assets/contact.webp"
+  },
+  "logo": null,
+  "projects": [
+    {
+      "path": "/src/assets/banking-review.webp",
+      "alt": "Illustrative contemporary banking office building",
+      "illustrative": true
+    },
+    {
+      "path": "/src/assets/fintech-review.webp",
+      "alt": "Illustrative financial application on a tablet",
+      "illustrative": true
+    },
+    {
+      "path": "/src/assets/insurance-review.webp",
+      "alt": "Illustrative mobile insurance application",
+      "illustrative": true
+    }
+  ]
+}

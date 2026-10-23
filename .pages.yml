@@ -1,0 +1,708 @@
+# FOLIO owner content. Reference: https://pagescms.org/docs/configuration/
+# CI is the publication gate; Pages CMS saves Git commits, not a deployment.
+media:
+  - name: images
+    label: Website images
+    input: src/assets
+    output: /src/assets
+    rename: safe
+    extensions:
+      - png
+      - jpg
+      - jpeg
+      - webp
+      - avif
+  - name: documents
+    label: Public CV documents
+    input: public/documents
+    output: /documents
+    rename: safe
+    extensions:
+      - pdf
+components:
+  recordId:
+    type: string
+    label: Stable ID
+    required: true
+    pattern:
+      regex: ^[a-z0-9]+(?:-[a-z0-9]+)*$
+      message: Use lowercase words separated by hyphens.
+    description:
+      Unique, stable ID. Use a short label such as cloud-automation. Do not change IDs
+      already referenced by other content.
+  order:
+    type: number
+    label: Display order
+    required: true
+    default: 0
+    options:
+      min: 0
+    description:
+      Lower whole numbers appear first. Updating this value changes display order without
+      renaming content.
+  publicationStatus:
+    type: select
+    label: Publication status
+    required: true
+    default: draft
+    options:
+      values:
+        - name: draft
+          label: Draft — not public
+        - name: published
+          label: Published
+  visibility:
+    type: boolean
+    label: Show on website
+    default: false
+    description: Content appears only when both Published and Show on website are selected.
+  month:
+    type: string
+    required: true
+    pattern:
+      regex: ^\d{4}-(0[1-9]|1[0-2])$
+      message: Use YYYY-MM (for example 2021-08).
+    description: Month precision only; do not invent a day.
+  https:
+    type: string
+    pattern:
+      regex: ^https://[^\s]+$
+      message: Use a complete HTTPS address.
+content:
+  - name: profile
+    label: 01 · Profile, contact, CV & SEO
+    type: file
+    path: src/data/profile.json
+    format: json
+    fields:
+      - name: status
+        component: publicationStatus
+        readonly: true
+        default: published
+        description:
+          Required public site profile. Keep Published and visible; use drafts or visibility in
+          individual content collections to hide records. Unpublishing the profile fails validation
+          and prevents a release.
+      - name: visible
+        component: visibility
+        readonly: true
+        default: true
+        description:
+          Required public site profile. Keep Published and visible; use drafts or visibility in
+          individual content collections to hide records. Unpublishing the profile fails validation
+          and prevents a release.
+      - name: identity
+        label: Professional identity
+        type: object
+        fields:
+          - name: name
+            label: Full name
+            type: string
+            required: true
+          - name: jobTitle
+            label: Professional title
+            type: string
+            required: true
+        required: true
+      - name: hero
+        label: Hero introduction
+        type: object
+        fields:
+          - name: headline
+            label: Main positioning statement
+            type: text
+            required: false
+            options:
+              maxlength: 180
+          - name: summary
+            label: Short recruiter introduction
+            type: text
+            required: false
+            options:
+              maxlength: 500
+          - name: approach
+            label: Four short approach statements
+            type: string
+            required: true
+            list:
+              min: 1
+              max: 4
+        required: true
+      - name: about
+        label: About and working approach
+        type: object
+        fields:
+          - name: summary
+            label: About biography
+            type: text
+            required: false
+            options:
+              maxlength: 1200
+          - name: interests
+            label: Personal interests
+            type: string
+            list: true
+          - name: approach
+            label: Working approach
+            type: object
+            fields:
+              - name: title
+                label: Step title
+                type: string
+                required: true
+              - name: description
+                label: Step explanation
+                type: text
+                required: true
+                options:
+                  maxlength: 180
+            required: true
+            list:
+              min: 1
+              max: 4
+              collapsible:
+                collapsed: true
+                summary: '{title}'
+        required: true
+      - name: contact
+        label: Recruiter contact
+        type: object
+        fields:
+          - name: email
+            label: Contact email
+            type: string
+            pattern:
+              regex: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+              message: Use a valid email address.
+          - name: location
+            label: Current location
+            type: string
+          - name: openToRelocation
+            label: Open to relocation
+            type: boolean
+          - name: availability
+            label: Availability / target opportunities
+            type: string
+          - name: links
+            label: LinkedIn profile
+            type: object
+            fields:
+              - name: label
+                label: Link label
+                type: string
+                required: true
+                default: LinkedIn
+              - name: url
+                label: LinkedIn profile URL
+                type: string
+                required: true
+                pattern:
+                  regex: ^https://(www\.)?linkedin\.com/in/[^/?#]+/?$
+                  message: Use your LinkedIn /in/ profile URL.
+            list:
+              max: 1
+              collapsible:
+                collapsed: false
+                summary: '{label}'
+            description: The only social contact channel. Email has its own field above.
+        required: true
+      - name: cv
+        label: PDF CV (optional)
+        type: object
+        fields:
+          - name: path
+            label: Choose or upload PDF
+            type: file
+            required: true
+            options:
+              media: documents
+              extensions:
+                - pdf
+          - name: filename
+            label: Download filename
+            type: string
+            required: true
+            description: 'Example: konstantin-arutjunov-cv.pdf'
+            pattern:
+              regex: ^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$
+              message: Use a filename ending in .pdf, without spaces.
+          - name: updatedAt
+            label: CV last updated
+            type: date
+            required: true
+            default: ''
+            options:
+              format: yyyy-MM-dd
+          - name: language
+            label: CV language
+            type: string
+            required: true
+            description: 'Example: en'
+        description:
+          Leave the entire group empty to keep View CV linked to the external CV below. Once you
+          select a PDF, fill all four fields. Never upload a confidential CV.
+      - name: cvPreviewUrl
+        component: https
+        label: External View CV URL
+        description: Used only when a local PDF is absent. This is a view action, never a PDF download.
+      - name: seo
+        label: Search and sharing
+        type: object
+        fields:
+          - name: title
+            label: SEO page title
+            type: string
+            description: Keep descriptive and concise; the FOLIO suffix is added automatically.
+          - name: description
+            label: Search description
+            type: text
+            required: false
+            options:
+              maxlength: 180
+          - name: socialImage
+            label: Social sharing image (optional)
+            type: object
+            fields:
+              - name: path
+                label: Choose social image
+                type: image
+                required: true
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+              - name: alt
+                label: Social image description
+                type: string
+                required: true
+            description: A wide image around 1200 × 630. An optimized Alpine image is used when empty.
+        required: true
+  - name: media
+    label: 02 · Portrait, logo & backgrounds
+    type: file
+    path: src/data/media.json
+    format: json
+    fields:
+      - name: portrait
+        label: Shared portrait
+        type: object
+        fields:
+          - name: path
+            label: Replace portrait
+            type: image
+            required: true
+            options:
+              media: images
+              extensions:
+                - png
+                - jpg
+                - jpeg
+                - webp
+                - avif
+          - name: alt
+            label: Portrait description
+            type: string
+            required: true
+          - name: temporary
+            label: This is a temporary portrait
+            type: boolean
+            required: true
+        required: true
+        description:
+          One upload updates Hero and About. A transparent PNG works best; other raster formats
+          are supported.
+      - name: alpine
+        label: Hero and About background
+        type: object
+        fields:
+          - name: path
+            label: Replace Alpine landscape
+            type: image
+            required: true
+            options:
+              media: images
+              extensions:
+                - png
+                - jpg
+                - jpeg
+                - webp
+                - avif
+        required: true
+      - name: contact
+        label: Contact background
+        type: object
+        fields:
+          - name: path
+            label: Replace contact landscape
+            type: image
+            required: true
+            options:
+              media: images
+              extensions:
+                - png
+                - jpg
+                - jpeg
+                - webp
+                - avif
+        required: true
+      - name: logo
+        label: Brand symbol (optional)
+        type: object
+        fields:
+          - name: path
+            label: Upload brand symbol
+            type: image
+            required: true
+            options:
+              media: images
+              extensions:
+                - png
+                - jpg
+                - jpeg
+                - webp
+                - avif
+          - name: alt
+            label: Logo description
+            type: string
+            required: true
+        description:
+          A square transparent PNG works best. The FOLIO wordmark remains text. Leave empty to
+          use the existing symbol. SVG uploads are intentionally excluded.
+      - name: projects
+        label: Fallback project imagery
+        type: object
+        fields:
+          - name: path
+            label: Choose or upload image
+            type: image
+            required: true
+            options:
+              media: images
+              extensions:
+                - png
+                - jpg
+                - jpeg
+                - webp
+                - avif
+          - name: alt
+            label: Description for screen readers
+            type: string
+            required: true
+            description:
+              Describe the image briefly. Do not imply illustrative imagery is a real project
+              photograph.
+          - name: illustrative
+            label: Illustrative image
+            type: boolean
+            default: true
+            description: Keep on for representative imagery that is not an actual project photo.
+        list:
+          max: 6
+          collapsible:
+            collapsed: true
+            summary: '{alt}'
+        description:
+          Only used when a case study has no selected image. Prefer setting the image inside each
+          case study.
+  - name: professional_highlights
+    label: 03 · Statistics & achievements
+    type: file
+    path: src/content/professional-highlights.json
+    format: json
+    list: true
+    fields:
+      - name: id
+        component: recordId
+      - name: order
+        component: order
+      - name: status
+        component: publicationStatus
+      - name: visible
+        component: visibility
+      - name: value
+        label: Display value
+        type: string
+        required: true
+        description: Use a verified value, keeping approximations such as ≈. Never invent a metric.
+      - name: label
+        label: Short label
+        type: string
+        required: true
+      - name: context
+        label: Supporting context
+        type: text
+        required: false
+  - name: expertise
+    label: 04 · Expertise categories
+    type: file
+    path: src/content/expertise.json
+    format: json
+    list: true
+    fields:
+      - name: id
+        component: recordId
+      - name: order
+        component: order
+      - name: status
+        component: publicationStatus
+      - name: visible
+        component: visibility
+      - name: title
+        label: Category title
+        type: string
+        required: true
+      - name: description
+        label: Category description
+        type: text
+        required: false
+  - name: skills
+    label: 05 · Skills
+    type: file
+    path: src/content/skills.json
+    format: json
+    list: true
+    fields:
+      - name: id
+        component: recordId
+      - name: order
+        component: order
+      - name: status
+        component: publicationStatus
+      - name: visible
+        component: visibility
+      - name: name
+        label: Skill name
+        type: string
+        required: true
+      - name: categoryId
+        label: Expertise category ID
+        type: string
+        required: true
+        description: Copy the Stable ID from the relevant Expertise category.
+      - name: proficiency
+        label: Proficiency (optional)
+        type: select
+        description: Leave empty unless a level is confirmed. An empty value does not imply a rating.
+        options:
+          values:
+            - foundational
+            - working
+            - advanced
+            - expert
+  - name: case_studies
+    label: 06 · Case studies
+    type: file
+    path: src/content/case-studies.json
+    format: json
+    list: true
+    fields:
+      - name: id
+        component: recordId
+      - name: order
+        component: order
+      - name: status
+        component: publicationStatus
+      - name: visible
+        component: visibility
+      - name: title
+        label: Case title
+        type: string
+        required: true
+      - name: summary
+        label: Recruiter summary
+        type: text
+        required: true
+        options:
+          maxlength: 500
+      - name: sector
+        label: Sector / category
+        type: string
+      - name: challenge
+        label: Business challenge
+        type: text
+        required: true
+      - name: contribution
+        label: Your contribution
+        type: text
+        required: true
+      - name: outcomes
+        label: Verified outcomes
+        type: text
+        list: true
+        description: Use supported facts. Keep approximate measurements approximate.
+      - name: limitations
+        label: Measurement / confidentiality notes
+        type: text
+        list: true
+        description: Preserve source and measurement limitations. Never add confidential client data.
+      - name: skillIds
+        label: Related skills (IDs)
+        type: string
+        list: true
+        description:
+          Optional. Copy stable IDs from Skills. The build rejects unknown references. Leave
+          empty when no tags are needed.
+      - name: image
+        label: Case image
+        type: object
+        fields:
+          - name: path
+            label: Choose or upload image
+            type: image
+            required: true
+            options:
+              media: images
+              extensions:
+                - png
+                - jpg
+                - jpeg
+                - webp
+                - avif
+          - name: alt
+            label: Description for screen readers
+            type: string
+            required: true
+            description:
+              Describe the image briefly. Do not imply illustrative imagery is a real project
+              photograph.
+          - name: illustrative
+            label: Illustrative image
+            type: boolean
+            default: true
+            description: Keep on for representative imagery that is not an actual project photo.
+        description: Choose an image for this case so it remains correct when reordering.
+      - name: link
+        component: https
+        label: Source / project link (optional)
+  - name: experience
+    label: 07 · Professional journey
+    type: file
+    path: src/content/experience.json
+    format: json
+    list: true
+    fields:
+      - name: id
+        component: recordId
+      - name: order
+        component: order
+      - name: status
+        component: publicationStatus
+      - name: visible
+        component: visibility
+      - name: role
+        label: Role title
+        type: string
+        required: true
+      - name: organization
+        label: Organization
+        type: string
+        required: true
+      - name: location
+        label: Location
+        type: string
+      - name: summary
+        label: Role summary
+        type: text
+        required: false
+      - name: startDate
+        component: month
+        label: Start month
+      - name: endDate
+        label: End month (empty if current)
+        type: string
+        pattern:
+          regex: ^\d{4}-(0[1-9]|1[0-2])$
+          message: Use YYYY-MM or leave empty for a current role.
+      - name: current
+        label: Current / ongoing
+        type: boolean
+        required: true
+        default: false
+      - name: achievements
+        label: Role highlights
+        type: text
+        list: true
+      - name: skillIds
+        label: Related skills (IDs)
+        type: string
+        list: true
+        description:
+          Optional. Copy stable IDs from Skills. The build rejects unknown references. Leave
+          empty when no tags are needed.
+  - name: education
+    label: 08 · Education
+    type: file
+    path: src/content/education.json
+    format: json
+    list: true
+    fields:
+      - name: id
+        component: recordId
+      - name: order
+        component: order
+      - name: status
+        component: publicationStatus
+      - name: visible
+        component: visibility
+      - name: institution
+        label: Institution
+        type: string
+        required: true
+      - name: qualification
+        label: Qualification
+        type: string
+        required: true
+      - name: field
+        label: Field of study
+        type: string
+      - name: startDate
+        component: month
+        label: Start month
+      - name: endDate
+        label: End month (empty if current)
+        type: string
+        pattern:
+          regex: ^\d{4}-(0[1-9]|1[0-2])$
+          message: Use YYYY-MM or leave empty for a current role.
+      - name: current
+        label: Current / ongoing
+        type: boolean
+        required: true
+        default: false
+  - name: languages
+    label: 09 · Languages
+    type: file
+    path: src/content/languages.json
+    format: json
+    list: true
+    fields:
+      - name: id
+        component: recordId
+      - name: order
+        component: order
+      - name: status
+        component: publicationStatus
+      - name: visible
+        component: visibility
+      - name: name
+        label: Language name
+        type: string
+        required: true
+      - name: code
+        label: Language code
+        type: string
+        required: true
+        description: 'Examples: en, de, et'
+        pattern:
+          regex: ^[a-z]{2,3}(-[A-Z]{2})?$
+          message: Use a valid language code such as en.
+      - name: proficiency
+        label: Confirmed proficiency (optional)
+        type: string
+settings:
+  content:
+    merge: true

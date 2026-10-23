@@ -1,5 +1,8 @@
 ---
 import '../styles/global.css';
+import { getImage } from 'astro:assets';
+import { media, resolveImage } from '../config/media';
+import Consent from '../components/ui/Consent.astro';
 import fontURL from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import Header from '../components/navigation/Header.astro';
 import Footer from '../components/layout/Footer.astro';
@@ -11,6 +14,7 @@ interface Props {
   description?: string;
   noindex?: boolean;
   socialImage?: string;
+  canonical?: boolean;
   person?: { name: string; jobTitle: string; sameAs?: string[] };
 }
 const {
@@ -18,20 +22,33 @@ const {
   description = site.description,
   noindex = !site.indexable,
   socialImage,
+  canonical: emitCanonical = true,
   person,
 } = Astro.props;
-const canonical = canonicalURL(
-  Astro.url.pathname.replace(import.meta.env.BASE_URL.replace(/\/$/, ''), '') ||
-    '/',
-  Astro.site,
-  import.meta.env.BASE_URL,
-);
-const image =
-  socialImage && Astro.site
-    ? new URL(withBasePath(socialImage, import.meta.env.BASE_URL), Astro.site)
-        .href
-    : undefined;
-const faviconURL = withBasePath('/icons/favicon.svg', import.meta.env.BASE_URL);
+const basePrefix = import.meta.env.BASE_URL.replace(/\/$/, '');
+const pagePath =
+  basePrefix && Astro.url.pathname.startsWith(`${basePrefix}/`)
+    ? Astro.url.pathname.slice(basePrefix.length)
+    : Astro.url.pathname;
+const canonical = emitCanonical
+  ? canonicalURL(pagePath, Astro.site, import.meta.env.BASE_URL)
+  : undefined;
+const sharingImage = await getImage({
+  src: socialImage
+    ? resolveImage(socialImage)
+    : (media.socialImage ?? media.alpine),
+  width: 1200,
+  height: 630,
+  format: 'webp',
+});
+const image = Astro.site
+  ? new URL(sharingImage.src, Astro.site).href
+  : undefined;
+const favicon = media.logo
+  ? await getImage({ src: media.logo, width: 32, height: 32, format: 'png' })
+  : undefined;
+const faviconURL =
+  favicon?.src ?? withBasePath('/icons/favicon.svg', import.meta.env.BASE_URL);
 const jsonLd = person
   ? {
       '@context': 'https://schema.org',
@@ -62,7 +79,28 @@ const jsonLd = person
     <meta property="og:title" content={title} />
     <meta property="og:description" content={description} />
     {canonical && <meta property="og:url" content={canonical} />}
-    {image && <meta property="og:image" content={image} />}
+    {image && (
+      <>
+        <meta property="og:image" content={image} />
+        <meta property="og:image:width" content="1200" />
+        <meta property="og:image:height" content="630" />
+        <meta
+          property="og:image:alt"
+          content={
+            media.socialImageAlt ||
+            'Alpine landscape used in the FOLIO professional portfolio'
+          }
+        />
+        <meta name="twitter:image" content={image} />
+        <meta
+          name="twitter:image:alt"
+          content={
+            media.socialImageAlt ||
+            'Alpine landscape used in the FOLIO professional portfolio'
+          }
+        />
+      </>
+    )}
     <meta
       name="twitter:card"
       content={image ? 'summary_large_image' : 'summary'}
@@ -74,12 +112,16 @@ const jsonLd = person
       type="font/woff2"
       crossorigin
     />
-    <link rel="icon" href={faviconURL} type="image/svg+xml" />
+    <link
+      rel="icon"
+      href={faviconURL}
+      type={favicon ? 'image/png' : 'image/svg+xml'}
+    />
     {jsonLd && (
       <script type="application/ld+json" set:html={serializeJsonLd(jsonLd)} />
     )}
   </head>
-  <body>
+  <body data-clarity-mask="true">
     <a href="#main-content" class="skip-link">
       Skip to content
     </a>
@@ -88,5 +130,6 @@ const jsonLd = person
       <slot />
     </main>
     <Footer />
+    <Consent />
   </body>
 </html>

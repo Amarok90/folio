@@ -3,14 +3,25 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { resolve, join, extname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
-import { resolveDeployment } from '../src/config/deployment.ts';
+import {
+  resolveDeployment,
+  resolveIndexability,
+} from '../src/config/deployment.ts';
 
-export function verifyBuild(directory, rawBase = '/', rawOrigin) {
+export function verifyBuild(
+  directory,
+  rawBase = '/',
+  rawOrigin,
+  indexable = resolveIndexability(process.env),
+) {
   const { base, site: origin } = resolveDeployment({
     BASE_PATH: rawBase,
     SITE_URL: rawOrigin,
   });
   const output = resolve(directory);
+  const profile = JSON.parse(
+    readFileSync(new URL('../src/data/profile.json', import.meta.url), 'utf8'),
+  );
   const walk = (folder) =>
     readdirSync(folder).flatMap((name) => {
       const path = join(folder, name);
@@ -20,6 +31,7 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
   for (const required of [
     'index.html',
     '404.html',
+    'privacy/index.html',
     'robots.txt',
     '.nojekyll',
     'icons/favicon.svg',
@@ -45,12 +57,32 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
       'Unexpected client framework hydration',
     );
     assert.match(html, /<html lang="en"/);
-    assert.match(html, /name="robots" content="noindex, nofollow"/);
+    const is404 = file === join(output, '404.html');
+    assert.match(
+      html,
+      indexable && !is404
+        ? /name="robots" content="index, follow"/
+        : /name="robots" content="noindex, nofollow"/,
+    );
     if (!origin)
       assert.ok(
         !html.includes('rel="canonical"'),
         'Unknown domain must not emit a canonical',
       );
+    if (is404)
+      assert.ok(
+        !html.includes('rel="canonical"'),
+        '404 must not advertise a canonical page.',
+      );
+    assert.match(
+      html,
+      /data-clarity-mask="true"/,
+      'Session replay masking must cover the document.',
+    );
+    assert.ok(
+      !/<script[^>]+src="https?:\/\//.test(html),
+      'Optional third-party scripts must not be embedded before consent.',
+    );
     const verifyLocalURL = (href) => {
       if (/^(?:https:|mailto:|tel:|data:)/.test(href)) return;
       if (href.startsWith('#')) {
@@ -112,17 +144,20 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
     );
   }
   assert.match(index, /Skip to content/);
-  assert.match(index, /View CV/);
-  assert.match(
-    index,
-    /https:\/\/www\.linkedin\.com\/in\/konstantin-arutjunov\/overlay\/1753005451683\/single-media-viewer\//,
-  );
+  if (profile.cv) {
+    assert.match(index, /Download CV/);
+    assert.ok(index.includes(`href="${base}${profile.cv.path.slice(1)}"`));
+    assert.ok(index.includes(`download="${profile.cv.filename}"`));
+  } else if (profile.cvPreviewUrl) {
+    assert.match(index, /View CV/);
+    assert.ok(index.includes(profile.cvPreviewUrl.replaceAll('&', '&amp;')));
+    assert.ok(
+      !/<a\b[^>]*\bdownload(?:=|[\s>])/.test(index),
+      'External CV preview must not expose a fake local download',
+    );
+  } else assert.match(index, /CV pending/);
   assert.ok(
-    !/<a\b[^>]*\bdownload(?:=|[\s>])/.test(index),
-    'External CV preview must not expose a fake local download',
-  );
-  assert.ok(
-    !/20\+|International Bank|konstantin@example\.com/.test(index),
+    !/International Bank|konstantin@example\.com/.test(index),
     'Unverified reference placeholders leaked into portfolio',
   );
   if (origin)
@@ -130,6 +165,49 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
       index.includes(`href="${origin}${base}"`),
       'Configured canonical must include base path',
     );
+  const personMatch = index.match(
+    /<script type="application\/ld\+json">([\s\S]*?)<\/script>/,
+  );
+  assert.ok(personMatch, 'Missing Person structured data.');
+  const person = JSON.parse(personMatch[1]);
+  assert.equal(person['@type'], 'Person');
+  assert.equal(person.name, profile.identity.name);
+  assert.equal(person.jobTitle, profile.identity.jobTitle);
+  assert.deepEqual(
+    person.sameAs,
+    profile.contact.links.map((link) => link.url),
+  );
+  assert.ok(
+    !/CMS integration|CMS rollback|cms-workflow|Download integration fixture/.test(
+      index,
+    ),
+    'Test content leaked into production output.',
+  );
+  const privacy = readFileSync(join(output, 'privacy/index.html'), 'utf8');
+  assert.match(privacy, /Privacy policy/);
+  assert.match(privacy, /folio\.consent\.v1/);
+  assert.match(privacy, /180 days/);
+  if (profile.contact.email)
+    assert.ok(privacy.includes(`mailto:${profile.contact.email}`));
+  if (origin) {
+    assert.ok(
+      privacy.includes(`href="${origin}${base}privacy/"`),
+      'Privacy canonical bypasses the deployment base.',
+    );
+    assert.ok(
+      existsSync(join(output, 'sitemap-index.xml')),
+      'Missing configured sitemap.',
+    );
+    const sitemap = files
+      .filter((path) => /sitemap.*\.xml$/.test(path))
+      .map((path) => readFileSync(path, 'utf8'))
+      .join('\n');
+    assert.ok(
+      sitemap.includes(`${origin}${base}privacy/`),
+      'Privacy page missing from sitemap.',
+    );
+    assert.ok(!sitemap.includes('/404'), '404 must be excluded from sitemap.');
+  }
   const sizeOf = (extension) =>
     files
       .filter((path) => path.endsWith(extension))
@@ -150,12 +228,13 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
     .reduce((sum, path) => sum + gzipSync(readFileSync(path)).length, 0);
   const fontBytes = sizeOf('.woff2');
   assert.ok(
-    javascriptBytes < 6000,
+    javascriptBytes < 12000,
     `Portfolio JavaScript budget exceeded: ${javascriptBytes}`,
   );
-  // Nine production sections replace the smaller Task 1 component gallery.
-  // Both source size and compressed payload are bounded to prevent silent growth.
-  assert.ok(cssBytes < 64000, `Portfolio CSS budget exceeded: ${cssBytes}`);
+  // Task 3 adds a third static page and an accessible, resilient consent controller.
+  // Measured aggregate: ~10.4 kB JS / 64.2 kB CSS / 11.9 kB gzip CSS.
+  // These include shared scripts repeated inline across the three HTML pages.
+  assert.ok(cssBytes < 68000, `Portfolio CSS budget exceeded: ${cssBytes}`);
   assert.ok(
     cssGzipBytes < 14000,
     `Compressed portfolio CSS budget exceeded: ${cssGzipBytes}`,
@@ -163,7 +242,9 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
   assert.ok(fontBytes < 70000, `Font budget exceeded: ${fontBytes}`);
   assert.equal(
     readFileSync(join(output, 'robots.txt'), 'utf8'),
-    'User-agent: *\nDisallow: /\n',
+    indexable && origin
+      ? `User-agent: *\nAllow: /\nSitemap: ${origin}${base}sitemap-index.xml\n`
+      : 'User-agent: *\nDisallow: /\n',
   );
   return {
     htmlPages: htmlFiles.length,
@@ -173,6 +254,7 @@ export function verifyBuild(directory, rawBase = '/', rawOrigin) {
     fontBytes,
     base,
     canonicalConfigured: Boolean(origin),
+    indexable,
   };
 }
 

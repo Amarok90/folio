@@ -46,11 +46,20 @@ const professionalLink = contact?.links.find((link) => {
     </p>
     <div class="contact-actions">
       {contact?.email ? (
-        <Button href={`mailto:${contact.email}`} icon="arrow">
+        <Button
+          href={`mailto:${contact.email}`}
+          icon="arrow"
+          data-analytics-event="contact_cta"
+        >
           Get in Touch
         </Button>
       ) : professionalLink ? (
-        <Button href={professionalLink.url} external icon="arrow">
+        <Button
+          href={professionalLink.url}
+          external
+          icon="arrow"
+          data-analytics-event="contact_cta"
+        >
           Get in Touch
         </Button>
       ) : (
@@ -78,7 +87,10 @@ const professionalLink = contact?.links.find((link) => {
       </dt>
       <dd>
         {contact?.email ? (
-          <a href={`mailto:${contact.email}`}>
+          <a
+            href={`mailto:${contact.email}`}
+            data-analytics-event="email_click"
+          >
             <span>{contact.email}</span>
           </a>
         ) : (
@@ -97,6 +109,7 @@ const professionalLink = contact?.links.find((link) => {
         <dd>
           <a
             href={professionalLink.url}
+            data-analytics-event="linkedin_click"
             target="_blank"
             rel="noopener noreferrer"
           >

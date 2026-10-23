@@ -21,102 +21,18 @@ const [expertiseEntries, skillEntries] = await Promise.all([
 ]);
 const categories = publishedEntries(expertiseEntries);
 const skills = publishedEntries(skillEntries);
-const isPreview = categories.length === 0;
-
-// Presentation taxonomy, not claims about the owner's skills or proficiency.
-const previewCategories = [
-  {
-    id: 'business-analytical',
-    title: 'Business & Analytical',
-    icon: 'file',
-    topics: [
-      'Business Analysis',
-      'Requirements Engineering',
-      'Systems Analysis',
-      'Process Modelling (BPMN)',
-      'Stakeholder Analysis',
-      'Solution Design',
-      'Business Requirements',
-      'Functional Specifications',
-      'User Stories & Acceptance Criteria',
-      'Data & Information Flows',
-      'Impact Analysis',
-      'Requirements Traceability',
-    ],
-  },
-  {
-    id: 'technical-tools',
-    title: 'Technical & Tools',
-    icon: 'code',
-    topics: [
-      'SQL & Data Analysis',
-      'REST / SOAP APIs',
-      'Integration Analysis',
-      'Data Modelling',
-      'Jira & Confluence',
-      'UML & Diagramming',
-      'Interface Specifications',
-      'Testing & Quality Assurance',
-    ],
-  },
-  {
-    id: 'methodologies',
-    title: 'Methodologies',
-    icon: 'layers',
-    topics: [
-      'Agile Delivery',
-      'Scrum & Kanban',
-      'Discovery Workshops',
-      'Process Improvement',
-      'Solution Evaluation',
-      'Change Management',
-      'Business Case Development',
-      'Delivery Documentation',
-    ],
-  },
-  {
-    id: 'industry-knowledge',
-    title: 'Industry Knowledge',
-    icon: 'shield',
-    topics: [
-      'Banking & FinTech',
-      'Digital Banking',
-      'Payments & Open Banking',
-      'Lending Processes',
-      'Insurance Platforms',
-      'Regulatory Requirements',
-      'Risk & Controls',
-      'Customer Journeys',
-    ],
-  },
-] satisfies {
-  id: string;
-  title: string;
-  icon: IconName;
-  topics: string[];
-}[];
-
-const panels: Category[] = isPreview
-  ? previewCategories.map((category) => ({
-      ...category,
-      description: null,
-      skills: category.topics.map((name, index) => ({
-        id: `${category.id}-${index}`,
-        name,
-      })),
-    }))
-  : categories.map((category) => ({
-      id: category.id,
-      title: category.data.title,
-      description: category.data.description,
-      icon: 'file',
-      skills: skills
-        .filter((skill) => skill.data.categoryId === category.id)
-        .map((skill) => ({
-          id: skill.id,
-          name: skill.data.name,
-        })),
-    }));
+const panels: Category[] = categories.map((category) => ({
+  id: category.id,
+  title: category.data.title,
+  description: category.data.description,
+  icon: 'file',
+  skills: skills
+    .filter((skill) => skill.data.categoryId === category.id)
+    .map((skill) => ({
+      id: skill.id,
+      name: skill.data.name,
+    })),
+}));
 ---
 
 <section
@@ -139,18 +55,20 @@ const panels: Category[] = isPreview
     </a>
   </div>
   <div class="section-body expertise-widget" data-expertise-tabs>
-    <div class="expertise-tabs" data-tab-list>
-      {panels.map((panel) => (
-        <a
-          class="expertise-tab"
-          id={`expertise-tab-${panel.id}`}
-          href={`#expertise-panel-${panel.id}`}
-          data-expertise-tab
-        >
-          {panel.title}
-        </a>
-      ))}
-    </div>
+    {panels.length > 0 && (
+      <div class="expertise-tabs" data-tab-list>
+        {panels.map((panel) => (
+          <a
+            class="expertise-tab"
+            id={`expertise-tab-${panel.id}`}
+            href={`#expertise-panel-${panel.id}`}
+            data-expertise-tab
+          >
+            {panel.title}
+          </a>
+        ))}
+      </div>
+    )}
     {panels.map((panel) => (
       <div
         id={`expertise-panel-${panel.id}`}
@@ -183,13 +101,9 @@ const panels: Category[] = isPreview
         )}
       </div>
     ))}
-    {isPreview && (
-      <p class="preview-note expertise-preview-note">
-        <span class="preview-dot" aria-hidden="true" />
-        Topic preview · skills and proficiency await confirmation.
-      </p>
-    )}
-    {!isPreview && (
+    {panels.length === 0 ? (
+      <p class="expertise-empty">Expertise details are being updated.</p>
+    ) : (
       <p class="expertise-preview-note">
         Selected skills from my professional experience.
         <span class="sr-only">Proficiency levels have not been assessed.</span>

@@ -1,6 +1,8 @@
 ---
 import Container from './Container.astro';
 import Icon from '../ui/Icon.astro';
+import { Image } from 'astro:assets';
+import { media } from '../../config/media';
 import { site } from '../../config/site';
 import { profile } from '../../data/profile';
 import { withBasePath } from '../../lib/urls';
@@ -14,7 +16,17 @@ const linkedIn = profile.contact.links.find((link) =>
   <Container class="footer-inner">
     <div class="footer-identity">
       <a href={`${homeURL}#home`} class="brand">
-        <Icon name="feather" />
+        {media.logo ? (
+          <Image
+            src={media.logo}
+            alt={media.logoAlt}
+            width={32}
+            height={32}
+            class="brand-logo"
+          />
+        ) : (
+          <Icon name="feather" />
+        )}
         {site.brand}
       </a>
       <p>
@@ -34,6 +46,7 @@ const linkedIn = profile.contact.links.find((link) =>
           target="_blank"
           rel="noopener noreferrer"
           aria-label="LinkedIn profile (opens in a new tab)"
+          data-analytics-event="linkedin_click"
         >
           <Icon name="linkedin" />
         </a>
@@ -42,10 +55,19 @@ const linkedIn = profile.contact.links.find((link) =>
         <a
           href={`mailto:${profile.contact.email}`}
           aria-label="Email Konstantin"
+          data-analytics-event="email_click"
         >
           <Icon name="mail" />
         </a>
       )}
+    </div>
+    <div class="footer-privacy">
+      <a href={withBasePath('/privacy/', import.meta.env.BASE_URL)}>
+        Privacy policy
+      </a>
+      <button type="button" data-consent-open hidden>
+        Privacy preferences
+      </button>
     </div>
     <p class="copyright">
       © {new Date().getUTCFullYear()} {site.identity.name}
@@ -57,3 +79,40 @@ const linkedIn = profile.contact.links.find((link) =>
     </a>
   </Container>
 </footer>
+
+<style>
+  .brand-logo {
+    width: 2rem;
+    height: 2rem;
+    object-fit: contain;
+    flex-shrink: 0;
+  }
+  .footer-privacy {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-3);
+    font-size: var(--text-caption);
+    color: var(--color-text-secondary);
+  }
+  .footer-privacy a,
+  .footer-privacy button {
+    display: inline-flex;
+    align-items: center;
+    min-height: var(--touch-target);
+  }
+  .footer-privacy button {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+  }
+  .footer-privacy a:hover,
+  .footer-privacy button:hover {
+    color: var(--color-primary);
+    text-decoration: underline;
+    text-underline-offset: 0.25em;
+  }
+</style>

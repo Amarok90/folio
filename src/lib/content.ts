@@ -1,7 +1,62 @@
 import { z } from 'zod';
 
 const text = z.string().trim().min(1);
-const nullableText = text.nullable();
+// Pages CMS clears optional text inputs to an empty string; preserve this as unknown.
+const nullableText = z.preprocess(
+  (value) => (value === '' || value === undefined ? null : value),
+  text.nullable(),
+);
+
+/** Only local raster sources may enter Astro's image pipeline. SVG stays code-owned. */
+export const imageAssetPathSchema = z
+  .string()
+  .regex(
+    /^\/src\/assets\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9][a-zA-Z0-9_.-]*\.(?:[pP][nN][gG]|[jJ][pP][eE]?[gG]|[wW][eE][bB][pP]|[aA][vV][iI][fF])$/,
+    'Choose a PNG, JPEG, WebP or AVIF image from the Images library.',
+  );
+
+const optionalObject = <T extends z.ZodRawShape>(schema: z.ZodObject<T>) =>
+  z.preprocess((value) => {
+    if (
+      value === '' ||
+      value === undefined ||
+      (value &&
+        typeof value === 'object' &&
+        !Array.isArray(value) &&
+        Object.entries(value).every(
+          ([key, field]) =>
+            Object.keys(schema.shape).includes(key) &&
+            (field === '' ||
+              field === null ||
+              field === undefined ||
+              (key === 'illustrative' && typeof field === 'boolean')),
+        ))
+    )
+      return null;
+    return value;
+  }, schema.nullable());
+
+export const imageSchema = z
+  .object({
+    path: imageAssetPathSchema,
+    alt: text,
+    illustrative: z.boolean().default(false),
+  })
+  .strict();
+
+export const mediaSchema = z
+  .object({
+    portrait: z
+      .object({ path: imageAssetPathSchema, alt: text, temporary: z.boolean() })
+      .strict(),
+    alpine: z.object({ path: imageAssetPathSchema }).strict(),
+    contact: z.object({ path: imageAssetPathSchema }).strict(),
+    logo: optionalObject(
+      z.object({ path: imageAssetPathSchema, alt: text }).strict(),
+    ),
+    projects: z.array(imageSchema).max(6),
+  })
+  .strict();
 
 export const contentIdSchema = z
   .string()
@@ -66,9 +121,10 @@ export const skillSchema = recordSchema
     name: text,
     categoryId: contentIdSchema,
     // No invented percentage or implicit proficiency for an unknown skill.
-    proficiency: z
-      .enum(['foundational', 'working', 'advanced', 'expert'])
-      .nullable(),
+    proficiency: z.preprocess(
+      (value) => (value === '' || value === undefined ? null : value),
+      z.enum(['foundational', 'working', 'advanced', 'expert']).nullable(),
+    ),
   })
   .strict();
 
@@ -79,23 +135,23 @@ export const caseStudySchema = recordSchema
     sector: nullableText,
     challenge: text,
     contribution: text,
-    outcomes: z.array(text),
-    limitations: z.array(text),
-    skillIds: z.array(contentIdSchema),
-    image: z
-      .object({
-        path: localAssetPathSchema,
-        alt: text,
-      })
-      .strict()
-      .nullable(),
-    link: httpsUrlSchema.nullable(),
+    outcomes: z.array(text).default([]),
+    limitations: z.array(text).default([]),
+    skillIds: z.array(contentIdSchema).default([]),
+    image: optionalObject(imageSchema),
+    link: z.preprocess(
+      (value) => (value === '' || value === undefined ? null : value),
+      httpsUrlSchema.nullable(),
+    ),
   })
   .strict();
 
 const datedRecordSchema = recordSchema.extend({
   startDate: monthSchema,
-  endDate: monthSchema.nullable(),
+  endDate: z.preprocess(
+    (value) => (value === '' || value === undefined ? null : value),
+    monthSchema.nullable(),
+  ),
   current: z.boolean(),
 });
 
@@ -132,8 +188,8 @@ export const experienceSchema = datedRecordSchema
     organization: text,
     location: nullableText,
     summary: nullableText,
-    achievements: z.array(text),
-    skillIds: z.array(contentIdSchema),
+    achievements: z.array(text).default([]),
+    skillIds: z.array(contentIdSchema).default([]),
   })
   .strict()
   .superRefine(validateDateRange);
@@ -167,44 +223,77 @@ export const profileSchema = publicationSchema
       .object({
         headline: nullableText,
         summary: nullableText,
+        approach: z.array(text).min(1).max(4),
       })
       .strict(),
     about: z
       .object({
         summary: nullableText,
-        interests: z.array(text),
+        interests: z.array(text).default([]),
+        approach: z
+          .array(z.object({ title: text, description: text }).strict())
+          .min(1)
+          .max(4),
       })
       .strict(),
     contact: z
       .object({
-        email: z.email().nullable(),
+        email: z.preprocess(
+          (value) => (value === '' || value === undefined ? null : value),
+          z.email().nullable(),
+        ),
         location: nullableText,
-        openToRelocation: z.boolean().nullable(),
+        openToRelocation: z.boolean().nullable().default(null),
         availability: nullableText,
-        links: z.array(z.object({ label: text, url: httpsUrlSchema }).strict()),
+        links: z
+          .array(
+            z
+              .object({
+                label: text,
+                url: httpsUrlSchema.refine((value) => {
+                  const url = new URL(value);
+                  return (
+                    ['linkedin.com', 'www.linkedin.com'].includes(
+                      url.hostname,
+                    ) &&
+                    /^\/in\/[^/]+\/?$/.test(url.pathname) &&
+                    !url.search &&
+                    !url.hash
+                  );
+                }, 'Contact links are limited to a LinkedIn profile; use the separate email field for email.'),
+              })
+              .strict(),
+          )
+          .max(1),
       })
       .strict(),
-    cv: z
-      .object({
-        path: localAssetPathSchema.refine(
-          (value) => /\.pdf$/i.test(value),
-          'The CV must be a PDF.',
-        ),
-        filename: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$/i),
-        updatedAt: z.iso.date(),
-        language: text,
-      })
-      .strict()
-      .nullable(),
-    cvPreviewUrl: httpsUrlSchema.nullable().default(null),
+    cv: optionalObject(
+      z
+        .object({
+          path: localAssetPathSchema.refine(
+            (value) =>
+              /^\/documents\/(?:[a-zA-Z0-9_-]+\/)*[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$/i.test(
+                value,
+              ),
+            'The CV must be a PDF.',
+          ),
+          filename: z.string().regex(/^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$/i),
+          updatedAt: z.iso.date(),
+          language: text,
+        })
+        .strict(),
+    ),
+    cvPreviewUrl: z.preprocess(
+      (value) => (value === '' || value === undefined ? null : value),
+      httpsUrlSchema.nullable().default(null),
+    ),
     seo: z
       .object({
         title: nullableText,
         description: nullableText,
-        socialImage: z
-          .object({ path: localAssetPathSchema, alt: text })
-          .strict()
-          .nullable(),
+        socialImage: optionalObject(
+          z.object({ path: imageAssetPathSchema, alt: text }).strict(),
+        ),
       })
       .strict(),
   })
@@ -212,6 +301,17 @@ export const profileSchema = publicationSchema
 
 export type Profile = z.infer<typeof profileSchema>;
 export type Publication = z.infer<typeof publicationSchema>;
+
+/** The site requires one public identity; drafts belong in the individual collections. */
+export function parsePublicProfile(source: unknown): Profile {
+  const parsed = profileSchema.parse(source);
+  if (!isPublished(parsed)) {
+    throw new Error(
+      'The required site profile must remain Published and visible. Use collection drafts to hide individual records.',
+    );
+  }
+  return parsed;
+}
 
 /** A record needs both explicit publication and visibility before it can render publicly. */
 export function isPublished(record: Publication): boolean {

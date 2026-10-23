@@ -15,29 +15,11 @@ const { image, background } = Astro.props;
 const education = publishedEntries(await getCollection('education'));
 const languages = publishedEntries(await getCollection('languages'));
 const publicProfile = isPublished(profile) ? profile : null;
-const approach = [
-  {
-    title: 'Understand the Business',
-    description: 'Structured analysis of business needs and requirements.',
-    icon: 'contact' as const,
-  },
-  {
-    title: 'Analyze & Design',
-    description: 'Clear specifications that connect business and technology.',
-    icon: 'workflow' as const,
-  },
-  {
-    title: 'Collaborate',
-    description: 'Clear communication with stakeholders and delivery teams.',
-    icon: 'users' as const,
-  },
-  {
-    title: 'Deliver Real Value',
-    description:
-      'Focus on quality, practical outcomes, and reliable production.',
-    icon: 'shield' as const,
-  },
-];
+const approachIcons = ['contact', 'workflow', 'users', 'shield'] as const;
+const approach = profile.about.approach.map((item, index) => ({
+  ...item,
+  icon: approachIcons[index] ?? 'shield',
+}));
 ---
 
 <section

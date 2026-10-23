@@ -3,6 +3,16 @@ name: Pages readiness (manual)
 on:
   workflow_dispatch:
     inputs:
+      site_origin:
+        description: HTTPS origin only; keep the repository path in base_path
+        type: string
+        required: true
+        default: https://amarok90.github.io
+      base_path:
+        description: Repository path; use / for a future custom domain
+        type: string
+        required: true
+        default: /folio/
       publish:
         description: Publish the verified artifact (Task 4 launch only)
         type: boolean
@@ -20,10 +30,16 @@ jobs:
   build:
     name: Validate and prepare Pages artifact
     runs-on: ubuntu-24.04
-    timeout-minutes: 20
+    timeout-minutes: 25
     permissions:
       contents: read
-      pages: read
+    env:
+      ASTRO_TELEMETRY_DISABLED: '1'
+      SITE_URL: ${{ inputs.site_origin }}
+      BASE_PATH: ${{ inputs.base_path }}
+      CLARITY_ENABLED: ${{ vars.CLARITY_ENABLED || 'false' }}
+      CLARITY_PROJECT_ID: ${{ vars.CLARITY_PROJECT_ID }}
+      SITE_INDEXABLE: ${{ vars.SITE_INDEXABLE || 'false' }}
     steps:
       - name: Check out source
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -34,15 +50,6 @@ jobs:
         with:
           node-version-file: .nvmrc
           cache: npm
-      - name: Read configured Pages URL
-        id: pages
-        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
-        with:
-          enablement: false
-      - name: Require known deployment origin
-        env:
-          SITE_URL: ${{ steps.pages.outputs.origin }}
-        run: test -n "$SITE_URL"
       - name: Install locked dependencies
         run: npm ci
       - name: Check Astro and TypeScript
@@ -53,6 +60,8 @@ jobs:
         run: npm run format:check
       - name: Run unit and component tests
         run: npm run test:unit
+      - name: Verify isolated CMS editing workflows
+        run: npm run test:cms
       - name: Audit dependencies
         run: npm run audit
       - name: Install Chromium
@@ -60,12 +69,13 @@ jobs:
       - name: Verify project base path
         run: npm run test:base
       - name: Build and verify configured Pages output
-        env:
-          SITE_URL: ${{ steps.pages.outputs.origin }}
-          BASE_PATH: ${{ steps.pages.outputs.base_path || '/' }}
         run: |
           npm run build
           npm run test:e2e
+      - name: Verify consent and analytics resilience
+        run: npm run test:analytics
+      - name: Verify mobile and desktop Lighthouse release budgets
+        run: npm run test:lighthouse
       - name: Upload verified static artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:

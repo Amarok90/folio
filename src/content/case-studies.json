@@ -21,7 +21,11 @@
       "requirements-engineering",
       "lending"
     ],
-    "image": null,
+    "image": {
+      "path": "/src/assets/banking-review.webp",
+      "alt": "Illustrative contemporary banking office building",
+      "illustrative": true
+    },
     "link": "https://www.linkedin.com/in/konstantin-arutjunov/"
   },
   {
@@ -46,7 +50,11 @@
       "integration-testing",
       "lending"
     ],
-    "image": null,
+    "image": {
+      "path": "/src/assets/fintech-review.webp",
+      "alt": "Illustrative financial application on a tablet",
+      "illustrative": true
+    },
     "link": "https://www.linkedin.com/in/konstantin-arutjunov/"
   },
   {
@@ -71,7 +79,11 @@
       "insurance",
       "stakeholder-management"
     ],
-    "image": null,
+    "image": {
+      "path": "/src/assets/insurance-review.webp",
+      "alt": "Illustrative mobile insurance application",
+      "illustrative": true
+    },
     "link": "https://www.linkedin.com/in/konstantin-arutjunov/"
   }
 ]

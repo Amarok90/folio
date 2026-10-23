@@ -21,6 +21,8 @@ try {
         ASTRO_TELEMETRY_DISABLED: '1',
         SITE_URL: 'https://folio.test/',
         BASE_PATH: '/folio',
+        SITE_INDEXABLE: 'false',
+        CLARITY_ENABLED: 'false',
       },
     },
   );
@@ -30,8 +32,32 @@ try {
     );
   console.log(
     'Project base verified:',
-    verifyBuild(directory, '/folio', 'https://folio.test/'),
+    verifyBuild(directory, '/folio', 'https://folio.test/', false),
   );
+  const browserTests = spawnSync(
+    process.execPath,
+    [
+      resolve('node_modules/@playwright/test/cli.js'),
+      'test',
+      '--config',
+      'playwright.base.config.ts',
+    ],
+    {
+      stdio: 'inherit',
+      env: {
+        ...process.env,
+        BASE_PATH: '/folio',
+        SITE_URL: 'https://folio.test/',
+        SITE_INDEXABLE: 'false',
+        CLARITY_ENABLED: 'false',
+        FOLIO_PREVIEW_OUT_DIR: directory,
+      },
+    },
+  );
+  if (browserTests.status !== 0)
+    throw new Error(
+      `Project base browser tests failed: ${browserTests.error?.message ?? browserTests.status}`,
+    );
 } finally {
   rmSync(directory, { recursive: true, force: true });
 }

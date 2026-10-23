@@ -2,7 +2,6 @@ import { defineConfig } from 'astro/config';
 import tailwindcss from '@tailwindcss/vite';
 import sitemap from '@astrojs/sitemap';
 import { resolveDeployment } from './src/config/deployment';
-import { site } from './src/config/site';
 
 const deployment = resolveDeployment(process.env);
 
@@ -11,7 +10,14 @@ export default defineConfig({
   ...(deployment.site ? { site: deployment.site } : {}),
   base: deployment.base,
   trailingSlash: 'always',
-  integrations: deployment.site && site.indexable ? [sitemap()] : [],
+  integrations: deployment.site
+    ? [
+        sitemap({
+          filter: (page) =>
+            !page.endsWith('/404.html') && !page.endsWith('/404/'),
+        }),
+      ]
+    : [],
   vite: { plugins: [tailwindcss()] },
   devToolbar: { enabled: false },
 });
