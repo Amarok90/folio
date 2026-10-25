@@ -16,6 +16,7 @@ interface Props {
   socialImage?: string;
   canonical?: boolean;
   person?: { name: string; jobTitle: string; sameAs?: string[] };
+  connectedHero?: boolean;
 }
 const {
   title = site.title,
@@ -24,6 +25,7 @@ const {
   socialImage,
   canonical: emitCanonical = true,
   person,
+  connectedHero = false,
 } = Astro.props;
 const basePrefix = import.meta.env.BASE_URL.replace(/\/$/, '');
 const pagePath =
@@ -125,7 +127,7 @@ const jsonLd = person
     <a href="#main-content" class="skip-link">
       Skip to content
     </a>
-    <Header />
+    <Header connected={connectedHero} />
     <main id="main-content" class="site-main" tabindex="-1">
       <slot />
     </main>

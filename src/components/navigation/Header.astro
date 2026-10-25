@@ -8,9 +8,16 @@ import { site } from '../../config/site';
 import { profile } from '../../data/profile';
 import { withBasePath } from '../../lib/urls';
 const homeURL = withBasePath('/', import.meta.env.BASE_URL);
+interface Props {
+  connected?: boolean;
+}
+const { connected = false } = Astro.props;
 ---
 
-<header class="header-shell" data-header>
+<header
+  class:list={['header-shell', { 'header-shell--connected': connected }]}
+  data-header
+>
   <Container class="header-inner">
     <a href={`${homeURL}#home`} class="brand" aria-label={`${site.brand} home`}>
       {media.logo ? (
@@ -134,6 +141,11 @@ const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 </script>
 
 <style>
+  .header-shell--connected {
+    width: min(100% - var(--gutter) * 2, var(--content-width));
+    border-radius: 0;
+    box-shadow: none;
+  }
   .brand {
     min-width: 0;
     max-width: 12rem;

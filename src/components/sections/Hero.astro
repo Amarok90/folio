@@ -6,6 +6,7 @@ import {
 import { Image } from 'astro:assets';
 import { profile } from '../../data/profile';
 import { media } from '../../config/media';
+import { site } from '../../config/site';
 import Button from '../ui/Button.astro';
 import CVAction from '../ui/CVAction.astro';
 import Icon from '../ui/Icon.astro';
@@ -39,8 +40,8 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     <Image
       src={media.portrait}
       alt={media.portraitAlt}
-      widths={[320, 480, 640, 900]}
-      sizes="(max-width: 575px) 240px, (max-width: 767px) 320px, (max-width: 1023px) 40vw, 500px"
+      widths={[240, 320, 480, 640]}
+      sizes="(max-width: 575px) 220px, (max-width: 767px) 288px, (max-width: 1023px) 32vw, 336px"
       class="hero-person"
       format="webp"
       loading="eager"
@@ -101,6 +102,15 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
       </li>
     )}
   </ul>
+  {!site.indexable && (
+    <aside class="review-note hero-review-note" aria-label="Preview status">
+      <strong>Design preview</strong>
+      <span>
+        {media.portraitTemporary && 'Temporary portrait · '}Content verification
+        pending
+      </span>
+    </aside>
+  )}
 </section>
 <style>
   .hero {
@@ -108,8 +118,10 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     isolation: isolate;
     overflow: hidden;
     min-height: 32rem;
-    border-radius: var(--radius-section);
-    padding: var(--space-12) var(--section-padding) var(--space-12);
+    border: 1px solid var(--color-divider);
+    border-top: 0;
+    border-radius: 0 0 var(--radius-section) var(--radius-section);
+    padding: var(--space-12) var(--section-padding) var(--space-20);
     background: var(--color-background-secondary);
   }
   .hero-landscape {
@@ -138,7 +150,7 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
   .hero-copy {
     position: relative;
     z-index: 2;
-    width: 48%;
+    width: 54%;
     max-width: 37rem;
   }
   .hero-copy .eyebrow::before {
@@ -176,22 +188,28 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
   .hero-portrait {
     position: absolute;
     z-index: -1;
-    right: 4%;
-    top: 0;
-    bottom: 0;
-    width: 50%;
+    right: var(--space-16);
+    top: var(--space-10);
+    width: 32%;
+    max-width: 21rem;
+    aspect-ratio: 4 / 5;
   }
   .hero-person {
     width: 100%;
     height: 100%;
-    object-fit: contain;
-    object-position: center bottom;
-    mask-image: linear-gradient(to bottom, black 83%, transparent 100%);
+    object-fit: cover;
+    object-position: var(--portrait-position);
+    border: 6px solid rgb(255 255 255 / 88%);
+    border-radius: 48% 48% 1.75rem 1.75rem / 38% 38% 1.75rem 1.75rem;
+    background: var(--color-background-secondary);
+    box-shadow: var(--shadow-elevated);
   }
   .portrait-note {
     position: absolute;
-    bottom: var(--space-10);
-    right: var(--space-3);
+    bottom: var(--space-4);
+    left: 50%;
+    transform: translateX(-50%);
+    white-space: nowrap;
     color: var(--color-text-secondary);
     background: rgb(255 255 255 / 85%);
     padding: var(--space-1) var(--space-2);
@@ -201,7 +219,7 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
   .hero-signature {
     position: absolute;
     top: var(--space-10);
-    right: -4%;
+    right: -3rem;
     color: var(--color-secondary);
     font-family: var(--font-handwriting);
     font-size: clamp(1.5rem, 2.7vw, 2.15rem);
@@ -250,16 +268,25 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     width: 1rem;
     height: 1rem;
   }
+  .hero-review-note {
+    position: relative;
+    z-index: 2;
+    justify-content: flex-start;
+    padding: 0;
+    margin-top: var(--space-4);
+    max-width: 54%;
+    text-align: left;
+  }
   @media (width < 64rem) {
     .hero {
       min-height: 31rem;
     }
     .hero-portrait {
-      right: 3%;
-      width: 49%;
+      right: var(--space-8);
+      width: 32%;
     }
     .hero-signature {
-      right: 0;
+      right: -1.5rem;
       top: var(--space-8);
     }
     .hero-description {
@@ -306,21 +333,18 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
       top: auto;
       bottom: auto;
       right: auto;
-      width: 100%;
-      height: 18rem;
-      margin-top: var(--space-3);
+      width: 76%;
+      max-width: 16rem;
+      margin: var(--space-5) auto var(--space-6);
       z-index: 0;
     }
     .hero-person {
-      width: 88%;
-      margin-left: auto;
-      object-position: right bottom;
-      mask-image: linear-gradient(to bottom, black 83%, transparent 100%);
+      width: 100%;
     }
     .hero-signature {
       top: var(--space-3);
       bottom: auto;
-      right: calc(-1 * var(--space-2));
+      right: -2rem;
       font-size: 1.55rem;
       z-index: 1;
     }
@@ -344,22 +368,18 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
       font-size: 0.75rem;
       padding-block: var(--space-1);
     }
-    .portrait-note {
-      right: auto;
-      left: 0;
-      bottom: var(--space-3);
+    .hero-review-note {
+      max-width: 100%;
+      margin-bottom: var(--space-5);
     }
   }
   @media (width >= 36rem) and (width < 48rem) {
     .hero-portrait {
-      height: 24rem;
-    }
-    .hero-person {
-      width: 70%;
+      max-width: 18rem;
     }
     .hero-signature {
       top: var(--space-6);
-      right: var(--space-2);
+      right: -2rem;
     }
   }
   .hero-signature--custom {

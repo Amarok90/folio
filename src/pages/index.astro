@@ -9,25 +9,16 @@ import About from '../components/sections/About.astro';
 import Contact from '../components/sections/Contact.astro';
 import { media } from '../config/media';
 import { profile } from '../data/profile';
-import { site } from '../config/site';
 ---
 
 <SiteLayout
+  connectedHero
   person={{
     name: profile.identity.name,
     jobTitle: profile.identity.jobTitle,
     sameAs: profile.contact.links.map((link) => link.url),
   }}
 >
-  {!site.indexable && (
-    <aside class="review-note" aria-label="Preview status">
-      <strong>Design preview</strong>
-      <span>
-        {media.portraitTemporary && 'Temporary portrait · '}Content verification
-        pending
-      </span>
-    </aside>
-  )}
   <Hero />
   <Highlights />
   <Expertise />

@@ -393,7 +393,7 @@ test(
 );
 
 test(
-  'CMS workflow: replace the portrait, logo and analytics illustration with uploaded image sources',
+  'CMS workflow: replace portrait and logo while legacy analytics media stays out of Skills',
   { timeout: 120_000 },
   async () => {
     const media = readJSON('src/data/media.json');
@@ -431,15 +431,10 @@ test(
       (html.match(/alt="CMS integration logo fixture"/g) ?? []).length,
       2,
     );
-    const analyticsTag = html.match(
-      /<img\b[^>]*alt="CMS integration analytics fixture"[^>]*>/,
-    )?.[0];
-    assert.ok(analyticsTag, 'CMS-selected analytics image is missing.');
-    const analyticsSource = analyticsTag.match(/src="([^"]+)"/)?.[1];
-    assert.ok(analyticsSource?.startsWith('/folio/_astro/'));
-    assert.ok(
-      existsSync(pathFor(`dist/${analyticsSource.slice('/folio/'.length)}`)),
-      'Analytics media must resolve to an actual optimized output asset.',
+    assert.doesNotMatch(
+      html,
+      /alt="CMS integration analytics fixture"/,
+      'Skills intentionally omits the laptop illustration, even when legacy media is configured.',
     );
     const portraitTag = html.match(
       /<img\b[^>]*alt="CMS integration portrait fixture"[^>]*>/,
@@ -482,9 +477,8 @@ test(
     await validateRepositoryContent(fixture);
     const withoutAnalytics = build();
     assert.ok(
-      withoutAnalytics.includes('expertise-section--text-only') &&
-        !/<figure\b[^>]*class="expertise-visual"/.test(withoutAnalytics),
-      'Clearing optional analytics media must restore the full-width text layout.',
+      !/<figure\b[^>]*class="expertise-visual"/.test(withoutAnalytics),
+      'Clearing legacy optional analytics media must keep the Skills illustration absent.',
     );
   },
 );

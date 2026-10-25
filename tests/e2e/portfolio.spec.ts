@@ -206,6 +206,39 @@ for (const width of [
       measurements.viewportWidth + 1,
     );
     expect(measurements.clipped).toEqual([]);
+    const firstScreen = await page.evaluate(() => {
+      const header = document
+        .querySelector('header[data-header]')!
+        .getBoundingClientRect();
+      const hero = document.querySelector('#home')!.getBoundingClientRect();
+      const portrait = document
+        .querySelector('#home .hero-portrait')!
+        .getBoundingClientRect();
+      return {
+        gap: hero.top - header.bottom,
+        alignment:
+          Math.abs(hero.left - header.left) +
+          Math.abs(hero.right - header.right),
+        portraitWidth: portrait.width,
+        portraitShare: portrait.width / hero.width,
+        portraitInside:
+          portrait.top >= hero.top && portrait.bottom <= hero.bottom,
+        skillsSurface: getComputedStyle(document.querySelector('#expertise')!)
+          .backgroundColor,
+        projectsSurface: getComputedStyle(document.querySelector('#projects')!)
+          .backgroundColor,
+      };
+    });
+    expect(Math.abs(firstScreen.gap)).toBeLessThanOrEqual(1);
+    expect(firstScreen.alignment).toBeLessThanOrEqual(2);
+    expect(firstScreen.portraitWidth).toBeLessThanOrEqual(337);
+    expect(firstScreen.portraitShare).toBeLessThanOrEqual(
+      width >= 768 ? 0.35 : 0.8,
+    );
+    expect(firstScreen.portraitInside).toBe(true);
+    expect(firstScreen.skillsSurface).toBe('rgb(255, 255, 255)');
+    expect(firstScreen.skillsSurface).toBe(firstScreen.projectsSurface);
+    await expect(page.locator('#expertise img')).toHaveCount(0);
     for (const [headingSelector, contentSelector] of [
       ['#projects-title', '#projects .section-body'],
       ['#experience-title', '#experience .section-body'],
@@ -233,9 +266,6 @@ for (const width of [
         const skills = document
           .querySelector('#expertise .expertise-content')!
           .getBoundingClientRect();
-        const analytics = document
-          .querySelector('#expertise .expertise-visual')
-          ?.getBoundingClientRect();
         const portrait = document
           .querySelector('#about .about__portrait')!
           .getBoundingClientRect();
@@ -247,12 +277,7 @@ for (const width of [
           horizontalBalance:
             main.left + main.right - document.documentElement.clientWidth,
           sectionGap: projects.top - expertise.bottom,
-          expertise: analytics
-            ? {
-                leftShare: skills.width / (skills.width + analytics.width),
-                gutter: analytics.left - skills.right,
-              }
-            : null,
+          skillsShare: skills.width / expertise.width,
           about: {
             gutter: story.left - portrait.right,
             rowOverlap:
@@ -266,12 +291,7 @@ for (const width of [
       expect(Math.abs(composition.horizontalBalance)).toBeLessThanOrEqual(2);
       expect(composition.sectionGap).toBeGreaterThanOrEqual(55);
       expect(composition.sectionGap).toBeLessThanOrEqual(105);
-      if (mediaSource.analytics) {
-        expect(composition.expertise).not.toBeNull();
-        expect(composition.expertise?.leftShare).toBeGreaterThanOrEqual(0.62);
-        expect(composition.expertise?.leftShare).toBeLessThanOrEqual(0.68);
-        expect(composition.expertise?.gutter).toBeGreaterThanOrEqual(15);
-      } else expect(composition.expertise).toBeNull();
+      expect(composition.skillsShare).toBeGreaterThanOrEqual(0.9);
       expect(composition.about.gutter).toBeGreaterThanOrEqual(15);
       expect(composition.about.rowOverlap).toBeGreaterThan(0);
     }
@@ -286,18 +306,6 @@ for (const width of [
         return story.top - portrait.bottom;
       });
       expect(mobileAboutGap).toBeGreaterThanOrEqual(15);
-    }
-    if (width === 768 && mediaSource.analytics) {
-      const tabletImageGap = await page.evaluate(() => {
-        const content = document
-          .querySelector('#expertise .expertise-content')!
-          .getBoundingClientRect();
-        const image = document
-          .querySelector('#expertise .expertise-visual')!
-          .getBoundingClientRect();
-        return image.top - content.bottom;
-      });
-      expect(tabletImageGap).toBeGreaterThanOrEqual(15);
     }
     const primaryHeading = page.getByRole('heading', { level: 1 });
     await expect(primaryHeading).toBeVisible();
