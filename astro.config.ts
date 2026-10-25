@@ -14,7 +14,9 @@ export default defineConfig({
     ? [
         sitemap({
           filter: (page) =>
-            !page.endsWith('/404.html') && !page.endsWith('/404/'),
+            !page.endsWith('/404.html') &&
+            !page.endsWith('/404/') &&
+            !page.endsWith('/admin/'),
         }),
       ]
     : [],

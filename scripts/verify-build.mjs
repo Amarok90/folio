@@ -7,7 +7,7 @@ import {
   resolveDeployment,
   resolveIndexability,
 } from '../src/config/deployment.ts';
-import { interfaceSchema } from '../src/lib/content.ts';
+import { interfaceSchema, parsePublicProfile } from '../src/lib/content.ts';
 
 const escapeText = (value) =>
   value
@@ -28,8 +28,13 @@ export function verifyBuild(
     SITE_URL: rawOrigin,
   });
   const output = resolve(directory);
-  const profile = JSON.parse(
-    readFileSync(new URL('../src/data/profile.json', import.meta.url), 'utf8'),
+  const profile = parsePublicProfile(
+    JSON.parse(
+      readFileSync(
+        new URL('../src/data/profile.json', import.meta.url),
+        'utf8',
+      ),
+    ),
   );
   const ui = interfaceSchema.parse(
     JSON.parse(
@@ -49,6 +54,7 @@ export function verifyBuild(
     'index.html',
     '404.html',
     'privacy/index.html',
+    'admin/index.html',
     'robots.txt',
     '.nojekyll',
     'icons/favicon.svg',
@@ -75,9 +81,10 @@ export function verifyBuild(
     );
     assert.match(html, /<html lang="en"/);
     const is404 = file === join(output, '404.html');
+    const isAdmin = file === join(output, 'admin/index.html');
     assert.match(
       html,
-      indexable && !is404
+      indexable && !is404 && !isAdmin
         ? /name="robots" content="index, follow"/
         : /name="robots" content="noindex, nofollow"/,
     );
@@ -86,11 +93,23 @@ export function verifyBuild(
         !html.includes('rel="canonical"'),
         'Unknown domain must not emit a canonical',
       );
-    if (is404)
+    if (is404 || isAdmin)
       assert.ok(
         !html.includes('rel="canonical"'),
-        '404 must not advertise a canonical page.',
+        'Utility routes must not advertise a canonical page.',
       );
+    if (isAdmin) {
+      const cmsURL = 'https://app.pagescms.org/Amarok90/folio/main/';
+      assert.ok(
+        html.includes(`http-equiv="refresh" content="0;url=${cmsURL}"`),
+      );
+      assert.ok(html.includes(`href="${cmsURL}"`));
+      assert.match(html, /name="referrer" content="no-referrer"/);
+      assert.ok(
+        !/<script\b/.test(html),
+        'The admin shortcut must not load scripts or analytics.',
+      );
+    }
     assert.match(
       html,
       /data-clarity-mask="true"/,
@@ -222,6 +241,10 @@ export function verifyBuild(
       'Privacy page missing from sitemap.',
     );
     assert.ok(!sitemap.includes('/404'), '404 must be excluded from sitemap.');
+    assert.ok(
+      !sitemap.includes(`${origin}${base}admin/`),
+      'The admin shortcut must be excluded from sitemap.',
+    );
   }
   const sizeOf = (extension) =>
     files

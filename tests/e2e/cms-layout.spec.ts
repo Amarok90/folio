@@ -14,7 +14,7 @@ import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { interfaceSchema } from '../../src/lib/content';
+import { interfaceSchema, parsePublicProfile } from '../../src/lib/content';
 
 // Valid boundary-length CMS content is tested in its own source/build/cache.
 // No owner's content is changed and no fixture enters the production artifact.
@@ -60,8 +60,8 @@ test.describe('CMS-managed navigation layout boundaries', () => {
     );
     input.brand = 'Professional FOLIO Brand';
     input.navigation = labels;
-    const profile = JSON.parse(
-      readFileSync(join(fixture, 'src/data/profile.json'), 'utf8'),
+    const profile = parsePublicProfile(
+      JSON.parse(readFileSync(join(fixture, 'src/data/profile.json'), 'utf8')),
     );
     const cvLabel = profile.cv
       ? 'cvDownloadLabel'

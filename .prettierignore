@@ -6,3 +6,15 @@ playwright-report/
 test-results/
 artifacts/
 package-lock.json
+
+# Pages CMS owns JSON serialization. Canonical content validation remains mandatory.
+src/data/profile.json
+src/data/media.json
+src/data/interface.json
+src/content/professional-highlights.json
+src/content/expertise.json
+src/content/skills.json
+src/content/case-studies.json
+src/content/experience.json
+src/content/education.json
+src/content/languages.json

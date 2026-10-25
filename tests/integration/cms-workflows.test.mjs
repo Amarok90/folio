@@ -14,7 +14,12 @@ import { tmpdir } from 'node:os';
 import { dirname, extname, join, resolve } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { imageMetadata } from 'astro/assets/utils';
+import { getFileInfo } from 'prettier';
 import { validateRepositoryContent } from '../../scripts/validate-content.mjs';
+import {
+  parsePublicProfile,
+  sectionTargetSchema,
+} from '../../src/lib/content.ts';
 
 // These are local repository-save simulations. No CMS account is authenticated,
 // no commits are made, and none of the temporary content enters the real source.
@@ -33,6 +38,18 @@ let fixture;
 let baselineHTML;
 const originals = new Map();
 const uploaded = [];
+const contentPaths = [
+  'src/data/profile.json',
+  'src/data/interface.json',
+  'src/data/media.json',
+  'src/content/professional-highlights.json',
+  'src/content/case-studies.json',
+  'src/content/skills.json',
+  'src/content/expertise.json',
+  'src/content/experience.json',
+  'src/content/education.json',
+  'src/content/languages.json',
+];
 const escapedText = (value) =>
   value
     .replaceAll('&', '&amp;')
@@ -44,7 +61,8 @@ const escapedText = (value) =>
 const pathFor = (path) => join(fixture, path);
 const readJSON = (path) => JSON.parse(readFileSync(pathFor(path), 'utf8'));
 function saveJSON(path, value) {
-  writeFileSync(pathFor(path), `${JSON.stringify(value, null, 2)}\n`);
+  // Match the observed Pages CMS commit serialization, including no final newline.
+  writeFileSync(pathFor(path), JSON.stringify(value, null, 2));
 }
 function upload(path, data) {
   mkdirSync(dirname(pathFor(path)), { recursive: true });
@@ -52,24 +70,37 @@ function upload(path, data) {
   uploaded.push(path);
 }
 
-function build(expectSuccess = true) {
+function build(expectSuccess = true, verifyOutput = false) {
+  const env = {
+    ...process.env,
+    ASTRO_TELEMETRY_DISABLED: '1',
+    SITE_URL: 'https://folio.test',
+    BASE_PATH: '/folio',
+    SITE_INDEXABLE: 'false',
+    CLARITY_ENABLED: 'false',
+    CLARITY_PROJECT_ID: '',
+  };
   const result = spawnSync(process.execPath, [astroBinary, 'build'], {
     cwd: fixture,
-    env: {
-      ...process.env,
-      ASTRO_TELEMETRY_DISABLED: '1',
-      SITE_URL: 'https://folio.test',
-      BASE_PATH: '/folio',
-      SITE_INDEXABLE: 'false',
-      CLARITY_ENABLED: 'false',
-      CLARITY_PROJECT_ID: '',
-    },
+    env,
     encoding: 'utf8',
     timeout: 120_000,
     maxBuffer: 5_000_000,
   });
   if (expectSuccess) {
     assert.equal(result.status, 0, result.stderr || result.stdout);
+    if (verifyOutput) {
+      const verification = spawnSync(
+        process.execPath,
+        [pathFor('scripts/verify-build.mjs')],
+        { cwd: fixture, env, encoding: 'utf8', timeout: 30_000 },
+      );
+      assert.equal(
+        verification.status,
+        0,
+        verification.stderr || verification.stdout,
+      );
+    }
     return readFileSync(pathFor('dist/index.html'), 'utf8');
   }
   assert.notEqual(result.status, 0, 'Invalid content unexpectedly built.');
@@ -93,14 +124,7 @@ before(
         cpSync(join(source, path), pathFor(path), { recursive: true });
     }
     symlinkSync(join(source, 'node_modules'), pathFor('node_modules'), 'dir');
-    for (const path of [
-      'src/data/profile.json',
-      'src/data/interface.json',
-      'src/data/media.json',
-      'src/content/case-studies.json',
-      'src/content/skills.json',
-      'src/content/expertise.json',
-    ])
+    for (const path of contentPaths)
       originals.set(path, readFileSync(pathFor(path)));
     await validateRepositoryContent(fixture);
     baselineHTML = build();
@@ -117,6 +141,46 @@ after(() => {
 });
 
 test(
+  'CMS serialization: omitted optional values and no final newline pass publication checks without bypassing validation',
+  { timeout: 120_000 },
+  async () => {
+    const profile = readJSON('src/data/profile.json');
+    if (profile.about.interests?.length === 0) delete profile.about.interests;
+    if (profile.seo.socialImage === null) delete profile.seo.socialImage;
+    saveJSON('src/data/profile.json', profile);
+    const media = readJSON('src/data/media.json');
+    if (media.logo === null) delete media.logo;
+    saveJSON('src/data/media.json', media);
+    const skills = readJSON('src/content/skills.json');
+    for (const skill of skills) {
+      if (skill.proficiency === null) delete skill.proficiency;
+      if (skill.selfAssessment === null) delete skill.selfAssessment;
+    }
+    saveJSON('src/content/skills.json', skills);
+    const ignorePath = join(source, '.prettierignore');
+    for (const path of contentPaths) {
+      saveJSON(path, readJSON(path));
+      assert.equal(readFileSync(pathFor(path), 'utf8').endsWith('\n'), false);
+      assert.equal(
+        (await getFileInfo(join(source, path), { ignorePath })).ignored,
+        true,
+      );
+    }
+    for (const path of ['src/lib/content.ts', '.pages.yml', 'package.json'])
+      assert.equal(
+        (await getFileInfo(join(source, path), { ignorePath })).ignored,
+        false,
+      );
+    await validateRepositoryContent(fixture);
+    assert.equal(build(true, true), baselineHTML);
+
+    // Ignoring CMS serialization never permits malformed JSON to publish.
+    writeFileSync(pathFor('src/content/skills.json'), '[{"id":');
+    await assert.rejects(() => validateRepositoryContent(fixture), SyntaxError);
+  },
+);
+
+test(
   'CMS workflow: save text, validate it, and render it in a real static build',
   { timeout: 120_000 },
   async () => {
@@ -125,15 +189,17 @@ test(
     profile.contact.email = null;
     saveJSON('src/data/profile.json', profile);
     const ui = readJSON('src/data/interface.json');
+    ui.navigation.reverse();
     ui.navigation[0].label = 'CMS navigation fixture';
-    const cvLabel = profile.cv
+    const publicProfile = parsePublicProfile(profile);
+    const cvLabel = publicProfile.cv
       ? 'cvDownloadLabel'
-      : profile.cvPreviewUrl
+      : publicProfile.cvPreviewUrl
         ? 'cvViewLabel'
         : 'cvPendingLabel';
-    ui.actions[cvLabel] = profile.cv
+    ui.actions[cvLabel] = publicProfile.cv
       ? 'Download CMS CV fixture'
-      : profile.cvPreviewUrl
+      : publicProfile.cvPreviewUrl
         ? 'Open profile CV'
         : 'CV unavailable in CMS fixture';
     ui.contact.primaryActionLabel = 'CMS contact fixture';
@@ -143,6 +209,23 @@ test(
     saveJSON('src/data/interface.json', ui);
     await validateRepositoryContent(fixture);
     const html = build();
+    const expectedNavigation = sectionTargetSchema.options.filter((href) =>
+      ui.navigation.some((link) => link.href === href),
+    );
+    const renderedNavigation = [
+      ...html.matchAll(
+        /<nav\b[^>]*aria-label="(?:Main|Footer) navigation"[^>]*>([\s\S]*?)<\/nav>/g,
+      ),
+    ];
+    assert.equal(renderedNavigation.length, 2);
+    for (const [, markup] of renderedNavigation)
+      assert.deepEqual(
+        [...markup.matchAll(/href="[^"]*(#[^"\s]+)"/g)].map(
+          (match) => match[1],
+        ),
+        expectedNavigation,
+        'Header and footer must retain website section order after an owner reorders editor entries.',
+      );
     assert.ok(html.includes(profile.hero.summary));
     assert.match(html, /hero-signature--custom/);
     for (const text of [
@@ -171,6 +254,140 @@ test(
       !html.includes(
         JSON.parse(originals.get('src/data/profile.json')).hero.summary,
       ),
+    );
+  },
+);
+
+test(
+  'CMS workflow: a custom SEO title and cleared optional CV use the canonical verification contract',
+  { timeout: 120_000 },
+  async () => {
+    const profile = readJSON('src/data/profile.json');
+    profile.seo.title = 'Senior IT Business Analyst Portfolio';
+    profile.cv = { path: '', filename: '', updatedAt: '', language: '' };
+    profile.cvPreviewUrl = 'https://example.test/public-cv';
+    saveJSON('src/data/profile.json', profile);
+    const ui = readJSON('src/data/interface.json');
+    await validateRepositoryContent(fixture);
+    let html = build(true, true);
+    assert.ok(
+      html.includes(
+        `<title>${profile.seo.title} | ${escapedText(ui.brand)}</title>`,
+      ),
+    );
+    assert.ok(html.includes(`href="${profile.cvPreviewUrl}"`));
+    assert.ok(html.includes(escapedText(ui.actions.cvViewLabel)));
+    assert.ok(!/<a\b[^>]*\bdownload(?:=|[\s>])/.test(html));
+
+    profile.cvPreviewUrl = '';
+    saveJSON('src/data/profile.json', profile);
+    await validateRepositoryContent(fixture);
+    html = build(true, true);
+    assert.ok(html.includes(escapedText(ui.actions.cvPendingLabel)));
+    assert.ok(!/<a\b[^>]*\bdownload(?:=|[\s>])/.test(html));
+  },
+);
+
+test(
+  'CMS workflow: coordinated Hero, Skills, Education, Languages and achievements render from one validated source snapshot',
+  { timeout: 120_000 },
+  async () => {
+    const profile = readJSON('src/data/profile.json');
+    profile.hero.summary = 'Coordinated editorial recovery fixture.';
+    const expertise = readJSON('src/content/expertise.json');
+    const skills = readJSON('src/content/skills.json');
+    const education = readJSON('src/content/education.json');
+    const languages = readJSON('src/content/languages.json');
+    const experience = readJSON('src/content/experience.json');
+    const publication = { order: 0, status: 'published', visible: true };
+    expertise.push({
+      ...publication,
+      id: 'cms-coordinated-category',
+      title: 'Coordinated fixture category',
+      description: '',
+    });
+    for (const selfAssessment of [90, 100])
+      skills.push({
+        ...publication,
+        id: `cms-coordinated-skill-${selfAssessment}`,
+        name: `Coordinated fixture skill ${selfAssessment}`,
+        categoryId: 'cms-coordinated-category',
+        selfAssessment,
+      });
+    education.push({
+      ...publication,
+      id: 'cms-coordinated-education',
+      institution: 'Coordinated fixture institution',
+      qualification: 'Coordinated fixture qualification',
+      field: '',
+      startDate: '2020-01',
+      endDate: '2021-01',
+      current: false,
+    });
+    languages.push({
+      ...publication,
+      id: 'cms-coordinated-language',
+      name: 'Coordinated fixture language',
+      code: 'en',
+      proficiency: '',
+    });
+    experience.push({
+      ...publication,
+      id: 'cms-coordinated-experience',
+      role: 'Coordinated fixture role',
+      organization: 'Coordinated fixture organization',
+      location: '',
+      summary: '',
+      startDate: '2020-01',
+      endDate: '',
+      current: true,
+      achievements: ['Coordinated fixture achievement'],
+      skillIds: ['cms-coordinated-skill-90'],
+    });
+    // These are separate repository writes before validation, not a claim of live CMS atomic saves.
+    for (const [path, value] of [
+      ['src/data/profile.json', profile],
+      ['src/content/expertise.json', expertise],
+      ['src/content/skills.json', skills],
+      ['src/content/education.json', education],
+      ['src/content/languages.json', languages],
+      ['src/content/experience.json', experience],
+    ])
+      saveJSON(path, value);
+    await validateRepositoryContent(fixture);
+    const html = build();
+    for (const text of [
+      profile.hero.summary,
+      'Coordinated fixture qualification',
+      'Coordinated fixture institution',
+      'Coordinated fixture language',
+      'Coordinated fixture achievement',
+    ])
+      assert.ok(
+        html.includes(text),
+        `Coordinated content was not rendered: ${text}`,
+      );
+    for (const value of [90, 100])
+      assert.match(
+        html,
+        new RegExp(
+          `<meter[^>]*value="${value}"[^>]*aria-label="Coordinated fixture skill ${value} self-assessment"`,
+        ),
+      );
+
+    education.at(-1).current = true;
+    saveJSON('src/content/education.json', education);
+    await assert.rejects(
+      () => validateRepositoryContent(fixture),
+      /current record cannot have an end date/i,
+    );
+    education.at(-1).current = false;
+    saveJSON('src/content/education.json', education);
+    languages.at(-1).code = 'INVALID';
+    saveJSON('src/content/languages.json', languages);
+    await assert.rejects(
+      () => validateRepositoryContent(fixture),
+      /invalid|regex|pattern/i,
     );
   },
 );
@@ -241,6 +458,25 @@ test(
       !html.includes('src="/src/assets/'),
       'Unprocessed source path escaped into HTML.',
     );
+    const replacement = readFileSync(pathFor(media.contact.path.slice(1)));
+    const replacementMetadata = await imageMetadata(
+      replacement,
+      media.contact.path,
+    );
+    upload(uploadedPath, replacement);
+    await validateRepositoryContent(fixture);
+    const replacedHTML = build();
+    const replacementTag = replacedHTML.match(
+      /<img\b[^>]*alt="CMS integration portrait fixture"[^>]*>/,
+    )?.[0];
+    assert.ok(
+      replacementTag,
+      'Replacing an image at the same source path lost its reference.',
+    );
+    assert.ok(replacementTag.includes(`width="${replacementMetadata.width}"`));
+    assert.ok(
+      replacementTag.includes(`height="${replacementMetadata.height}"`),
+    );
     media.analytics = null;
     saveJSON('src/data/media.json', media);
     await validateRepositoryContent(fixture);
@@ -282,6 +518,16 @@ test(
     assert.deepEqual(
       readFileSync(pathFor('dist/documents/cms-workflow.pdf')),
       pdf,
+    );
+    const replacement = createFixturePDF('Replacement document fixture');
+    assert.notDeepEqual(replacement, pdf);
+    upload('public/documents/cms-workflow.pdf', replacement);
+    await validateRepositoryContent(fixture);
+    build();
+    assert.deepEqual(
+      readFileSync(pathFor('dist/documents/cms-workflow.pdf')),
+      replacement,
+      'Replacing an existing CV path must publish the replacement bytes.',
     );
   },
 );
@@ -336,6 +582,16 @@ test(
     assert.deepEqual(
       positions,
       [...positions].sort((left, right) => left - right),
+    );
+    for (const project of projects) project.visible = false;
+    saveJSON('src/content/case-studies.json', projects);
+    await validateRepositoryContent(fixture);
+    const hiddenHTML = build();
+    assert.ok(!/<article\b[^>]*class="project-card"/.test(hiddenHTML));
+    assert.ok(
+      hiddenHTML.includes(
+        escapedText(readJSON('src/data/interface.json').projects.emptyMessage),
+      ),
     );
   },
 );
@@ -488,14 +744,14 @@ test(
   },
 );
 
-function createFixturePDF() {
+function createFixturePDF(comment = '') {
   const objects = [
     '<< /Type /Catalog /Pages 2 0 R >>',
     '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
     '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 72 72] /Resources << >> /Contents 4 0 R >>',
     '<< /Length 0 >>\nstream\n\nendstream',
   ];
-  let contents = '%PDF-1.4\n';
+  let contents = `%PDF-1.4\n${comment ? `% ${comment}\n` : ''}`;
   const offsets = [0];
   for (const [index, value] of objects.entries()) {
     offsets.push(Buffer.byteLength(contents));

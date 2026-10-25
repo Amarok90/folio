@@ -1,5 +1,8 @@
-# FOLIO owner content. Reference: https://pagescms.org/docs/configuration/
-# CI is the publication gate; Pages CMS saves Git commits, not a deployment.
+# Owner editing follows the website from top to bottom.
+# Shared object editors retain the complete schema, with unrelated fields hidden.
+# Full snapshot saves + GitHub file SHA preserve other sections and reject stale saves.
+# merge:false permits clearing optional values instead of reviving previous content.
+# Save commits to main; Pages production validates before automatic publication.
 media:
   - name: images
     label: Website images
@@ -68,715 +71,248 @@ components:
     pattern:
       regex: ^https://[^\s]+$
       message: Use a complete HTTPS address.
-content:
-  - name: profile
-    label: 01 · Profile, contact, CV & SEO
-    type: file
-    path: src/data/profile.json
-    format: json
+  profile_status:
+    type: select
+    label: Publication status
+    required: true
+    default: published
+    options:
+      values:
+        - name: draft
+          label: Draft — not public
+        - name: published
+          label: Published
+    readonly: true
+    description:
+      Required public site profile. Keep Published and visible; use drafts or visibility in
+      individual content collections to hide records. Unpublishing the profile fails validation and
+      prevents a release.
+  profile_visible:
+    type: boolean
+    label: Show on website
+    default: true
+    description:
+      Required public site profile. Keep Published and visible; use drafts or visibility in
+      individual content collections to hide records. Unpublishing the profile fails validation and
+      prevents a release.
+    readonly: true
+  profile_identity:
+    label: Professional identity
+    type: object
     fields:
-      - name: status
-        component: publicationStatus
-        readonly: true
-        default: published
-        description:
-          Required public site profile. Keep Published and visible; use drafts or visibility in
-          individual content collections to hide records. Unpublishing the profile fails validation
-          and prevents a release.
-      - name: visible
-        component: visibility
-        readonly: true
-        default: true
-        description:
-          Required public site profile. Keep Published and visible; use drafts or visibility in
-          individual content collections to hide records. Unpublishing the profile fails validation
-          and prevents a release.
-      - name: identity
-        label: Professional identity
-        type: object
-        fields:
-          - name: name
-            label: Full name
-            type: string
-            required: true
-          - name: jobTitle
-            label: Professional title
-            type: string
-            required: true
+      - name: name
+        label: Full name
+        type: string
         required: true
-      - name: hero
-        label: Hero introduction
-        type: object
-        fields:
-          - name: headline
-            label: Main positioning statement
-            type: text
-            required: false
-            options:
-              maxlength: 180
-          - name: summary
-            label: Short recruiter introduction
-            type: text
-            required: false
-            options:
-              maxlength: 500
-          - name: approach
-            label: Four short approach statements
-            type: string
-            required: true
-            list:
-              min: 1
-              max: 4
+      - name: jobTitle
+        label: Professional title
+        type: string
         required: true
-      - name: about
-        label: About and working approach
-        type: object
-        fields:
-          - name: summary
-            label: About biography
-            type: text
-            required: false
-            options:
-              maxlength: 1200
-          - name: interests
-            label: Personal interests
-            type: string
-            list: true
-          - name: approach
-            label: Working approach
-            type: object
-            fields:
-              - name: title
-                label: Step title
-                type: string
-                required: true
-              - name: description
-                label: Step explanation
-                type: text
-                required: true
-                options:
-                  maxlength: 180
-            required: true
-            list:
-              min: 1
-              max: 4
-              collapsible:
-                collapsed: true
-                summary: '{title}'
+    required: true
+  profile_hero:
+    label: Hero introduction
+    type: object
+    fields:
+      - name: headline
+        label: Main positioning statement
+        type: text
+        required: false
+        options:
+          maxlength: 180
+      - name: summary
+        label: Short recruiter introduction
+        type: text
+        required: false
+        options:
+          maxlength: 500
+      - name: approach
+        label: Four short approach statements
+        type: string
         required: true
-      - name: contact
-        label: Recruiter contact
-        type: object
-        fields:
-          - name: email
-            label: Contact email
-            type: string
-            pattern:
-              regex: ^[^\s@]+@[^\s@]+\.[^\s@]+$
-              message: Use a valid email address.
-          - name: location
-            label: Current location
-            type: string
-          - name: openToRelocation
-            label: Open to relocation
-            type: boolean
-          - name: availability
-            label: Availability / target opportunities
-            type: string
-          - name: links
-            label: LinkedIn profile
-            type: object
-            fields:
-              - name: label
-                label: Link label
-                type: string
-                required: true
-                default: LinkedIn
-              - name: url
-                label: LinkedIn profile URL
-                type: string
-                required: true
-                pattern:
-                  regex: ^https://(www\.)?linkedin\.com/in/[^/?#]+/?$
-                  message: Use your LinkedIn /in/ profile URL.
-            list:
-              max: 1
-              collapsible:
-                collapsed: false
-                summary: '{label}'
-            description: The only social contact channel. Email has its own field above.
-        required: true
-      - name: cv
-        label: PDF CV (optional)
-        type: object
-        fields:
-          - name: path
-            label: Choose or upload PDF
-            type: file
-            required: true
-            options:
-              media: documents
-              extensions:
-                - pdf
-          - name: filename
-            label: Download filename
-            type: string
-            required: true
-            description: 'Example: konstantin-arutjunov-cv.pdf'
-            pattern:
-              regex: ^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$
-              message: Use a filename ending in .pdf, without spaces.
-          - name: updatedAt
-            label: CV last updated
-            type: date
-            required: true
-            default: ''
-            options:
-              format: yyyy-MM-dd
-          - name: language
-            label: CV language
-            type: string
-            required: true
-            description: 'Example: en'
-        description:
-          Leave the entire group empty to keep View CV linked to the external CV below. Once you
-          select a PDF, fill all four fields. Never upload a confidential CV.
-      - name: cvPreviewUrl
-        component: https
-        label: External View CV URL
-        description: Used only when a local PDF is absent. This is a view action, never a PDF download.
-      - name: seo
-        label: Search and sharing
+        list:
+          min: 1
+          max: 4
+    required: true
+  profile_about:
+    label: About and working approach
+    type: object
+    fields:
+      - name: summary
+        label: About biography
+        type: text
+        required: false
+        options:
+          maxlength: 1200
+      - name: interests
+        label: Personal interests
+        type: string
+        list: true
+      - name: approach
+        label: Working approach
         type: object
         fields:
           - name: title
-            label: SEO page title
+            label: Step title
             type: string
-            description: Keep descriptive and concise; the FOLIO suffix is added automatically.
+            required: true
           - name: description
-            label: Search description
+            label: Step explanation
             type: text
-            required: false
+            required: true
             options:
               maxlength: 180
-          - name: socialImage
-            label: Social sharing image (optional)
-            type: object
-            fields:
-              - name: path
-                label: Choose social image
-                type: image
-                required: true
-                options:
-                  media: images
-                  extensions:
-                    - png
-                    - jpg
-                    - jpeg
-                    - webp
-                    - avif
-              - name: alt
-                label: Social image description
-                type: string
-                required: true
-            description: A wide image around 1200 × 630. An optimized Alpine image is used when empty.
         required: true
-  - name: media
-    label: 02 · Portrait, logo & backgrounds
-    type: file
-    path: src/data/media.json
-    format: json
-    fields:
-      - name: portrait
-        label: Shared portrait
-        type: object
-        fields:
-          - name: path
-            label: Replace portrait
-            type: image
-            required: true
-            options:
-              media: images
-              extensions:
-                - png
-                - jpg
-                - jpeg
-                - webp
-                - avif
-          - name: alt
-            label: Portrait description
-            type: string
-            required: true
-          - name: temporary
-            label: This is a temporary portrait
-            type: boolean
-            required: true
-        required: true
-        description:
-          One upload updates Hero and About. A transparent PNG works best; other raster formats
-          are supported.
-      - name: alpine
-        label: Hero and About background
-        type: object
-        fields:
-          - name: path
-            label: Replace Alpine landscape
-            type: image
-            required: true
-            options:
-              media: images
-              extensions:
-                - png
-                - jpg
-                - jpeg
-                - webp
-                - avif
-        required: true
-      - name: contact
-        label: Contact background
-        type: object
-        fields:
-          - name: path
-            label: Replace contact landscape
-            type: image
-            required: true
-            options:
-              media: images
-              extensions:
-                - png
-                - jpg
-                - jpeg
-                - webp
-                - avif
-        required: true
-      - name: logo
-        label: Brand symbol (optional)
-        type: object
-        fields:
-          - name: path
-            label: Upload brand symbol
-            type: image
-            required: true
-            options:
-              media: images
-              extensions:
-                - png
-                - jpg
-                - jpeg
-                - webp
-                - avif
-          - name: alt
-            label: Logo description
-            type: string
-            required: true
-        description:
-          A square transparent PNG works best. The FOLIO wordmark remains text. Leave empty to
-          use the existing symbol. SVG uploads are intentionally excluded.
-      - name: analytics
-        label: Skills & analytics illustration (optional)
-        type: object
-        fields:
-          - name: path
-            label: Choose or upload analytics image
-            type: image
-            required: true
-            options:
-              media: images
-              extensions:
-                - png
-                - jpg
-                - jpeg
-                - webp
-                - avif
-          - name: alt
-            label: Description for screen readers
-            type: string
-            required: true
-          - name: illustrative
-            label: Illustrative image
-            type: boolean
-            default: true
-        description:
-          Optional artwork for Skills & Technologies. Keep Illustrative image on for conceptual
-          charts. Do not upload confidential client data or imply sample charts are verified results.
-          Clear the image and description together to remove it.
-      - name: projects
-        label: Fallback project imagery
-        type: object
-        fields:
-          - name: path
-            label: Choose or upload image
-            type: image
-            required: true
-            options:
-              media: images
-              extensions:
-                - png
-                - jpg
-                - jpeg
-                - webp
-                - avif
-          - name: alt
-            label: Description for screen readers
-            type: string
-            required: true
-            description:
-              Describe the image briefly. Do not imply illustrative imagery is a real project
-              photograph.
-          - name: illustrative
-            label: Illustrative image
-            type: boolean
-            default: true
-            description: Keep on for representative imagery that is not an actual project photo.
         list:
-          max: 6
+          min: 1
+          max: 4
           collapsible:
             collapsed: true
-            summary: '{alt}'
-        description:
-          Only used when a case study has no selected image. Prefer setting the image inside each
-          case study.
-  - name: professional_highlights
-    label: 03 · Statistics & achievements
-    type: file
-    path: src/content/professional-highlights.json
-    format: json
-    list: true
+            summary: '{title}'
+    required: true
+  profile_contact:
+    label: Recruiter contact
+    type: object
     fields:
-      - name: id
-        component: recordId
-      - name: order
-        component: order
-      - name: status
-        component: publicationStatus
-      - name: visible
-        component: visibility
-      - name: value
-        label: Display value
+      - name: email
+        label: Contact email
         type: string
-        required: true
-        description: Use a verified value, keeping approximations such as ≈. Never invent a metric.
-      - name: label
-        label: Short label
-        type: string
-        required: true
-      - name: context
-        label: Supporting context
-        type: text
-        required: false
-  - name: expertise
-    label: 04 · Expertise categories
-    type: file
-    path: src/content/expertise.json
-    format: json
-    list: true
-    fields:
-      - name: id
-        component: recordId
-      - name: order
-        component: order
-      - name: status
-        component: publicationStatus
-      - name: visible
-        component: visibility
-      - name: title
-        label: Category title
-        type: string
-        required: true
-      - name: description
-        label: Category description
-        type: text
-        required: false
-  - name: skills
-    label: 05 · Skills
-    type: file
-    path: src/content/skills.json
-    format: json
-    list: true
-    fields:
-      - name: id
-        component: recordId
-      - name: order
-        component: order
-      - name: status
-        component: publicationStatus
-      - name: visible
-        component: visibility
-      - name: name
-        label: Skill name
-        type: string
-        required: true
-      - name: categoryId
-        label: Expertise category ID
-        type: string
-        required: true
-        description: Copy the Stable ID from the relevant Expertise category.
-      - name: proficiency
-        label: Proficiency (optional)
-        type: select
-        description: Leave empty unless a level is confirmed. An empty value does not imply a rating.
-        options:
-          values:
-            - foundational
-            - working
-            - advanced
-            - expert
-      - name: selfAssessment
-        label: Self-assessment (1–100, optional)
-        type: number
-        required: false
-        options:
-          min: 1
-          max: 100
-        description:
-          Enter only your own approved whole-number assessment from 1 to 100. This is a
-          self-assessment, not a measured percentage or certification. Leave empty for an unrated
-          skill; do not copy demonstration scores from the design reference. Zero is not a valid score.
-  - name: case_studies
-    label: 06 · Case studies
-    type: file
-    path: src/content/case-studies.json
-    format: json
-    list: true
-    fields:
-      - name: id
-        component: recordId
-      - name: order
-        component: order
-      - name: status
-        component: publicationStatus
-      - name: visible
-        component: visibility
-      - name: title
-        label: Case title
-        type: string
-        required: true
-      - name: summary
-        label: Recruiter summary
-        type: text
-        required: true
-        options:
-          maxlength: 500
-      - name: sector
-        label: Sector / category
-        type: string
-      - name: challenge
-        label: Business challenge
-        type: text
-        required: true
-      - name: contribution
-        label: Your contribution
-        type: text
-        required: true
-      - name: outcomes
-        label: Verified outcomes
-        type: text
-        list: true
-        description: Use supported facts. Keep approximate measurements approximate.
-      - name: limitations
-        label: Measurement / confidentiality notes
-        type: text
-        list: true
-        description: Preserve source and measurement limitations. Never add confidential client data.
-      - name: skillIds
-        label: Related skills (IDs)
-        type: string
-        list: true
-        description:
-          Optional. Copy stable IDs from Skills. The build rejects unknown references. Leave
-          empty when no tags are needed.
-      - name: image
-        label: Case image
-        type: object
-        fields:
-          - name: path
-            label: Choose or upload image
-            type: image
-            required: true
-            options:
-              media: images
-              extensions:
-                - png
-                - jpg
-                - jpeg
-                - webp
-                - avif
-          - name: alt
-            label: Description for screen readers
-            type: string
-            required: true
-            description:
-              Describe the image briefly. Do not imply illustrative imagery is a real project
-              photograph.
-          - name: illustrative
-            label: Illustrative image
-            type: boolean
-            default: true
-            description: Keep on for representative imagery that is not an actual project photo.
-        description: Choose an image for this case so it remains correct when reordering.
-      - name: link
-        component: https
-        label: Source / project link (optional)
-  - name: experience
-    label: 07 · Professional journey
-    type: file
-    path: src/content/experience.json
-    format: json
-    list: true
-    fields:
-      - name: id
-        component: recordId
-      - name: order
-        component: order
-      - name: status
-        component: publicationStatus
-      - name: visible
-        component: visibility
-      - name: role
-        label: Role title
-        type: string
-        required: true
-      - name: organization
-        label: Organization
-        type: string
-        required: true
+        pattern:
+          regex: ^[^\s@]+@[^\s@]+\.[^\s@]+$
+          message: Use a valid email address.
       - name: location
-        label: Location
+        label: Current location
         type: string
-      - name: summary
-        label: Role summary
+      - name: openToRelocation
+        label: Open to relocation
+        type: boolean
+      - name: availability
+        label: Availability / target opportunities
+        type: string
+      - name: links
+        label: LinkedIn profile
+        type: object
+        fields:
+          - name: label
+            label: Link label
+            type: string
+            required: true
+            default: LinkedIn
+          - name: url
+            label: LinkedIn profile URL
+            type: string
+            required: true
+            pattern:
+              regex: ^https://(www\.)?linkedin\.com/in/[^/?#]+/?$
+              message: Use your LinkedIn /in/ profile URL.
+        list:
+          max: 1
+          collapsible:
+            collapsed: false
+            summary: '{label}'
+        description: The only social contact channel. Email has its own field above.
+    required: true
+  profile_cv:
+    label: PDF CV (optional)
+    type: object
+    fields:
+      - name: path
+        label: Choose or upload PDF
+        type: file
+        required: true
+        options:
+          media: documents
+          extensions:
+            - pdf
+      - name: filename
+        label: Download filename
+        type: string
+        required: true
+        description: 'Example: konstantin-arutjunov-cv.pdf'
+        pattern:
+          regex: ^[a-zA-Z0-9][a-zA-Z0-9._-]*\.pdf$
+          message: Use a filename ending in .pdf, without spaces.
+      - name: updatedAt
+        label: CV last updated
+        type: date
+        required: true
+        default: ''
+        options:
+          format: yyyy-MM-dd
+      - name: language
+        label: CV language
+        type: string
+        required: true
+        description: 'Example: en'
+    description:
+      'Optional. To replace: upload a new PDF filename, select it here and complete all four
+      fields, then Save. Check Pages production before deleting the old PDF. Upload alone does not
+      select it. Limit: 10 MiB. Clear all four fields together to restore the external View CV
+      fallback.'
+  profile_cvPreviewUrl:
+    type: string
+    pattern:
+      regex: ^https://[^\s]+$
+      message: Use a complete HTTPS address.
+    label: External View CV URL
+    description: Used only when a local PDF is absent. This is a view action, never a PDF download.
+  profile_seo:
+    label: Search and sharing
+    type: object
+    fields:
+      - name: title
+        label: SEO page title
+        type: string
+        description: Keep descriptive and concise; the FOLIO suffix is added automatically.
+      - name: description
+        label: Search description
         type: text
         required: false
-      - name: startDate
-        component: month
-        label: Start month
-      - name: endDate
-        label: End month (empty if current)
-        type: string
-        pattern:
-          regex: ^\d{4}-(0[1-9]|1[0-2])$
-          message: Use YYYY-MM or leave empty for a current role.
-      - name: current
-        label: Current / ongoing
-        type: boolean
-        required: true
-        default: false
-      - name: achievements
-        label: Role highlights
-        type: text
-        list: true
-      - name: skillIds
-        label: Related skills (IDs)
-        type: string
-        list: true
-        description:
-          Optional. Copy stable IDs from Skills. The build rejects unknown references. Leave
-          empty when no tags are needed.
-  - name: education
-    label: 08 · Education
-    type: file
-    path: src/content/education.json
-    format: json
-    list: true
-    fields:
-      - name: id
-        component: recordId
-      - name: order
-        component: order
-      - name: status
-        component: publicationStatus
-      - name: visible
-        component: visibility
-      - name: institution
-        label: Institution
-        type: string
-        required: true
-      - name: qualification
-        label: Qualification
-        type: string
-        required: true
-      - name: field
-        label: Field of study
-        type: string
-      - name: startDate
-        component: month
-        label: Start month
-      - name: endDate
-        label: End month (empty if current)
-        type: string
-        pattern:
-          regex: ^\d{4}-(0[1-9]|1[0-2])$
-          message: Use YYYY-MM or leave empty for a current role.
-      - name: current
-        label: Current / ongoing
-        type: boolean
-        required: true
-        default: false
-  - name: languages
-    label: 09 · Languages
-    type: file
-    path: src/content/languages.json
-    format: json
-    list: true
-    fields:
-      - name: id
-        component: recordId
-      - name: order
-        component: order
-      - name: status
-        component: publicationStatus
-      - name: visible
-        component: visibility
-      - name: name
-        label: Language name
-        type: string
-        required: true
-      - name: code
-        label: Language code
-        type: string
-        required: true
-        description: 'Examples: en, de, et'
-        pattern:
-          regex: ^[a-z]{2,3}(-[A-Z]{2})?$
-          message: Use a valid language code such as en.
-      - name: proficiency
-        label: Confirmed proficiency (optional)
-        type: string
-  - name: interface
-    label: 10 · Website wording, navigation & buttons
-    type: file
-    path: src/data/interface.json
-    format: json
-    fields:
-      - name: brand
-        label: FOLIO wordmark text
-        required: true
-        type: string
         options:
-          maxlength: 24
-      - name: navigation
-        label: Header and footer navigation
+          maxlength: 180
+      - name: socialImage
+        label: Social sharing image (optional)
+        type: object
+        fields:
+          - name: path
+            label: Choose social image
+            type: image
+            required: true
+            options:
+              media: images
+              extensions:
+                - png
+                - jpg
+                - jpeg
+                - webp
+                - avif
+          - name: alt
+            label: Social image description
+            type: string
+            required: true
+        description: A wide image around 1200 × 630. An optimized Alpine image is used when empty.
+    required: true
+  wording_hero:
+    label: Hero labels and primary button
+    required: true
+    type: object
+    fields:
+      - name: primaryAction
+        label: Primary button
         required: true
         type: object
-        list:
-          min: 1
-          max: 5
-          collapsible:
-            collapsed: true
-            summary: '{label}'
         fields:
           - name: label
             label: Link label
             required: true
             type: string
             options:
-              maxlength: 28
+              maxlength: 60
           - name: href
             label: Destination section
             required: true
             type: select
             options:
-              values: &a1
+              values:
                 - name: '#home'
                   label: Hero / top
                 - name: '#highlights'
@@ -794,557 +330,1739 @@ content:
             description:
               Only existing website sections are allowed. Contact destinations use the verified email
               and LinkedIn profile.
+      - name: locationPrefix
+        label: Prefix before current location
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: signature
+        label: Four decorative signature words
+        required: true
+        type: string
+        list:
+          min: 4
+          max: 4
+        options:
+          maxlength: 30
         description:
-          Reorder entries here. Every destination must be unique; up to five links preserves the
-          responsive header.
-      - name: actions
-        label: CV action labels
+          Four short decorative words; these are not professional achievements. The approved
+          Ideas / Analysis / Solutions / Impact wording uses the handwriting font. Custom words use
+          the primary site font so every glyph renders consistently.
+  wording_highlights:
+    label: Statistics section
+    required: true
+    type: object
+    fields:
+      - name: title
+        label: Section title
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: emptyMessage
+        label: Message when no records are published
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+  wording_expertise:
+    label: Expertise section
+    required: true
+    type: object
+    fields:
+      - name: eyebrow
+        label: Small section label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: titleLines
+        label: Heading lines
+        required: true
+        type: string
+        list:
+          min: 1
+          max: 3
+        options:
+          maxlength: 120
+        description:
+          Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+          automatic.
+      - name: description
+        label: Introduction
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: action
+        label: Section link
         required: true
         type: object
         fields:
-          - name: cvViewLabel
-            label: External CV view label
+          - name: label
+            label: Link label
             required: true
             type: string
             options:
               maxlength: 60
-            description:
-              Used for the external CV viewer. Do not call this a download; validation rejects
-              misleading Download labels.
-          - name: cvDownloadLabel
-            label: PDF download label
-            required: true
-            type: string
-            options:
-              maxlength: 60
-          - name: cvPendingLabel
-            label: Unavailable CV label
-            required: true
-            type: string
-            options:
-              maxlength: 60
-      - name: common
-        label: Shared labels
-        required: true
-        type: object
-        fields:
-          - name: portraitNote
-            label: Temporary portrait caption
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: relocationLabel
-            label: Relocation label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: pendingLabel
-            label: Missing information label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: ongoingLabel
-            label: In-progress education label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: locationLabel
-            label: Location label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: emailLabel
-            label: Email label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: linkedInLabel
-            label: LinkedIn label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: availabilityLabel
-            label: Availability label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: unconfirmedLabel
-            label: Unconfirmed availability label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-      - name: hero
-        label: Hero labels and primary button
-        required: true
-        type: object
-        fields:
-          - name: primaryAction
-            label: Primary button
-            required: true
-            type: object
-            fields:
-              - name: label
-                label: Link label
-                required: true
-                type: string
-                options:
-                  maxlength: 60
-              - name: href
-                label: Destination section
-                required: true
-                type: select
-                options:
-                  values: *a1
-                description:
-                  Only existing website sections are allowed. Contact destinations use the verified email
-                  and LinkedIn profile.
-          - name: locationPrefix
-            label: Prefix before current location
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: signature
-            label: Four decorative signature words
-            required: true
-            type: string
-            list:
-              min: 4
-              max: 4
-            options:
-              maxlength: 30
-            description:
-              Four short decorative words; these are not professional achievements. The approved
-              Ideas / Analysis / Solutions / Impact wording uses the handwriting font. Custom words
-              use the primary site font so every glyph renders consistently.
-      - name: highlights
-        label: Statistics section
-        required: true
-        type: object
-        fields:
-          - name: title
-            label: Section title
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: emptyMessage
-            label: Message when no records are published
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-      - name: expertise
-        label: Expertise section
-        required: true
-        type: object
-        fields:
-          - name: eyebrow
-            label: Small section label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: titleLines
-            label: Heading lines
-            required: true
-            type: string
-            list:
-              min: 1
-              max: 3
-            options:
-              maxlength: 120
-            description:
-              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
-              automatic.
-          - name: description
-            label: Introduction
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: action
-            label: Section link
-            required: true
-            type: object
-            fields:
-              - name: label
-                label: Link label
-                required: true
-                type: string
-                options:
-                  maxlength: 60
-              - name: href
-                label: Destination section
-                required: true
-                type: select
-                options:
-                  values: *a1
-                description:
-                  Only existing website sections are allowed. Contact destinations use the verified email
-                  and LinkedIn profile.
-          - name: emptyMessage
-            label: Message when no records are published
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: emptySkillsMessage
-            label: Message for an empty skill category
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: footnote
-            label: Skills section footer
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: proficiencyNote
-            label: Screen-reader proficiency note
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: partialProficiencyNote
-            label: Screen-reader note for partly specified skill levels
-            type: text
-            required: true
-            options:
-              maxlength: 1200
-            description: Used only when some visible skills have an explicit level and others have none.
-      - name: projects
-        label: Case studies section
-        required: true
-        type: object
-        fields:
-          - name: eyebrow
-            label: Small section label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: titleLines
-            label: Heading lines
-            required: true
-            type: string
-            list:
-              min: 1
-              max: 3
-            options:
-              maxlength: 120
-            description:
-              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
-              automatic.
-          - name: description
-            label: Introduction
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: emptyDescription
-            label: Introduction when no records are published
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: action
-            label: Section link
-            required: true
-            type: object
-            fields:
-              - name: label
-                label: Link label
-                required: true
-                type: string
-                options:
-                  maxlength: 60
-              - name: href
-                label: Destination section
-                required: true
-                type: select
-                options:
-                  values: *a1
-                description:
-                  Only existing website sections are allowed. Contact destinations use the verified email
-                  and LinkedIn profile.
-          - name: detailsLabel
-            label: Details disclosure label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: challengeHeading
-            label: Challenge heading
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: contributionHeading
-            label: Contribution heading
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: limitationsHeading
-            label: Context and limitations heading
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: linkedInSourceLabel
-            label: LinkedIn source link label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: sourceLabel
-            label: Other source link label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: illustrativeCaption
-            label: Illustrative image caption
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: emptyMessage
-            label: Message when no records are published
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-      - name: journey
-        label: Professional journey section
-        required: true
-        type: object
-        fields:
-          - name: eyebrow
-            label: Small section label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: titleLines
-            label: Heading lines
-            required: true
-            type: string
-            list:
-              min: 1
-              max: 3
-            options:
-              maxlength: 120
-            description:
-              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
-              automatic.
-          - name: description
-            label: Introduction
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: emptyDescription
-            label: Introduction when no records are published
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-          - name: earlierLabel
-            label: Earlier experience disclosure
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: detailsLabel
-            label: Details disclosure label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: presentLabel
-            label: Current role end-date label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: emptyMessage
-            label: Message when no records are published
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-      - name: about
-        label: About section
-        required: true
-        type: object
-        fields:
-          - name: eyebrow
-            label: Small section label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: titleLines
-            label: Heading lines
-            required: true
-            type: string
-            list:
-              min: 1
-              max: 3
-            options:
-              maxlength: 120
-            description:
-              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
-              automatic.
-          - name: action
-            label: Section link
-            required: true
-            type: object
-            fields:
-              - name: label
-                label: Link label
-                required: true
-                type: string
-                options:
-                  maxlength: 60
-              - name: href
-                label: Destination section
-                required: true
-                type: select
-                options:
-                  values: *a1
-                description:
-                  Only existing website sections are allowed. Contact destinations use the verified email
-                  and LinkedIn profile.
-          - name: approachTitle
-            label: Working approach heading
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: educationTitle
-            label: Education heading
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: languagesTitle
-            label: Languages heading
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: emptyDescription
-            label: Introduction when no records are published
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-      - name: contact
-        label: Contact section
-        required: true
-        type: object
-        fields:
-          - name: eyebrow
-            label: Small section label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: titleLines
-            label: Heading lines
-            required: true
-            type: string
-            list:
-              min: 1
-              max: 3
-            options:
-              maxlength: 120
-            description:
-              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
-              automatic.
-          - name: descriptionLines
-            label: Introduction lines
-            required: true
-            type: string
-            list:
-              min: 1
-              max: 3
-            options:
-              maxlength: 1200
-            description:
-              Each item is a deliberate text line. Plain text only; layout and heading semantics stay
-              automatic.
-          - name: primaryActionLabel
-            label: Contact button label
-            required: true
-            type: string
-            options:
-              maxlength: 60
-          - name: preferredChannel
-            label: Preferred contact button action
+          - name: href
+            label: Destination section
             required: true
             type: select
             options:
               values:
-                - name: email
-                  label: Email
-                - name: linkedin
-                  label: LinkedIn
-            description: Uses the selected verified contact channel, with the other as a fallback if missing.
-          - name: linkedInActionLabel
-            label: LinkedIn link label
-            required: true
-            type: string
-            options:
-              maxlength: 120
-          - name: missingMessage
-            label: Message when contact details are missing
-            required: true
-            type: text
-            options:
-              maxlength: 1200
-      - name: footer
-        label: Footer wording
+                - name: '#home'
+                  label: Hero / top
+                - name: '#highlights'
+                  label: Statistics
+                - name: '#expertise'
+                  label: Expertise
+                - name: '#projects'
+                  label: Case studies
+                - name: '#experience'
+                  label: Professional journey
+                - name: '#about'
+                  label: About
+                - name: '#contact'
+                  label: Contact
+            description:
+              Only existing website sections are allowed. Contact destinations use the verified email
+              and LinkedIn profile.
+      - name: emptyMessage
+        label: Message when no records are published
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: emptySkillsMessage
+        label: Message for an empty skill category
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: footnote
+        label: Skills section footer
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: proficiencyNote
+        label: Screen-reader proficiency note
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: partialProficiencyNote
+        label: Screen-reader note for partly specified skill levels
+        type: text
+        required: true
+        options:
+          maxlength: 1200
+        description: Used only when some visible skills have an explicit level and others have none.
+  wording_projects:
+    label: Case studies section
+    required: true
+    type: object
+    fields:
+      - name: eyebrow
+        label: Small section label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: titleLines
+        label: Heading lines
+        required: true
+        type: string
+        list:
+          min: 1
+          max: 3
+        options:
+          maxlength: 120
+        description:
+          Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+          automatic.
+      - name: description
+        label: Introduction
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: emptyDescription
+        label: Introduction when no records are published
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: action
+        label: Section link
         required: true
         type: object
         fields:
-          - name: copyrightNotice
-            label: Copyright notice
+          - name: label
+            label: Link label
             required: true
             type: string
             options:
-              maxlength: 120
-          - name: backToTopLabel
-            label: Back to top link label
+              maxlength: 60
+          - name: href
+            label: Destination section
+            required: true
+            type: select
+            options:
+              values:
+                - name: '#home'
+                  label: Hero / top
+                - name: '#highlights'
+                  label: Statistics
+                - name: '#expertise'
+                  label: Expertise
+                - name: '#projects'
+                  label: Case studies
+                - name: '#experience'
+                  label: Professional journey
+                - name: '#about'
+                  label: About
+                - name: '#contact'
+                  label: Contact
+            description:
+              Only existing website sections are allowed. Contact destinations use the verified email
+              and LinkedIn profile.
+      - name: detailsLabel
+        label: Details disclosure label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: challengeHeading
+        label: Challenge heading
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: contributionHeading
+        label: Contribution heading
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: limitationsHeading
+        label: Context and limitations heading
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: linkedInSourceLabel
+        label: LinkedIn source link label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: sourceLabel
+        label: Other source link label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: illustrativeCaption
+        label: Illustrative image caption
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: emptyMessage
+        label: Message when no records are published
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+  wording_journey:
+    label: Professional journey section
+    required: true
+    type: object
+    fields:
+      - name: eyebrow
+        label: Small section label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: titleLines
+        label: Heading lines
+        required: true
+        type: string
+        list:
+          min: 1
+          max: 3
+        options:
+          maxlength: 120
+        description:
+          Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+          automatic.
+      - name: description
+        label: Introduction
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: emptyDescription
+        label: Introduction when no records are published
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+      - name: earlierLabel
+        label: Earlier experience disclosure
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: detailsLabel
+        label: Details disclosure label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: presentLabel
+        label: Current role end-date label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: emptyMessage
+        label: Message when no records are published
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+  wording_about:
+    label: About section
+    required: true
+    type: object
+    fields:
+      - name: eyebrow
+        label: Small section label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: titleLines
+        label: Heading lines
+        required: true
+        type: string
+        list:
+          min: 1
+          max: 3
+        options:
+          maxlength: 120
+        description:
+          Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+          automatic.
+      - name: action
+        label: Section link
+        required: true
+        type: object
+        fields:
+          - name: label
+            label: Link label
             required: true
             type: string
             options:
-              maxlength: 120
-          - name: privacyLabel
-            label: Privacy policy link label
+              maxlength: 60
+          - name: href
+            label: Destination section
             required: true
-            type: string
+            type: select
             options:
-              maxlength: 120
-          - name: preferencesLabel
-            label: Privacy preferences button label
+              values:
+                - name: '#home'
+                  label: Hero / top
+                - name: '#highlights'
+                  label: Statistics
+                - name: '#expertise'
+                  label: Expertise
+                - name: '#projects'
+                  label: Case studies
+                - name: '#experience'
+                  label: Professional journey
+                - name: '#about'
+                  label: About
+                - name: '#contact'
+                  label: Contact
+            description:
+              Only existing website sections are allowed. Contact destinations use the verified email
+              and LinkedIn profile.
+      - name: approachTitle
+        label: Working approach heading
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: educationTitle
+        label: Education heading
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: languagesTitle
+        label: Languages heading
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: emptyDescription
+        label: Introduction when no records are published
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+  wording_contact:
+    label: Contact section
+    required: true
+    type: object
+    fields:
+      - name: eyebrow
+        label: Small section label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: titleLines
+        label: Heading lines
+        required: true
+        type: string
+        list:
+          min: 1
+          max: 3
+        options:
+          maxlength: 120
+        description:
+          Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+          automatic.
+      - name: descriptionLines
+        label: Introduction lines
+        required: true
+        type: string
+        list:
+          min: 1
+          max: 3
+        options:
+          maxlength: 1200
+        description:
+          Each item is a deliberate text line. Plain text only; layout and heading semantics stay
+          automatic.
+      - name: primaryActionLabel
+        label: Contact button label
+        required: true
+        type: string
+        options:
+          maxlength: 60
+      - name: preferredChannel
+        label: Preferred contact button action
+        required: true
+        type: select
+        options:
+          values:
+            - name: email
+              label: Email
+            - name: linkedin
+              label: LinkedIn
+        description: Uses the selected verified contact channel, with the other as a fallback if missing.
+      - name: linkedInActionLabel
+        label: LinkedIn link label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: missingMessage
+        label: Message when contact details are missing
+        required: true
+        type: text
+        options:
+          maxlength: 1200
+  wording_brand:
+    label: FOLIO wordmark text
+    required: true
+    type: string
+    options:
+      maxlength: 24
+  wording_navigation:
+    label: Header and footer navigation
+    required: true
+    type: object
+    list:
+      min: 1
+      max: 5
+      collapsible:
+        collapsed: true
+        summary: '{label}'
+    fields:
+      - name: label
+        label: Link label
+        required: true
+        type: string
+        options:
+          maxlength: 28
+      - name: href
+        label: Destination section
+        required: true
+        type: select
+        options:
+          values:
+            - name: '#home'
+              label: Hero / top
+            - name: '#highlights'
+              label: Statistics
+            - name: '#expertise'
+              label: Expertise
+            - name: '#projects'
+              label: Case studies
+            - name: '#experience'
+              label: Professional journey
+            - name: '#about'
+              label: About
+            - name: '#contact'
+              label: Contact
+        description:
+          Only existing website sections are allowed. Contact destinations use the verified email
+          and LinkedIn profile.
+    description:
+      Choose up to five unique destinations. Links automatically follow website section
+      order; their labels stay editable.
+  wording_common:
+    label: Shared labels
+    required: true
+    type: object
+    fields:
+      - name: portraitNote
+        label: Temporary portrait caption
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: relocationLabel
+        label: Relocation label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: pendingLabel
+        label: Missing information label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: ongoingLabel
+        label: In-progress education label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: locationLabel
+        label: Location label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: emailLabel
+        label: Email label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: linkedInLabel
+        label: LinkedIn label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: availabilityLabel
+        label: Availability label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: unconfirmedLabel
+        label: Unconfirmed availability label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+  wording_footer:
+    label: Footer wording
+    required: true
+    type: object
+    fields:
+      - name: copyrightNotice
+        label: Copyright notice
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: backToTopLabel
+        label: Back to top link label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: privacyLabel
+        label: Privacy policy link label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+      - name: preferencesLabel
+        label: Privacy preferences button label
+        required: true
+        type: string
+        options:
+          maxlength: 120
+  wording_actions:
+    label: CV action labels
+    required: true
+    type: object
+    fields:
+      - name: cvViewLabel
+        label: CV view label
+        required: true
+        type: string
+        options:
+          maxlength: 60
+        description: Used for viewing the local PDF or the external CV fallback. Use View or Read, not Download.
+      - name: cvDownloadLabel
+        label: PDF download label
+        required: true
+        type: string
+        options:
+          maxlength: 60
+      - name: cvPendingLabel
+        label: Unavailable CV label
+        required: true
+        type: string
+        options:
+          maxlength: 60
+content:
+  - name: section_home
+    label: 01 · Home / Hero
+    type: group
+    items:
+      - name: profile
+        label: Identity & introduction
+        type: file
+        path: src/data/profile.json
+        format: json
+        fields:
+          - name: status
+            component: profile_status
+          - name: visible
+            component: profile_visible
+          - name: identity
+            component: profile_identity
+          - name: hero
+            component: profile_hero
+          - name: about
+            component: profile_about
+            hidden: true
+          - name: contact
+            component: profile_contact
+            hidden: true
+          - name: cv
+            component: profile_cv
+            hidden: true
+          - name: cvPreviewUrl
+            component: profile_cvPreviewUrl
+            hidden: true
+          - name: seo
+            component: profile_seo
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: hero_wording
+        label: Hero labels & buttons
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_highlights
+    label: 02 · Professional Highlights
+    type: group
+    items:
+      - name: professional_highlights
+        label: Statistics & achievements
+        type: file
+        path: src/content/professional-highlights.json
+        format: json
+        list: true
+        fields:
+          - name: id
+            component: recordId
+          - name: order
+            component: order
+          - name: status
+            component: publicationStatus
+          - name: visible
+            component: visibility
+          - name: value
+            label: Display value
+            type: string
             required: true
+            description: Use a verified value, keeping approximations such as ≈. Never invent a metric.
+          - name: label
+            label: Short label
             type: string
+            required: true
+          - name: context
+            label: Supporting context
+            type: text
+            required: false
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: highlights_wording
+        label: Highlights heading & messages
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_expertise
+    label: 03 · Expertise & Skills
+    type: group
+    items:
+      - name: expertise
+        label: Expertise categories
+        type: file
+        path: src/content/expertise.json
+        format: json
+        list: true
+        fields:
+          - name: id
+            component: recordId
+          - name: order
+            component: order
+          - name: status
+            component: publicationStatus
+          - name: visible
+            component: visibility
+          - name: title
+            label: Category title
+            type: string
+            required: true
+          - name: description
+            label: Category description
+            type: text
+            required: false
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: skills
+        label: Skills & self-assessments
+        type: file
+        path: src/content/skills.json
+        format: json
+        list: true
+        fields:
+          - name: id
+            component: recordId
+          - name: order
+            component: order
+          - name: status
+            component: publicationStatus
+          - name: visible
+            component: visibility
+          - name: name
+            label: Skill name
+            type: string
+            required: true
+          - name: categoryId
+            label: Expertise category ID
+            type: string
+            required: true
+            description: Copy the Stable ID from the relevant Expertise category.
+          - name: proficiency
+            label: Proficiency (optional)
+            type: select
+            description: Leave empty unless a level is confirmed. An empty value does not imply a rating.
             options:
-              maxlength: 120
+              values:
+                - foundational
+                - working
+                - advanced
+                - expert
+          - name: selfAssessment
+            label: Self-assessment (1–100, optional)
+            type: number
+            required: false
+            options:
+              min: 1
+              max: 100
+            description:
+              Optional whole number from 1 to 100, including 90 and 100. Your own self-assessment,
+              not a certified measurement. Leave empty for an unrated skill; 0 and fractions are
+              invalid.
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: expertise_wording
+        label: Skills heading, labels & messages
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_projects
+    label: 04 · Featured Projects
+    type: group
+    items:
+      - name: case_studies
+        label: Projects, order & visibility
+        type: file
+        path: src/content/case-studies.json
+        format: json
+        list: true
+        fields:
+          - name: id
+            component: recordId
+          - name: order
+            component: order
+          - name: status
+            component: publicationStatus
+          - name: visible
+            component: visibility
+          - name: title
+            label: Case title
+            type: string
+            required: true
+          - name: summary
+            label: Recruiter summary
+            type: text
+            required: true
+            options:
+              maxlength: 500
+          - name: sector
+            label: Sector / category
+            type: string
+          - name: challenge
+            label: Business challenge
+            type: text
+            required: true
+          - name: contribution
+            label: Your contribution
+            type: text
+            required: true
+          - name: outcomes
+            label: Verified outcomes
+            type: text
+            list: true
+            description: Use supported facts. Keep approximate measurements approximate.
+          - name: limitations
+            label: Measurement / confidentiality notes
+            type: text
+            list: true
+            description: Preserve source and measurement limitations. Never add confidential client data.
+          - name: skillIds
+            label: Related skills (IDs)
+            type: string
+            list: true
+            description:
+              Optional. Copy stable IDs from Skills. The build rejects unknown references. Leave
+              empty when no tags are needed.
+          - name: image
+            label: Case image
+            type: object
+            fields:
+              - name: path
+                label: Choose or upload image
+                type: image
+                required: false
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+              - name: alt
+                label: Description for screen readers
+                type: string
+                required: false
+                description:
+                  Describe the image briefly. Do not imply illustrative imagery is a real project
+                  photograph.
+              - name: illustrative
+                label: Illustrative image
+                type: boolean
+                default: true
+                description: Keep on for representative imagery that is not an actual project photo.
+            description:
+              Upload a new filename, select it and enter a meaningful description, then Save. Do not
+              rename or delete the old selected file before Pages production succeeds. PNG, JPEG,
+              WebP or AVIF; at most 12 MiB and 40 million pixels. The image stays attached when this
+              project is reordered. Clear both image and description to remove it. If either is
+              filled, both are required for publication.
+          - name: link
+            component: https
+            label: Source / project link (optional)
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: projects_wording
+        label: Projects heading, labels & messages
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_journey
+    label: 05 · Professional Journey
+    type: group
+    items:
+      - name: experience
+        label: Career experience & achievements
+        type: file
+        path: src/content/experience.json
+        format: json
+        list: true
+        fields:
+          - name: id
+            component: recordId
+          - name: order
+            component: order
+          - name: status
+            component: publicationStatus
+          - name: visible
+            component: visibility
+          - name: role
+            label: Role title
+            type: string
+            required: true
+          - name: organization
+            label: Organization
+            type: string
+            required: true
+          - name: location
+            label: Location
+            type: string
+          - name: summary
+            label: Role summary
+            type: text
+            required: false
+          - name: startDate
+            component: month
+            label: Start month
+          - name: endDate
+            label: End month (empty if current)
+            type: string
+            pattern:
+              regex: ^\d{4}-(0[1-9]|1[0-2])$
+              message: Use YYYY-MM or leave empty for a current role.
+          - name: current
+            label: Current / ongoing
+            type: boolean
+            required: true
+            default: false
+          - name: achievements
+            label: Role highlights
+            type: text
+            list: true
+          - name: skillIds
+            label: Related skills (IDs)
+            type: string
+            list: true
+            description:
+              Optional. Copy stable IDs from Skills. The build rejects unknown references. Leave
+              empty when no tags are needed.
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: journey_wording
+        label: Journey heading, labels & messages
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_about
+    label: 06 · About / Education / Languages
+    type: group
+    items:
+      - name: about_profile
+        label: Biography & working approach
+        type: file
+        path: src/data/profile.json
+        format: json
+        fields:
+          - name: status
+            component: profile_status
+            hidden: true
+          - name: visible
+            component: profile_visible
+            hidden: true
+          - name: identity
+            component: profile_identity
+            hidden: true
+          - name: hero
+            component: profile_hero
+            hidden: true
+          - name: about
+            component: profile_about
+          - name: contact
+            component: profile_contact
+            hidden: true
+          - name: cv
+            component: profile_cv
+            hidden: true
+          - name: cvPreviewUrl
+            component: profile_cvPreviewUrl
+            hidden: true
+          - name: seo
+            component: profile_seo
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: education
+        label: Education
+        type: file
+        path: src/content/education.json
+        format: json
+        list: true
+        fields:
+          - name: id
+            component: recordId
+          - name: order
+            component: order
+          - name: status
+            component: publicationStatus
+          - name: visible
+            component: visibility
+          - name: institution
+            label: Institution
+            type: string
+            required: true
+          - name: qualification
+            label: Qualification
+            type: string
+            required: true
+          - name: field
+            label: Field of study
+            type: string
+          - name: startDate
+            component: month
+            label: Start month
+          - name: endDate
+            label: End month (empty if current)
+            type: string
+            pattern:
+              regex: ^\d{4}-(0[1-9]|1[0-2])$
+              message: Use YYYY-MM or leave empty for a current role.
+          - name: current
+            label: Current / ongoing
+            type: boolean
+            required: true
+            default: false
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: languages
+        label: Languages
+        type: file
+        path: src/content/languages.json
+        format: json
+        list: true
+        fields:
+          - name: id
+            component: recordId
+          - name: order
+            component: order
+          - name: status
+            component: publicationStatus
+          - name: visible
+            component: visibility
+          - name: name
+            label: Language name
+            type: string
+            required: true
+          - name: code
+            label: Language code
+            type: string
+            required: true
+            description: 'Examples: en, de, et'
+            pattern:
+              regex: ^[a-z]{2,3}(-[A-Z]{2})?$
+              message: Use a valid language code such as en.
+          - name: proficiency
+            label: Confirmed proficiency (optional)
+            type: string
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: about_wording
+        label: About heading & labels
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_contact
+    label: 07 · Contact
+    type: group
+    items:
+      - name: contact_profile
+        label: Contact details & availability
+        type: file
+        path: src/data/profile.json
+        format: json
+        fields:
+          - name: status
+            component: profile_status
+            hidden: true
+          - name: visible
+            component: profile_visible
+            hidden: true
+          - name: identity
+            component: profile_identity
+            hidden: true
+          - name: hero
+            component: profile_hero
+            hidden: true
+          - name: about
+            component: profile_about
+            hidden: true
+          - name: contact
+            component: profile_contact
+          - name: cv
+            component: profile_cv
+            hidden: true
+          - name: cvPreviewUrl
+            component: profile_cvPreviewUrl
+            hidden: true
+          - name: seo
+            component: profile_seo
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: contact_wording
+        label: Contact heading & buttons
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_global
+    label: 08 · Footer / Global Settings
+    type: group
+    items:
+      - name: interface
+        label: Brand, navigation, shared labels & footer
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+          - name: navigation
+            component: wording_navigation
+          - name: common
+            component: wording_common
+          - name: footer
+            component: wording_footer
+          - name: actions
+            component: wording_actions
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_media
+    label: 09 · Media & CV
+    type: group
+    items:
+      - name: media
+        label: Portrait, logo & backgrounds
+        type: file
+        path: src/data/media.json
+        format: json
+        fields:
+          - name: portrait
+            label: Shared portrait
+            type: object
+            fields:
+              - name: path
+                label: Replace portrait
+                type: image
+                required: true
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+              - name: alt
+                label: Portrait description
+                type: string
+                required: true
+              - name: temporary
+                label: This is a temporary portrait
+                type: boolean
+                required: true
+            required: true
+            description:
+              'Shared by Hero and About. To replace: upload a new filename, select it here, update
+              its description and Temporary portrait setting, then Save. Check Pages production
+              before removing the old image. Do not rename or delete a selected file. Raster limit:
+              12 MiB and 40 million pixels.'
+          - name: alpine
+            label: Hero and About background
+            type: object
+            fields:
+              - name: path
+                label: Replace Alpine landscape
+                type: image
+                required: true
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+            required: true
+          - name: contact
+            label: Contact background
+            type: object
+            fields:
+              - name: path
+                label: Replace contact landscape
+                type: image
+                required: true
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+            required: true
+          - name: logo
+            label: Brand symbol (optional)
+            type: object
+            fields:
+              - name: path
+                label: Upload brand symbol
+                type: image
+                required: true
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+              - name: alt
+                label: Logo description
+                type: string
+                required: true
+            description:
+              A square transparent PNG works best. The FOLIO wordmark remains text. Leave empty to
+              use the existing symbol. SVG uploads are intentionally excluded.
+          - name: analytics
+            label: Skills & analytics illustration (optional)
+            type: object
+            fields:
+              - name: path
+                label: Choose or upload analytics image
+                type: image
+                required: false
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+              - name: alt
+                label: Description for screen readers
+                type: string
+                required: false
+              - name: illustrative
+                label: Illustrative image
+                type: boolean
+                default: true
+            description:
+              Optional artwork for Skills & Technologies. Keep Illustrative image on for conceptual
+              charts. Do not upload confidential client data or imply sample charts are verified
+              results. Clear the image and description together to remove it. Clear both image and
+              description to remove it. If either is filled, both are required for publication.
+          - name: projects
+            label: Fallback project imagery
+            type: object
+            fields:
+              - name: path
+                label: Choose or upload image
+                type: image
+                required: true
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+              - name: alt
+                label: Description for screen readers
+                type: string
+                required: true
+                description:
+                  Describe the image briefly. Do not imply illustrative imagery is a real project
+                  photograph.
+              - name: illustrative
+                label: Illustrative image
+                type: boolean
+                default: true
+                description: Keep on for representative imagery that is not an actual project photo.
+            list:
+              max: 6
+              collapsible:
+                collapsed: true
+                summary: '{alt}'
+            description:
+              Only used when a project has no selected image. Prefer selecting its image in Featured
+              Projects. Remove an entire fallback item to remove it; every remaining item needs an
+              image and description.
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: cv_profile
+        label: PDF CV & external fallback
+        type: file
+        path: src/data/profile.json
+        format: json
+        fields:
+          - name: status
+            component: profile_status
+            hidden: true
+          - name: visible
+            component: profile_visible
+            hidden: true
+          - name: identity
+            component: profile_identity
+            hidden: true
+          - name: hero
+            component: profile_hero
+            hidden: true
+          - name: about
+            component: profile_about
+            hidden: true
+          - name: contact
+            component: profile_contact
+            hidden: true
+          - name: cv
+            component: profile_cv
+          - name: cvPreviewUrl
+            component: profile_cvPreviewUrl
+          - name: seo
+            component: profile_seo
+            hidden: true
+        operations:
+          create: false
+          rename: false
+          delete: false
+      - name: cv_wording
+        label: CV button labels
+        type: file
+        path: src/data/interface.json
+        format: json
+        fields:
+          - name: hero
+            component: wording_hero
+            hidden: true
+          - name: highlights
+            component: wording_highlights
+            hidden: true
+          - name: expertise
+            component: wording_expertise
+            hidden: true
+          - name: projects
+            component: wording_projects
+            hidden: true
+          - name: journey
+            component: wording_journey
+            hidden: true
+          - name: about
+            component: wording_about
+            hidden: true
+          - name: contact
+            component: wording_contact
+            hidden: true
+          - name: brand
+            component: wording_brand
+            hidden: true
+          - name: navigation
+            component: wording_navigation
+            hidden: true
+          - name: common
+            component: wording_common
+            hidden: true
+          - name: footer
+            component: wording_footer
+            hidden: true
+          - name: actions
+            component: wording_actions
+        operations:
+          create: false
+          rename: false
+          delete: false
+  - name: section_seo
+    label: 10 · SEO & Settings
+    type: group
+    items:
+      - name: seo_profile
+        label: Search & social sharing
+        type: file
+        path: src/data/profile.json
+        format: json
+        fields:
+          - name: status
+            component: profile_status
+            hidden: true
+          - name: visible
+            component: profile_visible
+            hidden: true
+          - name: identity
+            component: profile_identity
+            hidden: true
+          - name: hero
+            component: profile_hero
+            hidden: true
+          - name: about
+            component: profile_about
+            hidden: true
+          - name: contact
+            component: profile_contact
+            hidden: true
+          - name: cv
+            component: profile_cv
+            hidden: true
+          - name: cvPreviewUrl
+            component: profile_cvPreviewUrl
+            hidden: true
+          - name: seo
+            component: profile_seo
+        operations:
+          create: false
+          rename: false
+          delete: false
 settings:
   content:
-    merge: true
+    merge: false

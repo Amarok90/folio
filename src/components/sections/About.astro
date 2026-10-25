@@ -13,6 +13,7 @@ interface Props {
   background?: ImageMetadata;
 }
 const { image, background } = Astro.props;
+const education = publishedEntries(await getCollection('education'));
 const languages = publishedEntries(await getCollection('languages'));
 const publicProfile = isPublished(profile) ? profile : null;
 const approachIcons = ['contact', 'workflow', 'users', 'shield'] as const;
@@ -20,6 +21,14 @@ const approach = profile.about.approach.map((item, index) => ({
   ...item,
   icon: approachIcons[index] ?? 'shield',
 }));
+const monthLabel = (date: string): string => {
+  const [year, month] = date.split('-').map(Number);
+  return new Intl.DateTimeFormat('en', {
+    month: 'short',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(new Date(Date.UTC(year!, month! - 1)));
+};
 ---
 
 <section
@@ -27,6 +36,10 @@ const approach = profile.about.approach.map((item, index) => ({
   aria-labelledby="about-title"
   class="portfolio-section about"
 >
+  <div class="section-intro about__heading">
+    <p class="eyebrow">{ui.about.eyebrow}</p>
+    <h2 id="about-title">{ui.about.titleLines.join(' ')}</h2>
+  </div>
   <figure class="about__portrait">
     {background && (
       <Image
@@ -55,19 +68,6 @@ const approach = profile.about.approach.map((item, index) => ({
   </figure>
 
   <div class="section-intro about__intro">
-    <p class="eyebrow">{ui.about.eyebrow}</p>
-    <h2 id="about-title">
-      {ui.about.titleLines.map((line, index) => (
-        <>
-          {index > 0 && (
-            <>
-              <br />{' '}
-            </>
-          )}
-          {line}
-        </>
-      ))}
-    </h2>
     <p>{publicProfile?.about.summary ?? ui.about.emptyDescription}</p>
     {publicProfile && publicProfile.about.interests.length > 0 && (
       <ul class="about__interests" aria-label="Personal interests">
@@ -105,39 +105,71 @@ const approach = profile.about.approach.map((item, index) => ({
         </li>
       ))}
     </ol>
-    {(languages.length > 0 || publicProfile?.contact.location) && (
-      <div class="about__details">
-        {languages.length > 0 && (
-          <div class="about-detail">
-            <Icon name="languages" />
-            <div>
-              <h4>{ui.about.languagesTitle}</h4>
-              <ul>
-                {languages.map(({ data }) => (
-                  <li>
-                    {data.name}
-                    {data.proficiency && ` · ${data.proficiency}`}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-        )}
-        {publicProfile?.contact.location && (
-          <div class="about-detail">
-            <Icon name="location" />
-            <div>
-              <h4>{ui.common.locationLabel}</h4>
-              <p>{publicProfile.contact.location}</p>
-              {publicProfile.contact.openToRelocation === true && (
-                <p>{ui.common.relocationLabel}</p>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-    )}
   </div>
+  {(education.length > 0 ||
+    languages.length > 0 ||
+    publicProfile?.contact.location) && (
+    <div class="about__details">
+      {education.length > 0 && (
+        <div class="about-detail about-detail--education">
+          <Icon name="education" />
+          <div>
+            <h3 id="about-education-title">{ui.about.educationTitle}</h3>
+            <ol class="education-list" aria-labelledby="about-education-title">
+              {education.map(({ id, data }) => (
+                <li id={`education-${id}`}>
+                  <h4>{data.qualification}</h4>
+                  <p>{data.institution}</p>
+                  {data.field && <p>{data.field}</p>}
+                  <p class="education-dates">
+                    <time datetime={data.startDate}>
+                      {monthLabel(data.startDate)}
+                    </time>
+                    <span aria-hidden="true"> — </span>
+                    {data.endDate ? (
+                      <time datetime={data.endDate}>
+                        {monthLabel(data.endDate)}
+                      </time>
+                    ) : (
+                      <span>{ui.common.ongoingLabel}</span>
+                    )}
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </div>
+        </div>
+      )}
+      {languages.length > 0 && (
+        <div class="about-detail">
+          <Icon name="languages" />
+          <div>
+            <h3>{ui.about.languagesTitle}</h3>
+            <ul>
+              {languages.map(({ data }) => (
+                <li>
+                  {data.name}
+                  {data.proficiency && ` · ${data.proficiency}`}
+                </li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+      {publicProfile?.contact.location && (
+        <div class="about-detail">
+          <Icon name="location" />
+          <div>
+            <h3>{ui.common.locationLabel}</h3>
+            <p>{publicProfile.contact.location}</p>
+            {publicProfile.contact.openToRelocation === true && (
+              <p>{ui.common.relocationLabel}</p>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  )}
 </section>
 
 <style>
@@ -146,9 +178,12 @@ const approach = profile.about.approach.map((item, index) => ({
     gap: clamp(var(--space-6), 3vw, var(--space-10));
     align-items: start;
   }
-  .about__intro h2 {
-    font-size: clamp(1.75rem, 2.5vw, 2.25rem);
-    max-width: 16ch;
+  .about__heading {
+    grid-column: 1 / -1;
+  }
+  .about__heading h2 {
+    max-width: none;
+    margin-bottom: 0;
   }
   .about__intro > p:not(.eyebrow) {
     max-width: 44ch;
@@ -200,7 +235,7 @@ const approach = profile.about.approach.map((item, index) => ({
     inset: 0;
     width: 100%;
     height: 100%;
-    object-fit: contain;
+    object-fit: cover;
     object-position: center bottom;
   }
   .about__portrait figcaption {
@@ -277,11 +312,11 @@ const approach = profile.about.approach.map((item, index) => ({
     line-height: 1.65;
   }
   .about__details {
+    grid-column: 1 / -1;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 9rem), 1fr));
-    gap: var(--space-4);
-    margin-top: var(--space-6);
-    padding-top: var(--space-5);
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    gap: var(--space-6);
+    padding-top: var(--space-6);
     border-top: 1px solid var(--color-divider);
   }
   .about-detail {
@@ -290,22 +325,42 @@ const approach = profile.about.approach.map((item, index) => ({
     gap: var(--space-2);
     min-width: 0;
   }
+  .about-detail > div {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
   .about-detail > :global(.icon) {
     width: var(--space-4);
     height: var(--space-4);
     color: var(--color-primary-text);
   }
-  .about-detail h4 {
-    margin-bottom: var(--space-1);
-    font-size: var(--text-caption);
+  .about-detail h3 {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-small);
     letter-spacing: 0;
     line-height: 1.5;
+  }
+  .about-detail h4 {
+    font-size: var(--text-caption);
+    line-height: 1.65;
+    letter-spacing: 0;
   }
   .about-detail p,
   .about-detail ul {
     color: var(--color-text-secondary);
     font-size: var(--text-caption);
     line-height: 1.65;
+  }
+  .education-list {
+    display: grid;
+    gap: var(--space-4);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+  }
+  .education-dates {
+    margin-top: var(--space-1);
+    font-variant-numeric: tabular-nums;
   }
   .about-detail ul {
     margin: 0;
@@ -338,12 +393,6 @@ const approach = profile.about.approach.map((item, index) => ({
       width: min(100%, 22rem);
       min-height: 0;
       justify-self: center;
-    }
-    .about__intro h2 {
-      font-size: var(--text-h2);
-    }
-    .about__intro h2 br {
-      display: none;
     }
     .approach-list {
       grid-template-columns: minmax(0, 1fr);

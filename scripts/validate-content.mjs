@@ -108,16 +108,31 @@ export function validateCMSConfiguration(source) {
       );
     }
   }
-  const paths = config.content.map((entry) => entry.path).sort();
-  if (
-    JSON.stringify(paths) !== JSON.stringify([...expectedContentPaths].sort())
-  ) {
-    throw new Error(
-      'Pages CMS must expose every canonical profile, media, and collection file exactly once.',
-    );
-  }
   const components = config.components ?? {};
   const names = new Set();
+  const entries = [];
+  const collectEntries = (items) => {
+    if (!Array.isArray(items) || items.length === 0)
+      throw new Error('CMS groups require at least one editor.');
+    for (const entry of items) {
+      if (!entry.name || names.has(entry.name))
+        throw new Error('CMS groups and editors require unique names.');
+      names.add(entry.name);
+      if (entry.type === 'group') {
+        if (entry.path || entry.fields || entry.list)
+          throw new Error(
+            'CMS groups organize editors; they cannot own content.',
+          );
+        collectEntries(entry.items);
+      } else entries.push(entry);
+    }
+  };
+  collectEntries(config.content);
+  const paths = [...new Set(entries.map((entry) => entry.path))].sort();
+  if (
+    JSON.stringify(paths) !== JSON.stringify([...expectedContentPaths].sort())
+  )
+    throw new Error('Pages CMS must expose every canonical content file.');
   const validateFields = (fields, context, schema) => {
     if (!Array.isArray(fields) || fields.length === 0)
       throw new Error(`Missing CMS fields in ${context}.`);
@@ -135,7 +150,7 @@ export function validateCMSConfiguration(source) {
       );
     }
     for (const field of fields) {
-      if (!field.name || fieldNames.has(field.name))
+      if (!expectedFields.includes(field.name) || fieldNames.has(field.name))
         throw new Error(`Duplicate or missing CMS field in ${context}.`);
       fieldNames.add(field.name);
       const shape = field.component
@@ -147,6 +162,24 @@ export function validateCMSConfiguration(source) {
       ) {
         throw new Error(`Unsupported CMS field ${context}.${field.name}.`);
       }
+      const expectedType = fieldValueSchema(valueSchema.shape[field.name]);
+      const acceptedTypes = (
+        expectedType instanceof z.ZodUnion
+          ? expectedType.options.map(fieldValueSchema)
+          : [expectedType]
+      ).map((type) => type.type);
+      const typeMatches =
+        (shape.type === 'object' && acceptedTypes.includes('object')) ||
+        (shape.type === 'number' && acceptedTypes.includes('number')) ||
+        (shape.type === 'boolean' && acceptedTypes.includes('boolean')) ||
+        (['date', 'file', 'image', 'select', 'string', 'text'].includes(
+          shape.type,
+        ) &&
+          acceptedTypes.some((type) => type === 'string' || type === 'enum'));
+      if (!typeMatches)
+        throw new Error(
+          `CMS field type differs from the canonical schema: ${context}.${field.name}.`,
+        );
       if (shape.type === 'object')
         validateFields(
           shape.fields,
@@ -162,29 +195,60 @@ export function validateCMSConfiguration(source) {
       if (pattern) new RegExp(pattern);
     }
   };
-  for (const entry of config.content) {
-    if (
-      !entry.name ||
-      names.has(entry.name) ||
-      entry.type !== 'file' ||
-      entry.format !== 'json'
-    ) {
+  if (config.settings?.content?.merge !== false)
+    throw new Error(
+      'CMS full-snapshot saves require merge:false so optional fields can be cleared.',
+    );
+  const editorsByPath = new Map();
+  for (const entry of entries) {
+    if (!entry.name || entry.type !== 'file' || entry.format !== 'json') {
       throw new Error(
         'CMS entries require unique names and the canonical JSON file format.',
       );
     }
-    names.add(entry.name);
-    if (entry.path.startsWith('src/content/') && entry.list !== true) {
+    const array = entry.path.startsWith('src/content/');
+    if (array && entry.list !== true) {
       throw new Error(`CMS ${entry.name} must edit a top-level JSON array.`);
     }
+    if (!array && entry.list)
+      throw new Error(`CMS ${entry.name} must edit a canonical object.`);
+    const previous = editorsByPath.get(entry.path) ?? [];
+    if (previous.length && array)
+      throw new Error('CMS arrays must have one editor.');
+    if (
+      entry.operations?.delete !== false ||
+      entry.operations?.rename !== false
+    )
+      throw new Error(
+        'CMS editors must preserve canonical filenames; edit records inside the file.',
+      );
+    // Every form saves the full loaded snapshot, including hidden fields, protected by its SHA.
     validateFields(entry.fields, entry.name, fileSchemas[entry.path]);
+    editorsByPath.set(entry.path, [...previous, entry]);
+  }
+  for (const [path, editors] of editorsByPath) {
+    // Each field is visible in exactly one editor, even when the backing file is shared.
+    const visibleFields = editors.flatMap((entry) =>
+      entry.fields.filter((field) => !field.hidden),
+    );
+    validateFields(visibleFields, path, fileSchemas[path]);
   }
   return config;
 }
 
 async function containedFile(root, path) {
   const rootPath = await realpath(root);
-  const file = await realpath(resolve(root, path));
+  let file;
+  try {
+    file = await realpath(resolve(root, path));
+  } catch (error) {
+    if (error.code === 'ENOENT')
+      throw new Error(
+        `Referenced media file not found (ENOENT): ${path}. Restore this file or upload and select a replacement before deleting or renaming the previous file.`,
+        { cause: error },
+      );
+    throw error;
+  }
   const within = relative(rootPath, file);
   if (
     within.startsWith(`..${sep}`) ||

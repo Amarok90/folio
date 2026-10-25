@@ -35,6 +35,7 @@ jobs:
     timeout-minutes: 25
     permissions:
       contents: read
+      actions: read
     env:
       ASTRO_TELEMETRY_DISABLED: '1'
       SITE_URL: ${{ inputs.site_origin || vars.SITE_ORIGIN || 'https://amarok90.github.io' }}
@@ -48,6 +49,13 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          # Older baselines fall back to all gates rather than fetching unbounded media history.
+          fetch-depth: 50
+      - name: Select validation scope from the last successful production build
+        id: scope
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: node scripts/classify-publication.mjs
       - name: Set up Node.js
         uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
@@ -56,35 +64,66 @@ jobs:
       - name: Install locked dependencies
         run: npm ci
       - name: Check Astro and TypeScript
+        if: steps.scope.outputs.mode != 'content'
         run: npm run check
       - name: Lint
+        if: steps.scope.outputs.mode != 'content'
         run: npm run lint
       - name: Check formatting
+        if: steps.scope.outputs.mode != 'content'
         run: npm run format:check
       - name: Run unit and component tests
+        if: steps.scope.outputs.mode != 'content'
         run: npm run test:unit
       - name: Verify isolated CMS editing workflows
+        if: steps.scope.outputs.mode != 'content'
         run: npm run test:cms
       - name: Audit dependencies
         run: npm run audit
+      - name: Validate content, references and uploaded media
+        id: content
+        run: npm run content:check
+      - name: Explain rejected CMS content
+        if: failure() && steps.content.outcome == 'failure'
+        run: echo '::error title=CMS changes were not published::Review the file and field details in Validate content, references and uploaded media. Correct the content or restore its previous Git version; publication remains blocked until validation passes.'
       - name: Install Chromium
         # The official Ubuntu 24.04 runner already supplies browser system libraries; avoid redundant apt mirror traffic.
         run: npx playwright install chromium
       - name: Verify project base path
+        if: steps.scope.outputs.mode != 'content'
         run: npm run test:base
       - name: Build and verify configured Pages output
-        run: |
-          npm run build
-          npm run test:e2e
+        run: npm run build
+      - name: Verify published content, responsive layouts and accessibility
+        if: steps.scope.outputs.mode == 'content'
+        run: npx playwright test tests/e2e/portfolio.spec.ts
+      - name: Run complete browser and accessibility tests
+        if: steps.scope.outputs.mode != 'content'
+        run: npm run test:e2e
       - name: Verify consent and analytics resilience
+        if: steps.scope.outputs.mode != 'content'
         run: npm run test:analytics
       - name: Verify mobile and desktop Lighthouse release budgets
+        if: steps.scope.outputs.mode != 'content'
         run: npm run test:lighthouse
       - name: Upload verified static artifact
         uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
           retention-days: 1
+      - name: Summarize validation and recovery state
+        if: always()
+        env:
+          VALIDATION_RESULT: ${{ job.status }}
+        run: |
+          node --input-type=module <<'NODE'
+          import { appendFileSync } from 'node:fs';
+          const result = process.env.VALIDATION_RESULT;
+          const message = result === 'success'
+            ? 'The validated artifact is ready. The separate publication job reports whether it was deployed.'
+            : 'Publication is blocked. Open the first failed step for details; correct the change or restore its previous Git version. This failed validation does not replace the published site.';
+          appendFileSync(process.env.GITHUB_STEP_SUMMARY, `## Validation result: ${result}\n\n${message}\n`);
+          NODE
 
   deploy:
     name: Publish current verified production commit

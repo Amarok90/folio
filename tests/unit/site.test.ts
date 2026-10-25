@@ -6,7 +6,8 @@ import {
 } from '../../src/config/deployment';
 import { site } from '../../src/config/site';
 import { interfaceContent } from '../../src/data/interface';
-import { interfaceSchema } from '../../src/lib/content';
+import { profile } from '../../src/data/profile';
+import { interfaceSchema, sectionTargetSchema } from '../../src/lib/content';
 import {
   canonicalURL,
   serializeJsonLd,
@@ -125,9 +126,17 @@ describe('site contracts', () => {
     expect(site.navigation.every((item) => /^#[a-z-]+$/.test(item.href))).toBe(
       true,
     );
-    expect(site.navigation).toEqual(interfaceContent.navigation);
+    expect(site.navigation).toEqual(
+      [...interfaceContent.navigation].sort(
+        (left, right) =>
+          sectionTargetSchema.options.indexOf(left.href) -
+          sectionTargetSchema.options.indexOf(right.href),
+      ),
+    );
     expect(site.brand).toBe(interfaceContent.brand);
-    expect(site.title).toContain(site.identity.name);
+    expect(site.title).toBe(
+      `${profile.seo.title ?? `${site.identity.name} — ${site.identity.jobTitle}`} | ${site.brand}`,
+    );
     expect(site.description).not.toMatch(/foundation preview/i);
   });
   it('lets CMS edit website wording while preserving safe destinations and truthful CV actions', () => {

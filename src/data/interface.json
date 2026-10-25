@@ -2,10 +2,6 @@
   "brand": "FOLIO",
   "navigation": [
     {
-      "label": "About",
-      "href": "#about"
-    },
-    {
       "label": "Expertise",
       "href": "#expertise"
     },
@@ -16,6 +12,10 @@
     {
       "label": "Experience",
       "href": "#experience"
+    },
+    {
+      "label": "About",
+      "href": "#about"
     },
     {
       "label": "Contact",
@@ -83,8 +83,8 @@
     "emptyMessage": "Case studies are being updated. Explore the professional journey for current experience."
   },
   "journey": {
-    "eyebrow": "Professional journey",
-    "titleLines": ["Career &", "Education"],
+    "eyebrow": "Experience",
+    "titleLines": ["Professional Journey"],
     "description": "A foundation in engineering. A career connecting business, technology and financial services.",
     "emptyDescription": "The experience behind the work. A detailed career history is being prepared for this portfolio.",
     "earlierLabel": "Earlier experience",

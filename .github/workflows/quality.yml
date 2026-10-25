@@ -2,6 +2,8 @@ name: Quality
 
 on:
   push:
+    # Main is validated once by Pages production before its artifact can publish.
+    branches-ignore: [main]
   pull_request:
   workflow_dispatch:
 

@@ -161,6 +161,8 @@
     border-radius: var(--radius-button);
     transition:
       background var(--duration-normal) var(--ease-standard),
+      color var(--duration-normal) var(--ease-standard),
+      border-color var(--duration-normal) var(--ease-standard),
       box-shadow var(--duration-normal) var(--ease-standard),
       transform var(--duration-normal) var(--ease-standard);
   }
@@ -210,6 +212,9 @@
   }
   .text-link:hover {
     color: var(--color-hover);
+    text-decoration-color: currentColor;
+  }
+  .text-link:focus-visible {
     text-decoration-color: currentColor;
   }
   .icon {
@@ -453,6 +458,35 @@
   .section-body {
     min-width: 0;
   }
+  .portfolio-section.portfolio-section--stacked {
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--space-8);
+  }
+  .portfolio-section--stacked > .section-intro {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--space-8);
+    align-items: start;
+  }
+  .portfolio-section--stacked > .section-intro > .eyebrow,
+  .portfolio-section--stacked > .section-intro > h2,
+  .portfolio-section--stacked > .section-intro > p {
+    grid-column: 1;
+  }
+  .portfolio-section--stacked > .section-intro > h2 {
+    max-width: none;
+    margin-block: var(--space-3);
+  }
+  .portfolio-section--stacked > .section-intro > p:not(.eyebrow) {
+    max-width: 64ch;
+  }
+  .portfolio-section--stacked > .section-intro > .button,
+  .portfolio-section--stacked > .section-intro > .text-link {
+    grid-column: 2;
+    grid-row: 2 / 4;
+    align-self: center;
+    margin-top: 0;
+  }
   .button:active {
     transform: translateY(0);
   }
@@ -662,7 +696,7 @@
   .header-shell[data-enhanced] .main-nav a::after {
     display: none;
   }
-  .portfolio-section {
+  .portfolio-section:not(.portfolio-section--stacked) {
     grid-template-columns: minmax(10rem, 0.8fr) minmax(0, 2.2fr);
     gap: var(--space-6);
   }
@@ -689,6 +723,13 @@
   }
   .section-intro > p:not(.eyebrow) {
     max-width: 45ch;
+  }
+  .portfolio-section--stacked > .section-intro {
+    display: block;
+  }
+  .portfolio-section--stacked > .section-intro > .button,
+  .portfolio-section--stacked > .section-intro > .text-link {
+    margin-top: var(--space-4);
   }
   .header-inner {
     margin-inline: var(--space-4);

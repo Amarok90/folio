@@ -16,19 +16,12 @@ const projects = publishedEntries(await getCollection('caseStudies'));
 
 <section
   id="projects"
-  class="portfolio-section projects-section"
+  class="portfolio-section portfolio-section--stacked projects-section"
   aria-labelledby="projects-title"
 >
   <div class="section-intro">
     <p class="eyebrow">{ui.projects.eyebrow}</p>
-    <h2 id="projects-title">
-      {ui.projects.titleLines.map((line, index) => (
-        <>
-          {index > 0 && <br />}
-          {line}
-        </>
-      ))}
-    </h2>
+    <h2 id="projects-title">{ui.projects.titleLines.join(' ')}</h2>
     <p class="section-description">
       {projects.length === 0
         ? ui.projects.emptyDescription
@@ -49,7 +42,7 @@ const projects = publishedEntries(await getCollection('caseStudies'));
                   src={resolveImage(project.data.image.path)}
                   alt={project.data.image.alt}
                   widths={[320, 480, 720]}
-                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
+                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 44vw, (max-width: 80rem) 30vw, 364px"
                   width={720}
                   loading="lazy"
                   decoding="async"
@@ -60,7 +53,7 @@ const projects = publishedEntries(await getCollection('caseStudies'));
                   src={thumbnails[index]}
                   alt=""
                   widths={[320, 480, 720]}
-                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 40vw, 24vw"
+                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 44vw, (max-width: 80rem) 30vw, 364px"
                   width={720}
                   loading="lazy"
                   class="project-image"
@@ -143,10 +136,12 @@ const projects = publishedEntries(await getCollection('caseStudies'));
   .project-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: start;
+    align-items: stretch;
     gap: var(--space-4);
   }
   .project-card {
+    display: flex;
+    flex-direction: column;
     min-width: 0;
     overflow: clip;
     border: 1px solid var(--color-divider);
@@ -227,6 +222,7 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     line-height: 1.4;
   }
   .project-content {
+    flex: 1;
     padding: var(--space-5);
   }
   .project-status {
@@ -342,12 +338,12 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     .project-grid {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
-    .project-card:last-child {
+    .project-card:last-child:nth-child(odd) {
       grid-column: 1 / -1;
       display: grid;
       grid-template-columns: 1fr 1fr;
     }
-    .project-card:last-child .project-image-wrap {
+    .project-card:last-child:nth-child(odd) .project-image-wrap {
       aspect-ratio: auto;
       min-height: 100%;
     }

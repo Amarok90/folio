@@ -26,6 +26,65 @@ import {
   skillSchema,
 } from '../../src/lib/content';
 
+interface CMSField {
+  name: string;
+  component?: string;
+  hidden?: boolean;
+  type?: string;
+  required?: boolean;
+  fields?: CMSField[];
+  options?: Record<string, unknown>;
+}
+interface CMSEntry {
+  name: string;
+  type: string;
+  path?: string;
+  items?: CMSEntry[];
+  fields?: CMSField[];
+  list?: boolean;
+  operations?: { create?: boolean; rename?: boolean; delete?: boolean };
+}
+interface CMSConfiguration {
+  content: CMSEntry[];
+  components: Record<string, CMSField>;
+  media: {
+    name: string;
+    input: string;
+    output: string;
+    extensions: string[];
+  }[];
+  settings: { content: { merge: boolean } };
+}
+const loadCMSConfiguration = (): CMSConfiguration =>
+  validateCMSConfiguration(
+    readFileSync(new URL('../../.pages.yml', import.meta.url), 'utf8'),
+  );
+const flattenCMSEditors = (entries: CMSEntry[]): CMSEntry[] =>
+  entries.flatMap((entry) =>
+    entry.type === 'group' ? flattenCMSEditors(entry.items ?? []) : [entry],
+  );
+function cmsEditor(
+  config: CMSConfiguration,
+  name: string,
+): CMSEntry & { fields: CMSField[] } {
+  const editor = flattenCMSEditors(config.content).find(
+    (entry) => entry.name === name,
+  );
+  if (!editor?.fields) throw new Error(`Missing CMS editor: ${name}`);
+  return editor as CMSEntry & { fields: CMSField[] };
+}
+function cmsField(
+  config: CMSConfiguration,
+  fields: CMSField[],
+  name: string,
+): CMSField {
+  const field = fields.find((entry) => entry.name === name);
+  if (!field) throw new Error(`Missing CMS field: ${name}`);
+  return field.component
+    ? { ...config.components[field.component], ...field }
+    : field;
+}
+
 describe('CMS-compatible media contracts', () => {
   it('validates the canonical media source and preserves explicit temporary status', () => {
     const media = mediaSchema.parse(mediaSource);
@@ -374,50 +433,180 @@ describe('owner-managed website wording and actions', () => {
   });
 
   it('keeps every owner field editable through the matching Pages CMS schema', () => {
-    const config = validateCMSConfiguration(
-      readFileSync(new URL('../../.pages.yml', import.meta.url), 'utf8'),
-    );
+    const config = loadCMSConfiguration();
     expect(
-      config.content.some(
-        (entry: { path: string }) => entry.path === 'src/data/interface.json',
+      flattenCMSEditors(config.content).some(
+        (entry) => entry.path === 'src/data/interface.json',
       ),
     ).toBe(true);
-    const editor = config.content.find(
-      (entry: { name: string }) => entry.name === 'interface',
-    );
-    editor.fields = editor.fields.filter(
-      (field: { name: string }) => field.name !== 'contact',
+    const editor = cmsEditor(config, 'interface');
+    editor.fields.splice(
+      editor.fields.findIndex((field) => field.name === 'contact'),
+      1,
     );
     expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
       /field coverage/i,
     );
   });
   it('exposes bounded self-assessments and removable analytics media through CMS', () => {
-    const config = validateCMSConfiguration(
-      readFileSync(new URL('../../.pages.yml', import.meta.url), 'utf8'),
-    );
-    const skillEditor = config.content.find(
-      (entry: { name: string }) => entry.name === 'skills',
-    );
-    const assessment = skillEditor.fields.find(
-      (field: { name: string }) => field.name === 'selfAssessment',
-    );
+    const config = loadCMSConfiguration();
+    const skillEditor = cmsEditor(config, 'skills');
+    const assessment = cmsField(config, skillEditor.fields, 'selfAssessment');
     expect(assessment.type).toBe('number');
     expect(assessment.required).toBe(false);
     expect(assessment.options).toEqual({ min: 1, max: 100 });
-    const mediaEditor = config.content.find(
-      (entry: { name: string }) => entry.name === 'media',
+    const mediaEditor = cmsEditor(config, 'media');
+    expect(cmsField(config, mediaEditor.fields, 'analytics').type).toBe(
+      'object',
     );
-    expect(
-      mediaEditor.fields.some(
-        (field: { name: string }) => field.name === 'analytics',
-      ),
-    ).toBe(true);
-    skillEditor.fields = skillEditor.fields.filter(
-      (field: { name: string }) => field.name !== 'selfAssessment',
+    skillEditor.fields.splice(
+      skillEditor.fields.findIndex((field) => field.name === 'selfAssessment'),
+      1,
     );
     expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
       /field coverage/i,
+    );
+  });
+  it('rejects a string control for numeric self-assessments instead of accepting incompatible saves', () => {
+    const config = loadCMSConfiguration();
+    const assessment = cmsField(
+      config,
+      cmsEditor(config, 'skills').fields,
+      'selfAssessment',
+    );
+    assessment.type = 'string';
+    expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
+      /field type differs.*selfAssessment/i,
+    );
+  });
+  it('organizes editors in website order and preserves every shared snapshot with one visible owner per field', () => {
+    const config = loadCMSConfiguration();
+    expect(config.content.map((group) => group.name)).toEqual([
+      'section_home',
+      'section_highlights',
+      'section_expertise',
+      'section_projects',
+      'section_journey',
+      'section_about',
+      'section_contact',
+      'section_global',
+      'section_media',
+      'section_seo',
+    ]);
+    expect(
+      config.content.every(
+        (group) => group.type === 'group' && group.items?.length,
+      ),
+    ).toBe(true);
+    const editors = flattenCMSEditors(config.content);
+    for (const path of ['src/data/profile.json', 'src/data/interface.json']) {
+      const shared = editors.filter((editor) => editor.path === path);
+      expect(shared.length).toBeGreaterThan(1);
+      const expectedFields = [...(shared[0]?.fields ?? [])]
+        .map(({ name }) => name)
+        .sort();
+      const visibleFields = shared.flatMap(
+        (editor) => editor.fields?.filter((field) => !field.hidden) ?? [],
+      );
+      expect(visibleFields.map(({ name }) => name).sort()).toEqual(
+        expectedFields,
+      );
+      for (const editor of shared)
+        expect(editor.fields?.map(({ name }) => name).sort()).toEqual(
+          expectedFields,
+        );
+    }
+  });
+  it('rejects losing a hidden snapshot field or exposing the same field in two editors', () => {
+    const incomplete = loadCMSConfiguration();
+    const form = cmsEditor(incomplete, 'profile');
+    const hiddenIndex = form.fields.findIndex((field) => field.hidden);
+    expect(hiddenIndex).toBeGreaterThanOrEqual(0);
+    form.fields.splice(hiddenIndex, 1);
+    expect(() => validateCMSConfiguration(JSON.stringify(incomplete))).toThrow(
+      /field coverage/i,
+    );
+
+    const duplicated = loadCMSConfiguration();
+    const hidden = cmsEditor(duplicated, 'profile').fields.find(
+      (field) => field.hidden,
+    );
+    expect(hidden).toBeDefined();
+    if (hidden) hidden.hidden = false;
+    expect(() => validateCMSConfiguration(JSON.stringify(duplicated))).toThrow(
+      /field coverage/i,
+    );
+  });
+  it('rejects merge mode that revives cleared optional values and multiple whole-array editors', () => {
+    const merged = loadCMSConfiguration();
+    merged.settings.content.merge = true;
+    expect(() => validateCMSConfiguration(JSON.stringify(merged))).toThrow(
+      /merge:false/i,
+    );
+    const duplicated = loadCMSConfiguration();
+    duplicated.content.push({
+      ...cmsEditor(duplicated, 'skills'),
+      name: 'duplicate-skills',
+    });
+    expect(() => validateCMSConfiguration(JSON.stringify(duplicated))).toThrow(
+      /arrays must have one editor/i,
+    );
+  });
+  it('rejects missing or empty group items and destructive canonical-file operations', () => {
+    for (const items of [undefined, []]) {
+      const config = loadCMSConfiguration();
+      const group = config.content[0];
+      if (!group) throw new Error('Missing first CMS group');
+      if (items === undefined) delete group.items;
+      else group.items = items;
+      expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
+        /groups require at least one editor/i,
+      );
+    }
+    for (const operation of ['delete', 'rename'] as const) {
+      const config = loadCMSConfiguration();
+      const editor = flattenCMSEditors(config.content).find(
+        (entry) => entry.name === 'skills',
+      );
+      if (!editor?.operations)
+        throw new Error('Missing canonical file operations');
+      editor.operations[operation] = true;
+      expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
+        /preserve canonical filenames/i,
+      );
+    }
+  });
+  it('retains media-library path, type and upload-reference boundaries through component fields', () => {
+    const config = loadCMSConfiguration();
+    const profileEditor = cmsEditor(config, 'cv_profile');
+    const cv = cmsField(config, profileEditor.fields, 'cv');
+    const file = cmsField(config, cv.fields ?? [], 'path');
+    expect(file.type).toBe('file');
+    expect(file.options).toMatchObject({
+      media: 'documents',
+      extensions: ['pdf'],
+    });
+    const portrait = cmsField(
+      config,
+      cmsEditor(config, 'media').fields,
+      'portrait',
+    );
+    expect(
+      cmsField(config, portrait.fields ?? [], 'path').options,
+    ).toMatchObject({ media: 'images' });
+    if (!file.options) throw new Error('Missing document media options');
+    file.options.media = 'images';
+    expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
+      /wrong media library/i,
+    );
+    const changedPath = loadCMSConfiguration();
+    const imageLibrary = changedPath.media.find(
+      (library) => library.name === 'images',
+    );
+    if (!imageLibrary) throw new Error('Missing image library');
+    imageLibrary.output = '/public/images';
+    expect(() => validateCMSConfiguration(JSON.stringify(changedPath))).toThrow(
+      /validated local media contract/i,
     );
   });
 });

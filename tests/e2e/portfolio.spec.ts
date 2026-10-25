@@ -7,6 +7,7 @@ import projectsInput from '../../src/content/case-studies.json' with { type: 'js
 import skillsInput from '../../src/content/skills.json' with { type: 'json' };
 import experienceInput from '../../src/content/experience.json' with { type: 'json' };
 import educationInput from '../../src/content/education.json' with { type: 'json' };
+import languagesInput from '../../src/content/languages.json' with { type: 'json' };
 import interfaceInput from '../../src/data/interface.json' with { type: 'json' };
 import mediaInput from '../../src/data/media.json' with { type: 'json' };
 import {
@@ -18,6 +19,8 @@ import {
   mediaSchema,
   experienceSchema,
   educationSchema,
+  languageSchema,
+  sectionTargetSchema,
 } from '../../src/lib/content';
 
 const profileSource = profileSchema.parse(profileInput);
@@ -28,6 +31,7 @@ const ui = interfaceSchema.parse(interfaceInput);
 const mediaSource = mediaSchema.parse(mediaInput);
 const experienceSource = experienceSchema.array().parse(experienceInput);
 const educationSource = educationSchema.array().parse(educationInput);
+const languagesSource = languageSchema.array().parse(languagesInput);
 
 const published = (record: { status: string; visible: boolean }) =>
   record.status === 'published' && record.visible;
@@ -46,37 +50,32 @@ const byEditorialOrder = (
 ) =>
   left.order - right.order ||
   (left.id < right.id ? -1 : left.id > right.id ? 1 : 0);
-const publicTimeline = [
-  ...experienceSource
-    .filter(published)
-    .sort(byEditorialOrder)
-    .map((entry) => ({
-      ...entry,
-      id: `experience-${entry.id}`,
-      title: entry.role,
-      kind: 'experience' as const,
-    })),
-  ...educationSource
-    .filter(published)
-    .sort(byEditorialOrder)
-    .map((entry) => ({
-      ...entry,
-      id: `education-${entry.id}`,
-      title: entry.qualification,
-      organization: entry.institution,
-      summary: entry.field,
-      achievements: [],
-      kind: 'education' as const,
-    })),
-];
+const publicTimeline = experienceSource
+  .filter(published)
+  .sort(byEditorialOrder)
+  .map((entry) => ({
+    ...entry,
+    id: `experience-${entry.id}`,
+    title: entry.role,
+  }));
+const publicEducation = educationSource
+  .filter(published)
+  .sort(byEditorialOrder);
+const publicLanguages = languagesSource
+  .filter(published)
+  .sort(byEditorialOrder);
 const indexable = process.env['SITE_INDEXABLE'] === 'true';
 const analyticsEnabled =
   process.env['CLARITY_ENABLED'] === 'true' &&
   /^[a-z0-9]{6,20}$/i.test(process.env['CLARITY_PROJECT_ID']?.trim() ?? '');
 
-const navigation = ui.navigation.map(
-  ({ label, href }) => [label, href.slice(1)] as const,
-);
+const navigation = [...ui.navigation]
+  .sort(
+    (left, right) =>
+      sectionTargetSchema.options.indexOf(left.href) -
+      sectionTargetSchema.options.indexOf(right.href),
+  )
+  .map(({ label, href }) => [label, href.slice(1)] as const);
 
 async function openPreview(page: Page) {
   const response = await page.goto('./');
@@ -137,6 +136,21 @@ test('preview has meaningful landmarks, navigation, and honest indexing metadata
     name: 'Main navigation',
     exact: true,
   });
+  expect(
+    await nav
+      .getByRole('link')
+      .evaluateAll((links) =>
+        links.map((link) => new URL((link as HTMLAnchorElement).href).hash),
+      ),
+  ).toEqual(navigation.map(([, id]) => `#${id}`));
+  const sectionOrder = await page
+    .locator('main > section')
+    .evaluateAll((sections) => sections.map(({ id }) => id));
+  const navigationOrder = navigation.map(([, id]) => sectionOrder.indexOf(id));
+  expect(navigationOrder.every((position) => position >= 0)).toBe(true);
+  expect(navigationOrder).toEqual(
+    [...navigationOrder].sort((left, right) => left - right),
+  );
   for (const [label, id] of navigation) {
     await expect(
       nav.getByRole('link', { name: label, exact: true }),
@@ -192,6 +206,19 @@ for (const width of [
       measurements.viewportWidth + 1,
     );
     expect(measurements.clipped).toEqual([]);
+    for (const [headingSelector, contentSelector] of [
+      ['#projects-title', '#projects .section-body'],
+      ['#experience-title', '#experience .section-body'],
+      ['#about-title', '#about .about__portrait'],
+    ]) {
+      const heading = await page.locator(headingSelector!).boundingBox();
+      const content = await page.locator(contentSelector!).boundingBox();
+      expect(heading).not.toBeNull();
+      expect(content).not.toBeNull();
+      expect((heading?.y ?? 0) + (heading?.height ?? 0)).toBeLessThanOrEqual(
+        (content?.y ?? 0) + 1,
+      );
+    }
     if (width >= 1024) {
       const composition = await page.evaluate(() => {
         const main = document
@@ -538,7 +565,7 @@ test('case studies disclose real challenges, contributions and limitations with 
   }
 });
 
-test('career and education preserve published facts, real dates and editorial ordering', async ({
+test('career preserves published facts, real dates and editorial ordering', async ({
   page,
 }) => {
   await openPreview(page);
@@ -572,9 +599,7 @@ test('career and education preserve published facts, real dates and editorial or
     );
     if (!entry.endDate)
       await expect(step.locator('.career-step__date')).toContainText(
-        entry.kind === 'education'
-          ? ui.common.ongoingLabel
-          : ui.journey.presentLabel,
+        ui.journey.presentLabel,
       );
     const details = step.locator('details');
     const hasDisclosure = (await details.count()) > 0;
@@ -592,21 +617,69 @@ test('career and education preserve published facts, real dates and editorial or
     }
     for (const achievement of entry.achievements)
       await expect(step).toContainText(achievement);
-    if (entry.kind === 'experience') {
-      for (const id of entry.skillIds) {
-        const skill = skillsSource.find(
-          (skill) => skill.id === id && published(skill),
-        );
-        if (skill)
-          await expect(
-            step.getByText(skill.name, { exact: true }),
-          ).toBeVisible();
-      }
+    for (const id of entry.skillIds) {
+      const skill = skillsSource.find(
+        (skill) => skill.id === id && published(skill),
+      );
+      if (skill)
+        await expect(step.getByText(skill.name, { exact: true })).toBeVisible();
     }
     if (hasDisclosure) {
       await page.keyboard.press('Enter');
       await expect(details).not.toHaveAttribute('open');
     }
+  }
+});
+
+test('About preserves Education and Languages facts, optional values and editorial order', async ({
+  page,
+}) => {
+  await openPreview(page);
+  const education = page.locator('#about .education-list');
+  await expect(education).toHaveCount(publicEducation.length ? 1 : 0);
+  if (publicEducation.length) {
+    expect(
+      await education
+        .locator(':scope > li')
+        .evaluateAll((items) => items.map(({ id }) => id)),
+    ).toEqual(publicEducation.map((entry) => `education-${entry.id}`));
+    for (const entry of publicEducation) {
+      const item = education.locator(`[id="education-${entry.id}"]`);
+      await expect(item.getByRole('heading', { level: 4 })).toHaveText(
+        entry.qualification,
+      );
+      await expect(item).toContainText(entry.institution);
+      if (entry.field) await expect(item).toContainText(entry.field);
+      expect(
+        await item
+          .locator('time')
+          .evaluateAll((dates) =>
+            dates.map((date) => date.getAttribute('datetime')),
+          ),
+      ).toEqual(
+        entry.endDate ? [entry.startDate, entry.endDate] : [entry.startDate],
+      );
+      if (!entry.endDate)
+        await expect(item.locator('.education-dates')).toContainText(
+          ui.common.ongoingLabel,
+        );
+      await expect(
+        page.locator(`#experience #education-${entry.id}`),
+      ).toHaveCount(0);
+    }
+  }
+  const languageHeading = page
+    .locator('#about')
+    .getByRole('heading', { name: ui.about.languagesTitle, exact: true });
+  await expect(languageHeading).toHaveCount(publicLanguages.length ? 1 : 0);
+  if (publicLanguages.length) {
+    const items = languageHeading.locator('..').locator('li');
+    await expect(items).toHaveText(
+      publicLanguages.map(
+        (entry) =>
+          entry.name + (entry.proficiency ? ` · ${entry.proficiency}` : ''),
+      ),
+    );
   }
 });
 
@@ -623,7 +696,14 @@ test('expanded portfolio interactions retain WCAG 2.2 AA semantics and contrast'
       .analyze();
     expect(results.violations).toEqual([]);
   }
-  await page.locator('#projects details').first().locator('summary').click();
+  const projectSummaries = page.locator('#projects details summary');
+  if (projectCount === 0) {
+    await expect(projectSummaries).toHaveCount(0);
+    await expect(page.locator('#projects')).toContainText(
+      ui.projects.emptyMessage,
+    );
+  }
+  for (const summary of await projectSummaries.all()) await summary.click();
   for (const summary of await page.locator('#contact details summary').all()) {
     await summary.click();
   }
@@ -643,9 +723,29 @@ test('CV and contact controls use real destinations while the header shows truth
     contact: { email: string | null };
   };
   if (currentProfile.cv) {
-    await expect(page.locator('[data-analytics-event="cv_view"]')).toHaveCount(
-      0,
+    const preview = page.locator('#contact a[data-analytics-event="cv_view"]');
+    await expect(preview).toHaveCount(1);
+    await expect(preview).toHaveAttribute(
+      'href',
+      new RegExp(
+        `${currentProfile.cv.path.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}$`,
+      ),
     );
+    await expect(preview).toHaveAttribute('target', '_blank');
+    await expect(preview).toHaveAttribute('rel', /noopener/);
+    await expect(preview).toHaveAccessibleName(
+      `${ui.actions.cvViewLabel} (opens in a new tab)`,
+    );
+    expect(
+      await preview.evaluate((element) =>
+        [...element.childNodes]
+          .filter((node) => node.nodeType === Node.TEXT_NODE)
+          .map((node) => node.textContent)
+          .join('')
+          .trim(),
+      ),
+    ).toBe(ui.actions.cvViewLabel);
+    await expect(preview).not.toHaveAttribute('download');
     const cv = page.locator('a[data-analytics-event="cv_download"]');
     expect(await cv.count()).toBeGreaterThanOrEqual(2);
     for (const link of await cv.all()) {
@@ -863,6 +963,30 @@ test('404 footer navigation returns home with the deployment base', async ({
     await expect(page.locator('#home')).toBeInViewport();
     await expect(page.getByRole('heading', { level: 1 })).toHaveCount(1);
   }
+});
+
+test('admin shortcut opens the fixed Pages CMS repository destination with no local authentication backend', async ({
+  page,
+  request,
+}) => {
+  const cmsURL = 'https://app.pagescms.org/Amarok90/folio/main/';
+  const response = await request.get('./admin/');
+  expect(response.status()).toBe(200);
+  const html = await response.text();
+  expect(html).toContain('name="robots" content="noindex, nofollow"');
+  expect(html).toContain('name="referrer" content="no-referrer"');
+  expect(html).toContain(`http-equiv="refresh" content="0;url=${cmsURL}"`);
+  expect(html).toContain(`href="${cmsURL}"`);
+  expect(html).not.toMatch(/<script\b/);
+  await page.route('https://app.pagescms.org/**', (route) =>
+    route.fulfill({
+      status: 200,
+      contentType: 'text/html',
+      body: '<!doctype html><title>CMS destination intercepted for isolated verification</title>',
+    }),
+  );
+  await page.goto('./admin/');
+  await expect(page).toHaveURL(cmsURL);
 });
 
 test('optional analytics stays off without consent and privacy preferences remain accessible', async ({
