@@ -6,7 +6,7 @@
     "visible": true,
     "name": "Business Analysis",
     "categoryId": "business-analytical",
-    "selfAssessment": 90
+    "selfAssessment": 100
   },
   {
     "id": "system-analysis",
