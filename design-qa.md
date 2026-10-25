@@ -44,3 +44,7 @@ The new integration scenario passes with all seven lists blank or whitespace, th
 The final correction passed all gates in Opera: typecheck, lint, format, 199 unit tests, 11 CMS integration tests, 40 project-base checks, 40 E2E checks, 19 consent/analytics checks, audit, content validation and build. Lighthouse remained mobile 97/100/100/100 and desktop all 100. An independent code review confirmed that collection-only compatibility preserves strict singleton, record, identifier and reference validation.
 
 Current result: final parser correction passed locally; remote publication verification pending.
+
+## Authenticated optional-field verification
+
+A subsequent real Education save was blocked by the hosted editor at the empty end month of the existing current course. The optional field regex incorrectly required a nonempty date. Both optional end months, optional project HTTPS links, contact email and external CV URL now accept an empty value or their existing valid format. Required fields keep their previous strict patterns. Nine regression cases compare the resolved CMS controls with the canonical schema. Professional facts are unchanged; the unsaved punctuation probe was discarded.

@@ -18,10 +18,15 @@ import { profile } from '../../src/data/profile';
 import mediaSource from '../../src/data/media.json';
 import {
   caseStudySchema,
+  contentIdSchema,
+  educationSchema,
+  experienceSchema,
   imageAssetPathSchema,
   imageSchema,
   mediaSchema,
   interfaceSchema,
+  languageSchema,
+  monthSchema,
   profileSchema,
   skillSchema,
 } from '../../src/lib/content';
@@ -32,6 +37,7 @@ interface CMSField {
   hidden?: boolean;
   type?: string;
   required?: boolean;
+  pattern?: { regex: string; message: string } | string;
   fields?: CMSField[];
   options?: Record<string, unknown>;
 }
@@ -83,6 +89,12 @@ function cmsField(
   return field.component
     ? { ...config.components[field.component], ...field }
     : field;
+}
+function cmsPattern(field: CMSField): RegExp {
+  const pattern =
+    typeof field.pattern === 'string' ? field.pattern : field.pattern?.regex;
+  if (!pattern) throw new Error(`Missing CMS pattern: ${field.name}`);
+  return new RegExp(pattern);
 }
 
 describe('CMS-compatible media contracts', () => {
@@ -409,6 +421,195 @@ describe('nontechnical owner edits retain safe publication semantics', () => {
 });
 
 describe('owner-managed website wording and actions', () => {
+  it.each([
+    {
+      label: 'optional project HTTPS source',
+      field: (config: CMSConfiguration) =>
+        cmsField(config, cmsEditor(config, 'case_studies').fields, 'link'),
+      canonical: (value: string) =>
+        caseStudySchema.shape.link.safeParse(value).success,
+      accepted: [
+        '',
+        'https://example.com/project',
+        'https://example.com/a?b=c#source',
+      ],
+      rejected: [
+        'http://example.com',
+        'javascript:alert(1)',
+        'https://',
+        'https://exa mple.com/project',
+      ],
+    },
+    {
+      label: 'optional contact email',
+      field: (config: CMSConfiguration) => {
+        const contact = cmsField(
+          config,
+          cmsEditor(config, 'contact_profile').fields,
+          'contact',
+        );
+        return cmsField(config, contact.fields ?? [], 'email');
+      },
+      canonical: (value: string) =>
+        profileSchema.shape.contact.shape.email.safeParse(value).success,
+      accepted: ['', 'owner@example.com', 'first.last+jobs@example.co.uk'],
+      rejected: [
+        'not-an-email',
+        'owner@@example.com',
+        'owner@example',
+        'owner @example.com',
+        'javascript:alert(1)',
+      ],
+    },
+    {
+      label: 'optional external CV HTTPS URL',
+      field: (config: CMSConfiguration) =>
+        cmsField(
+          config,
+          cmsEditor(config, 'cv_profile').fields,
+          'cvPreviewUrl',
+        ),
+      canonical: (value: string) =>
+        profileSchema.shape.cvPreviewUrl.safeParse(value).success,
+      accepted: [
+        '',
+        'https://example.com/cv',
+        'https://www.linkedin.com/in/example/',
+      ],
+      rejected: [
+        'http://example.com/cv',
+        'javascript:alert(1)',
+        'https://',
+        'https://exa mple.com/cv',
+      ],
+    },
+    {
+      label: 'optional experience end month',
+      field: (config: CMSConfiguration) =>
+        cmsField(config, cmsEditor(config, 'experience').fields, 'endDate'),
+      canonical: (value: string) =>
+        experienceSchema.shape.endDate.safeParse(value).success,
+      accepted: ['', '2024-01', '2024-12'],
+      rejected: [
+        '2024-00',
+        '2024-13',
+        '2024-XX',
+        '2024-01-01',
+        '2024-1',
+        'prefix2024-01',
+        '2024-01suffix',
+      ],
+    },
+    {
+      label: 'optional education end month',
+      field: (config: CMSConfiguration) =>
+        cmsField(config, cmsEditor(config, 'education').fields, 'endDate'),
+      canonical: (value: string) =>
+        educationSchema.shape.endDate.safeParse(value).success,
+      accepted: ['', '2024-01', '2024-12'],
+      rejected: [
+        '2024-00',
+        '2024-13',
+        '2024-XX',
+        '2024-01-01',
+        '2024-1',
+        'prefix2024-01',
+        '2024-01suffix',
+      ],
+    },
+  ])(
+    'keeps $label patterns compatible with blank and valid canonical values',
+    ({ field, canonical, accepted, rejected }) => {
+      const resolved = field(loadCMSConfiguration());
+      expect(resolved.required).toBe(false);
+      const pattern = cmsPattern(resolved);
+      for (const value of accepted) {
+        expect(
+          canonical(value),
+          `Canonical model must accept ${JSON.stringify(value)}`,
+        ).toBe(true);
+        expect(
+          pattern.test(value),
+          `CMS must accept ${JSON.stringify(value)}`,
+        ).toBe(true);
+      }
+      for (const value of rejected) {
+        expect(
+          canonical(value),
+          `Canonical model must reject ${JSON.stringify(value)}`,
+        ).toBe(false);
+        expect(
+          pattern.test(value),
+          `CMS must reject ${JSON.stringify(value)}`,
+        ).toBe(false);
+      }
+    },
+  );
+  it.each([
+    {
+      label: 'required stable identifier',
+      field: (config: CMSConfiguration) =>
+        cmsField(config, cmsEditor(config, 'education').fields, 'id'),
+      canonical: (value: string) => contentIdSchema.safeParse(value).success,
+      accepted: ['cms-course-2024', 'course'],
+      rejected: ['', 'Upper Case', '../unsafe', '-course'],
+    },
+    {
+      label: 'required start month',
+      field: (config: CMSConfiguration) =>
+        cmsField(config, cmsEditor(config, 'education').fields, 'startDate'),
+      canonical: (value: string) => monthSchema.safeParse(value).success,
+      accepted: ['2024-01', '2024-12'],
+      rejected: ['', '2024-00', '2024-13', '2024-XX', '2024-01-01', '2024-1'],
+    },
+    {
+      label: 'required language code',
+      field: (config: CMSConfiguration) =>
+        cmsField(config, cmsEditor(config, 'languages').fields, 'code'),
+      canonical: (value: string) =>
+        languageSchema.shape.code.safeParse(value).success,
+      accepted: ['en', 'eng', 'en-GB'],
+      rejected: ['', 'EN', 'e', 'en-gb', '../en'],
+    },
+    {
+      label: 'required CV download filename',
+      field: (config: CMSConfiguration) => {
+        const cv = cmsField(
+          config,
+          cmsEditor(config, 'cv_profile').fields,
+          'cv',
+        );
+        return cmsField(config, cv.fields ?? [], 'filename');
+      },
+      canonical: (value: string) =>
+        profileSchema.safeParse({
+          ...profile,
+          cv: {
+            path: '/documents/cms-fixture.pdf',
+            filename: value,
+            updatedAt: '2026-10-25',
+            language: 'en',
+          },
+        }).success,
+      accepted: ['cv.pdf', 'konstantin-arutjunov-cv.pdf'],
+      rejected: ['', '../cv.pdf', 'cv.docx', 'my cv.pdf', 'cv.pdf?key=private'],
+    },
+  ])(
+    'keeps $label patterns strict while optional fields can clear',
+    ({ field, canonical, accepted, rejected }) => {
+      const resolved = field(loadCMSConfiguration());
+      expect(resolved.required).toBe(true);
+      const pattern = cmsPattern(resolved);
+      for (const value of accepted) {
+        expect(canonical(value)).toBe(true);
+        expect(pattern.test(value)).toBe(true);
+      }
+      for (const value of rejected) {
+        expect(canonical(value)).toBe(false);
+        expect(pattern.test(value)).toBe(false);
+      }
+    },
+  );
   it('validates the canonical website copy independently of professional facts', () => {
     const copy = interfaceSchema.parse(interfaceSource);
     expect(copy.navigation.length).toBeGreaterThan(0);

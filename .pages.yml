@@ -68,9 +68,10 @@ components:
     description: Month precision only; do not invent a day.
   https:
     type: string
+    required: false
     pattern:
-      regex: ^https://[^\s]+$
-      message: Use a complete HTTPS address.
+      regex: ^(?:https://[^\s]+)?$
+      message: Use a complete HTTPS address or leave empty.
   profile_status:
     type: select
     label: Publication status
@@ -176,9 +177,10 @@ components:
       - name: email
         label: Contact email
         type: string
+        required: false
         pattern:
-          regex: ^[^\s@]+@[^\s@]+\.[^\s@]+$
-          message: Use a valid email address.
+          regex: ^(?:[^\s@]+@[^\s@]+\.[^\s@]+)?$
+          message: Use a valid email address or leave empty.
       - name: location
         label: Current location
         type: string
@@ -254,9 +256,10 @@ components:
       fallback.'
   profile_cvPreviewUrl:
     type: string
+    required: false
     pattern:
-      regex: ^https://[^\s]+$
-      message: Use a complete HTTPS address.
+      regex: ^(?:https://[^\s]+)?$
+      message: Use a complete HTTPS address or leave empty.
     label: External View CV URL
     description: Used only when a local PDF is absent. This is a view action, never a PDF download.
   profile_seo:
@@ -1436,8 +1439,9 @@ content:
           - name: endDate
             label: End month (empty if current)
             type: string
+            required: false
             pattern:
-              regex: ^\d{4}-(0[1-9]|1[0-2])$
+              regex: ^(?:\d{4}-(0[1-9]|1[0-2]))?$
               message: Use YYYY-MM or leave empty for a current role.
           - name: current
             label: Current / ongoing
@@ -1576,9 +1580,10 @@ content:
           - name: endDate
             label: End month (empty if current)
             type: string
+            required: false
             pattern:
-              regex: ^\d{4}-(0[1-9]|1[0-2])$
-              message: Use YYYY-MM or leave empty for a current role.
+              regex: ^(?:\d{4}-(0[1-9]|1[0-2]))?$
+              message: Use YYYY-MM or leave empty for a current course.
           - name: current
             label: Current / ongoing
             type: boolean
