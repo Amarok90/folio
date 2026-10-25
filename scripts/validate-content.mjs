@@ -273,10 +273,17 @@ export async function validateRepositoryContent(root = defaultRoot) {
   );
   const collections = {};
   for (const [name, schema] of Object.entries(collectionSchemas)) {
-    collections[name] = parseContentFile(
-      await readFile(resolve(root, `src/content/${name}.json`), 'utf8'),
-      schema,
-    );
+    const path = `src/content/${name}.json`;
+    try {
+      collections[name] = parseContentFile(
+        await readFile(resolve(root, path), 'utf8'),
+        schema,
+      );
+    } catch (error) {
+      throw new Error(`Invalid collection ${path}: ${error.message}`, {
+        cause: error,
+      });
+    }
   }
   validateContentReferences({
     expertise: collections.expertise,

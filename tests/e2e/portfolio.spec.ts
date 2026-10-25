@@ -1,13 +1,8 @@
 import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
+import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import profileInput from '../../src/data/profile.json' with { type: 'json' };
-import expertiseInput from '../../src/content/expertise.json' with { type: 'json' };
-import projectsInput from '../../src/content/case-studies.json' with { type: 'json' };
-import skillsInput from '../../src/content/skills.json' with { type: 'json' };
-import experienceInput from '../../src/content/experience.json' with { type: 'json' };
-import educationInput from '../../src/content/education.json' with { type: 'json' };
-import languagesInput from '../../src/content/languages.json' with { type: 'json' };
 import interfaceInput from '../../src/data/interface.json' with { type: 'json' };
 import mediaInput from '../../src/data/media.json' with { type: 'json' };
 import {
@@ -20,18 +15,55 @@ import {
   experienceSchema,
   educationSchema,
   languageSchema,
+  parseContentFile,
   sectionTargetSchema,
 } from '../../src/lib/content';
 
 const profileSource = profileSchema.parse(profileInput);
-const expertiseSource = expertiseSchema.array().parse(expertiseInput);
-const projectsSource = caseStudySchema.array().parse(projectsInput);
-const skillsSource = skillSchema.array().parse(skillsInput);
+const expertiseSource = parseContentFile(
+  readFileSync(
+    new URL('../../src/content/expertise.json', import.meta.url),
+    'utf8',
+  ),
+  expertiseSchema,
+);
+const projectsSource = parseContentFile(
+  readFileSync(
+    new URL('../../src/content/case-studies.json', import.meta.url),
+    'utf8',
+  ),
+  caseStudySchema,
+);
+const skillsSource = parseContentFile(
+  readFileSync(
+    new URL('../../src/content/skills.json', import.meta.url),
+    'utf8',
+  ),
+  skillSchema,
+);
 const ui = interfaceSchema.parse(interfaceInput);
 const mediaSource = mediaSchema.parse(mediaInput);
-const experienceSource = experienceSchema.array().parse(experienceInput);
-const educationSource = educationSchema.array().parse(educationInput);
-const languagesSource = languageSchema.array().parse(languagesInput);
+const experienceSource = parseContentFile(
+  readFileSync(
+    new URL('../../src/content/experience.json', import.meta.url),
+    'utf8',
+  ),
+  experienceSchema,
+);
+const educationSource = parseContentFile(
+  readFileSync(
+    new URL('../../src/content/education.json', import.meta.url),
+    'utf8',
+  ),
+  educationSchema,
+);
+const languagesSource = parseContentFile(
+  readFileSync(
+    new URL('../../src/content/languages.json', import.meta.url),
+    'utf8',
+  ),
+  languageSchema,
+);
 
 const published = (record: { status: string; visible: boolean }) =>
   record.status === 'published' && record.visible;

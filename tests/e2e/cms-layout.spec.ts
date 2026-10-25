@@ -14,7 +14,11 @@ import { createServer, type Server } from 'node:http';
 import { tmpdir } from 'node:os';
 import { extname, join, resolve, sep } from 'node:path';
 import { spawnSync } from 'node:child_process';
-import { interfaceSchema, parsePublicProfile } from '../../src/lib/content';
+import {
+  interfaceSchema,
+  parseCollectionJSON,
+  parsePublicProfile,
+} from '../../src/lib/content';
 
 // Valid boundary-length CMS content is tested in its own source/build/cache.
 // No owner's content is changed and no fixture enters the production artifact.
@@ -80,7 +84,7 @@ test.describe('CMS-managed navigation layout boundaries', () => {
     expect(labels.every((link) => link.label.length === 28)).toBe(true);
     const ui = interfaceSchema.parse(input);
     writeFileSync(join(fixture, 'src/data/interface.json'), JSON.stringify(ui));
-    const categories = JSON.parse(
+    const categories = parseCollectionJSON(
       readFileSync(join(fixture, 'src/content/expertise.json'), 'utf8'),
     );
     ratingCategoryId = 'cms-assessment-category';
@@ -96,7 +100,7 @@ test.describe('CMS-managed navigation layout boundaries', () => {
       join(fixture, 'src/content/expertise.json'),
       JSON.stringify(categories),
     );
-    const skills = JSON.parse(
+    const skills = parseCollectionJSON(
       readFileSync(join(fixture, 'src/content/skills.json'), 'utf8'),
     );
     skills.push(

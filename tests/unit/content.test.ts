@@ -13,6 +13,7 @@ import {
   languageSchema,
   localAssetPathSchema,
   monthSchema,
+  parseCollectionJSON,
   parseContentFile,
   parsePublishedContentFile,
   parsePublicProfile,
@@ -198,6 +199,27 @@ describe('published professional content provenance', () => {
 });
 
 describe('publication and ordering', () => {
+  it.each(['', ' ', '\n\r\t', '[]'])(
+    'accepts the CMS empty collection representation %j',
+    (source) => {
+      expect(parseCollectionJSON(source)).toEqual([]);
+      expect(parseContentFile(source, languageSchema)).toEqual([]);
+      expect(parsePublishedContentFile(source, languageSchema)).toEqual([]);
+    },
+  );
+
+  it.each(['null', '{}', '0', '""', '[', '[{}', 'invalid JSON'])(
+    'rejects non-array or malformed collection input %j',
+    (source) => {
+      expect(() => parseCollectionJSON(source)).toThrow();
+      expect(() => parseContentFile(source, languageSchema)).toThrow();
+    },
+  );
+
+  it('still validates record shapes after parsing nonempty arrays', () => {
+    expect(() => parseContentFile('[{}]', languageSchema)).toThrow();
+  });
+
   it('defaults to hidden draft and requires both publication switches', () => {
     expect(publicationSchema.parse({})).toEqual({
       status: 'draft',

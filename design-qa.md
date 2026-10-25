@@ -29,10 +29,18 @@ Local quality gates, final screenshots, production publication and remaining liv
 
 Independent visual review found no P0/P1/P2 issue in the current desktop, tablet and mobile screenshots. The approximately matched composition follows the owner’s later opaque-photo and no-hands requirements; it is not claimed as an exact replica or new owner approval.
 
-Local evidence: 187 unit tests, 10 isolated CMS integration tests, 40 project-base browser checks, 40 normal browser checks and 19 analytics/consent checks passed in Opera. Type checking, lint, formatting, dependency audit, content validation, static build and automated WCAG checks passed. Local Lighthouse: mobile performance 97, other categories 100; desktop all categories 100. The complete gate passed again after incorporating the real uploaded photo. A final CMS configuration check also passed after clarifying the retained legacy illustration.
+Local evidence: 199 unit tests, 11 isolated CMS integration tests, 40 project-base browser checks, 40 normal browser checks and 19 analytics/consent checks passed in Opera. Type checking, lint, formatting, dependency audit, content validation, static build and automated WCAG checks passed. Local Lighthouse: mobile performance 97, other categories 100; desktop all categories 100. The complete gate passed again after incorporating the real uploaded photo. A final CMS configuration check also passed after clarifying the retained legacy illustration.
 
 Real portrait upload and selection published successfully in 102 and 105 seconds respectively. PDF upload and selection seven seconds apart cancelled the older publication and published the newer snapshot. These are hosted CMS/GitHub evidence, not local simulations.
 
 The first full remote gate safely rejected an E2E assertion against the headless Chromium PDF viewer URL. The test now verifies the real click, separate popup, HTTP 200 PDF response, valid PDF bytes and actual download. Both complete 40-test browser suites pass in the supported Chromium Headless 156, and the focused CV test also passes in Opera. Production PDF behaviour was not changed.
 
-Current result: local candidate passed; final code publication and live-host verification pending.
+Release 8c1a222 passed the full remote gate and deployed. Public Opera passed 34 E2E checks at 320–1920px; real-host Lighthouse scored mobile 99/100/100/100 and desktop 100/100/100/100. Headed Opera opened the selected three-page PDF in a separate tab, and its 802,056 production bytes matched the owner-uploaded file.
+
+A further authenticated Languages test exposed an upstream Pages CMS serializer defect: saving after removing the last list item produced a zero-byte file (commit 78478df), rather than JSON []. Its deployment was safely blocked. The correction recognises trim-empty input only for the seven list collections, routes all list readers through the same parser and validates every collection before Astro can silently skip a failed loader. Required singleton objects, malformed nonempty JSON, invalid records, missing files and invalid references remain rejected. The real CMS-generated zero-byte source is retained as verification evidence, without manufacturing a replacement [].
+
+The new integration scenario passes with all seven lists blank or whitespace, three blank singleton objects rejected, malformed and non-array lists rejected, and a missing list rejected. Direct Astro builds share these boundaries.
+
+The final correction passed all gates in Opera: typecheck, lint, format, 199 unit tests, 11 CMS integration tests, 40 project-base checks, 40 E2E checks, 19 consent/analytics checks, audit, content validation and build. Lighthouse remained mobile 97/100/100/100 and desktop all 100. An independent code review confirmed that collection-only compatibility preserves strict singleton, record, identifier and reference validation.
+
+Current result: final parser correction passed locally; remote publication verification pending.

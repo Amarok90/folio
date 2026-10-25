@@ -475,12 +475,23 @@ export function publishedEntries<
     });
 }
 
+/** Pages CMS serializes a list with no items as a blank file, rather than `[]`.
+ * Only collection readers use this boundary; singleton objects remain strict JSON.
+ */
+export function parseCollectionJSON(source: string): unknown[] {
+  if (source.trim() === '') return [];
+  const value: unknown = JSON.parse(source);
+  if (!Array.isArray(value))
+    throw new Error('A CMS collection must contain a JSON array.');
+  return value;
+}
+
 /** JSON file loaders use the same schemas as tests and reject duplicate CMS identifiers. */
 export function parseContentFile<T extends { id: string }>(
   source: string,
   schema: z.ZodType<T>,
 ): T[] {
-  const records = z.array(schema).parse(JSON.parse(source) as unknown);
+  const records = z.array(schema).parse(parseCollectionJSON(source));
   const ids = new Set<string>();
   for (const record of records) {
     if (ids.has(record.id))

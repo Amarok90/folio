@@ -17,6 +17,7 @@ import { imageMetadata } from 'astro/assets/utils';
 import { getFileInfo } from 'prettier';
 import { validateRepositoryContent } from '../../scripts/validate-content.mjs';
 import {
+  parseCollectionJSON,
   parsePublicProfile,
   sectionTargetSchema,
 } from '../../src/lib/content.ts';
@@ -38,10 +39,7 @@ let fixture;
 let baselineHTML;
 const originals = new Map();
 const uploaded = [];
-const contentPaths = [
-  'src/data/profile.json',
-  'src/data/interface.json',
-  'src/data/media.json',
+const collectionPaths = [
   'src/content/professional-highlights.json',
   'src/content/case-studies.json',
   'src/content/skills.json',
@@ -49,6 +47,12 @@ const contentPaths = [
   'src/content/experience.json',
   'src/content/education.json',
   'src/content/languages.json',
+];
+const contentPaths = [
+  'src/data/profile.json',
+  'src/data/interface.json',
+  'src/data/media.json',
+  ...collectionPaths,
 ];
 const escapedText = (value) =>
   value
@@ -59,7 +63,12 @@ const escapedText = (value) =>
     .replaceAll('"', '&quot;');
 
 const pathFor = (path) => join(fixture, path);
-const readJSON = (path) => JSON.parse(readFileSync(pathFor(path), 'utf8'));
+const readJSON = (path) => {
+  const raw = readFileSync(pathFor(path), 'utf8');
+  return collectionPaths.includes(path)
+    ? parseCollectionJSON(raw)
+    : JSON.parse(raw);
+};
 function saveJSON(path, value) {
   // Match the observed Pages CMS commit serialization, including no final newline.
   writeFileSync(pathFor(path), JSON.stringify(value, null, 2));
@@ -176,7 +185,111 @@ test(
 
     // Ignoring CMS serialization never permits malformed JSON to publish.
     writeFileSync(pathFor('src/content/skills.json'), '[{"id":');
-    await assert.rejects(() => validateRepositoryContent(fixture), SyntaxError);
+    await assert.rejects(
+      () => validateRepositoryContent(fixture),
+      (error) =>
+        error instanceof Error &&
+        error.message.includes('src/content/skills.json') &&
+        error.cause instanceof SyntaxError,
+    );
+  },
+);
+
+test(
+  'CMS collection clearing: all seven blank or whitespace files publish empty sections while malformed, missing collections and blank objects fail',
+  { timeout: 120_000 },
+  async () => {
+    const ui = readJSON('src/data/interface.json');
+    assert.equal(collectionPaths.length, 7);
+    for (const cleared of ['', ' \n\t \r\n']) {
+      for (const path of collectionPaths) {
+        writeFileSync(pathFor(path), cleared);
+        assert.deepEqual(
+          readJSON(path),
+          [],
+          `${path} must clear to an empty list`,
+        );
+      }
+      await validateRepositoryContent(fixture);
+      const html = build(true, true);
+      for (const message of [
+        ui.highlights.emptyMessage,
+        ui.expertise.emptyMessage,
+        ui.projects.emptyMessage,
+        ui.journey.emptyMessage,
+      ])
+        assert.ok(
+          html.includes(escapedText(message)),
+          `Missing empty state: ${message}`,
+        );
+      for (const section of [
+        'highlights',
+        'expertise',
+        'projects',
+        'experience',
+        'about',
+      ])
+        assert.ok(
+          html.includes(`id="${section}"`),
+          `Missing section: ${section}`,
+        );
+      for (const className of ['skill-row', 'project-card', 'career-step'])
+        assert.ok(
+          !new RegExp(`<[^>]+class="[^"]*\\b${className}\\b`).test(html),
+          `Cleared collection still rendered ${className}`,
+        );
+      assert.ok(!html.includes('id="education-'));
+      assert.ok(!html.includes('id="language-'));
+    }
+
+    // Empty array files are a CMS clearing format; required object files remain strict.
+    for (const objectPath of [
+      'src/data/profile.json',
+      'src/data/media.json',
+      'src/data/interface.json',
+    ]) {
+      writeFileSync(pathFor(objectPath), '');
+      await assert.rejects(
+        () => validateRepositoryContent(fixture),
+        SyntaxError,
+      );
+      build(false);
+      writeFileSync(pathFor(objectPath), originals.get(objectPath));
+    }
+
+    // A non-empty malformed document or object is never mistaken for a cleared list.
+    writeFileSync(pathFor(collectionPaths[0]), '[{"id":');
+    await assert.rejects(
+      () => validateRepositoryContent(fixture),
+      (error) =>
+        error instanceof Error &&
+        error.message.includes(collectionPaths[0]) &&
+        error.cause instanceof SyntaxError,
+    );
+    build(false);
+    writeFileSync(pathFor(collectionPaths[0]), '{}');
+    await assert.rejects(
+      () => validateRepositoryContent(fixture),
+      (error) =>
+        error instanceof Error &&
+        error.message.includes(collectionPaths[0]) &&
+        /JSON array/.test(error.cause?.message ?? ''),
+    );
+    build(false);
+    writeFileSync(pathFor(collectionPaths[0]), '');
+
+    // A missing canonical file remains an error; only existing blank files clear lists.
+    const missingPath = 'src/content/languages.json';
+    rmSync(pathFor(missingPath));
+    await assert.rejects(
+      () => validateRepositoryContent(fixture),
+      (error) =>
+        error instanceof Error &&
+        error.message.includes(missingPath) &&
+        error.cause?.code === 'ENOENT',
+    );
+    build(false);
+    writeFileSync(pathFor(missingPath), originals.get(missingPath));
   },
 );
 
