@@ -1,8 +1,12 @@
 {
   "portrait": {
     "path": "/src/assets/professional-portrait.png",
-    "alt": "Konstantin Arutjunov in a dark blazer",
+    "alt": "Konstantin Arutjunov in a dark blazer.",
     "temporary": false
+  },
+  "aboutPortrait": {
+    "path": "/src/assets/about-dubai.jpg",
+    "alt": "Konstantin Arutjunov overlooking the Dubai skyline"
   },
   "alpine": {
     "path": "/src/assets/alpine.webp"
@@ -31,9 +35,5 @@
       "alt": "Illustrative mobile insurance application",
       "illustrative": true
     }
-  ],
-  "aboutPortrait": {
-    "path": "/src/assets/about-dubai.jpg",
-    "alt": "Konstantin Arutjunov overlooking the Dubai skyline"
-  }
+  ]
 }
