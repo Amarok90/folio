@@ -1,6 +1,6 @@
 {
   "portrait": {
-    "path": "/src/assets/portrait.png",
+    "path": "/src/assets/my.jpeg",
     "alt": "Temporary professional portrait, to be replaced with Konstantin’s own photo",
     "temporary": true
   },
@@ -15,7 +15,6 @@
     "alt": "Illustrative laptop with a blue analytics dashboard in a naturally lit workspace",
     "illustrative": true
   },
-  "logo": null,
   "projects": [
     {
       "path": "/src/assets/banking-review.webp",
