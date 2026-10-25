@@ -17,7 +17,6 @@
   },
   "about": {
     "summary": "I like to make complex things clear. My engineering background gives me a practical perspective: understand what people need, ask the right questions, and shape a solution that works in the real world. I value thoughtful collaboration, clear communication and the discipline to follow an idea through to delivery. Based in Estonia, I am open to my next opportunity in Switzerland.",
-    "interests": [],
     "approach": [
       {
         "title": "Understand the Business",
@@ -40,7 +39,7 @@
   "contact": {
     "email": "konstantin.arutjunov@gmail.com",
     "location": "Estonia",
-    "openToRelocation": true,
+    "openToRelocation": false,
     "availability": "Open to opportunities in Switzerland",
     "links": [
       {
@@ -57,8 +56,7 @@
   },
   "seo": {
     "title": "Konstantin Arutjunov — Senior IT Business Analyst",
-    "description": "Senior IT Business Analyst with 10+ years across banking, lending and financial services. Based in Estonia and open to opportunities in Switzerland.",
-    "socialImage": null
+    "description": "Senior IT Business Analyst with 10+ years across banking, lending and financial services. Based in Estonia and open to opportunities in Switzerland."
   },
   "cvPreviewUrl": "https://www.linkedin.com/in/konstantin-arutjunov/overlay/1753005451683/single-media-viewer/?profileId=ACoAABmyyD0B2egZyOVt5zRFatDd-ssMM7VpIxA"
 }
