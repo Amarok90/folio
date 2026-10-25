@@ -88,9 +88,9 @@
   },
   {
     "id": "cms-project-check",
-    "order": 0,
+    "order": 99,
     "status": "draft",
-    "visible": false,
+    "visible": true,
     "title": "CMS verification record",
     "summary": "Temporary hidden record for CMS workflow verification.",
     "challenge": "Verify image upload and optional fields.",
