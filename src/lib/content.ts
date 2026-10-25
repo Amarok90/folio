@@ -49,6 +49,9 @@ export const mediaSchema = z
     portrait: z
       .object({ path: imageAssetPathSchema, alt: text, temporary: z.boolean() })
       .strict(),
+    aboutPortrait: optionalObject(
+      z.object({ path: imageAssetPathSchema, alt: text }).strict(),
+    ),
     alpine: z.object({ path: imageAssetPathSchema }).strict(),
     contact: z.object({ path: imageAssetPathSchema }).strict(),
     analytics: optionalObject(imageSchema),
@@ -160,6 +163,7 @@ export const interfaceSchema = z
         earlierLabel: shortCopy,
         detailsLabel: shortCopy,
         presentLabel: shortCopy,
+        currentLabel: shortCopy.default('Current position'),
         emptyMessage: paragraphCopy,
       })
       .strict(),
@@ -169,6 +173,7 @@ export const interfaceSchema = z
         approachTitle: shortCopy,
         educationTitle: shortCopy,
         languagesTitle: shortCopy,
+        interestsTitle: shortCopy.default('Interests'),
         emptyDescription: paragraphCopy,
       })
       .strict(),

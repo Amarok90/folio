@@ -411,6 +411,10 @@ test(
       alt: 'CMS integration portrait fixture',
       temporary: true,
     };
+    media.aboutPortrait = {
+      path: `/${uploadedPath}`,
+      alt: 'CMS integration About photograph fixture',
+    };
     media.logo = {
       path: `/${uploadedPath}`,
       alt: 'CMS integration logo fixture',
@@ -425,7 +429,12 @@ test(
     const html = build();
     assert.equal(
       (html.match(/alt="CMS integration portrait fixture"/g) ?? []).length,
-      2,
+      1,
+    );
+    assert.equal(
+      (html.match(/alt="CMS integration About photograph fixture"/g) ?? [])
+        .length,
+      1,
     );
     assert.equal(
       (html.match(/alt="CMS integration logo fixture"/g) ?? []).length,
@@ -479,6 +488,20 @@ test(
     assert.ok(
       !/<figure\b[^>]*class="expertise-visual"/.test(withoutAnalytics),
       'Clearing legacy optional analytics media must keep the Skills illustration absent.',
+    );
+    media.aboutPortrait = { path: '', alt: '' };
+    saveJSON('src/data/media.json', media);
+    await validateRepositoryContent(fixture);
+    const fallbackHTML = build();
+    assert.equal(
+      (fallbackHTML.match(/alt="CMS integration portrait fixture"/g) ?? [])
+        .length,
+      2,
+      'Clearing the optional About photograph must safely reuse the Hero photograph and its alt text.',
+    );
+    assert.doesNotMatch(
+      fallbackHTML,
+      /alt="CMS integration About photograph fixture"/,
     );
   },
 );

@@ -2,25 +2,28 @@
 import { interfaceContent as ui } from '../../data/interface';
 import { Image } from 'astro:assets';
 import { getCollection } from 'astro:content';
-import type { ImageMetadata } from 'astro';
 import { media } from '../../config/media';
 import { profile } from '../../data/profile';
 import { isPublished, publishedEntries } from '../../lib/content';
 import Icon from '../ui/Icon.astro';
 
-interface Props {
-  image: ImageMetadata;
-  background?: ImageMetadata;
-}
-const { image, background } = Astro.props;
-const education = publishedEntries(await getCollection('education'));
-const languages = publishedEntries(await getCollection('languages'));
+const [educationEntries, languageEntries] = await Promise.all([
+  getCollection('education'),
+  getCollection('languages'),
+]);
+const education = publishedEntries(educationEntries);
+const languages = publishedEntries(languageEntries);
 const publicProfile = isPublished(profile) ? profile : null;
-const approachIcons = ['contact', 'workflow', 'users', 'shield'] as const;
+const approachIcons = ['target', 'workflow', 'users', 'chart'] as const;
 const approach = profile.about.approach.map((item, index) => ({
   ...item,
-  icon: approachIcons[index] ?? 'shield',
+  icon: approachIcons[index] ?? 'target',
 }));
+const hasPersonalDetails =
+  education.length > 0 ||
+  languages.length > 0 ||
+  Boolean(publicProfile?.contact.location) ||
+  (publicProfile?.about.interests.length ?? 0) > 0;
 const monthLabel = (date: string): string => {
   const [year, month] = date.split('-').map(Number);
   return new Intl.DateTimeFormat('en', {
@@ -34,59 +37,35 @@ const monthLabel = (date: string): string => {
 <section
   id="about"
   aria-labelledby="about-title"
-  class="portfolio-section about"
+  class:list={[
+    'portfolio-section',
+    'about',
+    { 'about--without-details': !hasPersonalDetails },
+  ]}
 >
-  <div class="section-intro about__heading">
-    <p class="eyebrow">{ui.about.eyebrow}</p>
-    <h2 id="about-title">{ui.about.titleLines.join(' ')}</h2>
-  </div>
+  <p class="eyebrow about__eyebrow">{ui.about.eyebrow}</p>
   <figure class="about__portrait">
-    {background && (
-      <Image
-        class="about__landscape"
-        src={background}
-        alt=""
-        widths={[480, 720]}
-        sizes="(max-width: 639px) 90vw, (max-width: 1023px) 40vw, 25vw"
-        loading="lazy"
-        decoding="async"
-      />
-    )}
-    <div class="about__portrait-mist" aria-hidden="true" />
     <Image
       class="about__person"
-      src={image}
-      alt={media.portraitAlt}
-      widths={[320, 480, 720]}
-      sizes="(max-width: 639px) 90vw, (max-width: 1023px) 40vw, 25vw"
+      src={media.aboutPortrait}
+      alt={media.aboutPortraitAlt}
+      widths={[320, 480, 720, 960]}
+      sizes="(max-width: 25rem) 85vw, (max-width: 47.99rem) 352px, (max-width: 63.99rem) 30vw, 400px"
       loading="lazy"
       decoding="async"
     />
-    {media.portraitTemporary && (
+    {media.aboutPortraitTemporary && (
       <figcaption>{ui.common.portraitNote}</figcaption>
     )}
   </figure>
 
   <div class="section-intro about__intro">
+    <h2 id="about-title">{ui.about.titleLines.join(' ')}</h2>
     <p>{publicProfile?.about.summary ?? ui.about.emptyDescription}</p>
-    {publicProfile && publicProfile.about.interests.length > 0 && (
-      <ul class="about__interests" aria-label="Personal interests">
-        {publicProfile.about.interests.map((interest) => (
-          <li>{interest}</li>
-        ))}
-      </ul>
-    )}
-    <a class="text-link about__story" href={ui.about.action.href}>
-      {ui.about.action.label} <Icon name="arrow" />
-    </a>
   </div>
 
   <div class="section-body about__body">
-    <div class="about__approach-heading">
-      <Icon name="complete" />
-      <h3>{ui.about.approachTitle}</h3>
-      {!publicProfile && <span>Approach preview</span>}
-    </div>
+    <h3 class="about__approach-heading">{ui.about.approachTitle}</h3>
     <ol
       class="approach-list"
       aria-label={
@@ -105,11 +84,13 @@ const monthLabel = (date: string): string => {
         </li>
       ))}
     </ol>
+    <a class="text-link about__story" href={ui.about.action.href}>
+      {ui.about.action.label} <Icon name="arrow" />
+    </a>
   </div>
-  {(education.length > 0 ||
-    languages.length > 0 ||
-    publicProfile?.contact.location) && (
-    <div class="about__details">
+
+  {hasPersonalDetails && (
+    <aside class="about__details" aria-label="Personal information">
       {education.length > 0 && (
         <div class="about-detail about-detail--education">
           <Icon name="education" />
@@ -168,75 +149,54 @@ const monthLabel = (date: string): string => {
           </div>
         </div>
       )}
-    </div>
+      {publicProfile && publicProfile.about.interests.length > 0 && (
+        <div class="about-detail">
+          <Icon name="compass" />
+          <div>
+            <h3>{ui.about.interestsTitle}</h3>
+            <ul class="about__interests">
+              {publicProfile.about.interests.map((interest) => (
+                <li>{interest}</li>
+              ))}
+            </ul>
+          </div>
+        </div>
+      )}
+    </aside>
   )}
 </section>
 
 <style>
   .about.portfolio-section {
-    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.15fr) minmax(0, 1.25fr);
-    gap: clamp(var(--space-6), 3vw, var(--space-10));
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.65fr) minmax(0, 0.8fr);
     align-items: start;
+    gap: var(--space-5) clamp(var(--space-5), 2.5vw, var(--space-8));
   }
-  .about__heading {
+  .about__eyebrow {
     grid-column: 1 / -1;
-  }
-  .about__heading h2 {
-    max-width: none;
-    margin-bottom: 0;
-  }
-  .about__intro > p:not(.eyebrow) {
-    max-width: 44ch;
-    font-size: var(--text-small);
-    line-height: 1.75;
-  }
-  .about__story {
-    margin-top: var(--space-6);
-  }
-  .about__interests {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-2) var(--space-4);
-    padding-left: var(--space-4);
-    margin-block: var(--space-4) 0;
-    color: var(--color-text-secondary);
-    font-size: var(--text-small);
   }
   .about__portrait {
     position: relative;
-    align-self: stretch;
+    grid-column: 1;
+    grid-row: 2 / 4;
+    align-self: start;
+    width: 100%;
+    aspect-ratio: 4 / 5;
     min-width: 0;
-    min-height: 22rem;
+    min-height: 0;
+    max-height: 26rem;
     margin: 0;
     overflow: hidden;
     border-radius: var(--radius-card);
     background: var(--color-background-secondary);
   }
-  .about__portrait .about__landscape {
+  .about__person {
     position: absolute;
     inset: 0;
     width: 100%;
     height: 100%;
     object-fit: cover;
-    object-position: 65% center;
-  }
-  .about__portrait-mist {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      180deg,
-      color-mix(in srgb, var(--color-background-secondary) 16%, transparent),
-      color-mix(in srgb, var(--color-background-secondary) 8%, transparent) 60%,
-      color-mix(in srgb, var(--color-background-secondary) 55%, transparent)
-    );
-  }
-  .about__portrait .about__person {
-    position: absolute;
-    inset: 0;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: center bottom;
+    object-position: 35% 70%;
   }
   .about__portrait figcaption {
     position: absolute;
@@ -250,153 +210,191 @@ const monthLabel = (date: string): string => {
     line-height: 1.45;
     text-align: center;
   }
+  .about__intro {
+    grid-column: 2;
+    grid-row: 2;
+  }
+  .about__intro h2 {
+    max-width: none;
+    margin-block: var(--space-1) var(--space-3);
+    font-size: clamp(1.6rem, 2.5vw, 2rem);
+    line-height: 1.15;
+    letter-spacing: -0.04em;
+  }
+  .about__intro > p:not(.eyebrow) {
+    max-width: none;
+    font-size: var(--text-small);
+    line-height: 1.7;
+  }
   .about__body {
+    grid-column: 2;
+    grid-row: 3;
     min-width: 0;
-    display: flex;
-    flex-direction: column;
   }
   .about__approach-heading {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    gap: var(--space-2);
-    margin-bottom: var(--space-5);
-  }
-  .about__approach-heading > :global(.icon) {
-    width: var(--space-4);
-    height: var(--space-4);
+    margin-bottom: var(--space-4);
     color: var(--color-primary-text);
-  }
-  .about__approach-heading h3 {
-    font-size: var(--text-h5);
-    letter-spacing: -0.025em;
-  }
-  .about__approach-heading > span {
-    margin-left: auto;
-    color: var(--color-text-muted);
-    font-size: var(--text-caption);
+    font-size: var(--text-small);
+    line-height: 1.5;
+    letter-spacing: 0;
   }
   .approach-list {
     display: grid;
-    gap: var(--space-5);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-5) var(--space-4);
     margin: 0;
     padding: 0;
     list-style: none;
   }
   .approach-list li {
-    display: flex;
+    display: grid;
+    grid-template-columns: var(--space-8) minmax(0, 1fr);
     align-items: start;
-    gap: var(--space-3);
+    gap: var(--space-2);
+    min-width: 0;
   }
   .approach-list__icon {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    flex-shrink: 0;
-    width: var(--space-10);
-    height: var(--space-10);
+    width: var(--space-8);
+    height: var(--space-8);
     border: 1px solid var(--color-border);
     border-radius: var(--radius-pill);
-    background: var(--color-surface);
+    background: var(--color-background-secondary);
     color: var(--color-primary-text);
   }
+  .approach-list__icon :global(.icon) {
+    width: var(--space-4);
+    height: var(--space-4);
+  }
   .approach-list h4 {
-    font-size: var(--text-small);
-    letter-spacing: -0.01em;
+    font-size: var(--text-caption);
     line-height: 1.5;
+    letter-spacing: -0.01em;
   }
   .approach-list p {
     margin-top: var(--space-1);
     color: var(--color-text-secondary);
     font-size: var(--text-caption);
-    line-height: 1.65;
+    line-height: 1.6;
+  }
+  .about__story {
+    margin-top: var(--space-4);
   }
   .about__details {
-    grid-column: 1 / -1;
+    grid-column: 3;
+    grid-row: 2 / 4;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+    align-content: start;
     gap: var(--space-6);
-    padding-top: var(--space-6);
-    border-top: 1px solid var(--color-divider);
+    align-self: stretch;
+    min-width: 0;
+    padding-left: var(--space-5);
+    border-left: 1px solid var(--color-border);
   }
   .about-detail {
-    display: flex;
+    display: grid;
+    grid-template-columns: var(--space-5) minmax(0, 1fr);
     align-items: start;
     gap: var(--space-2);
     min-width: 0;
   }
-  .about-detail > div {
+  .about-detail > :global(.icon) {
+    width: var(--space-5);
+    height: var(--space-5);
+    color: var(--color-primary-text);
+  }
+  .about-detail > div,
+  .about__intro,
+  .approach-list li > div {
     min-width: 0;
     overflow-wrap: anywhere;
   }
-  .about-detail > :global(.icon) {
-    width: var(--space-4);
-    height: var(--space-4);
-    color: var(--color-primary-text);
-  }
   .about-detail h3 {
-    margin-bottom: var(--space-3);
-    font-size: var(--text-small);
-    letter-spacing: 0;
+    margin-bottom: var(--space-2);
+    font-size: var(--text-caption);
     line-height: 1.5;
+    letter-spacing: 0;
   }
   .about-detail h4 {
     font-size: var(--text-caption);
-    line-height: 1.65;
+    line-height: 1.6;
     letter-spacing: 0;
   }
   .about-detail p,
   .about-detail ul {
     color: var(--color-text-secondary);
     font-size: var(--text-caption);
-    line-height: 1.65;
+    line-height: 1.6;
   }
-  .education-list {
-    display: grid;
-    gap: var(--space-4);
-    margin: 0;
-    padding: 0;
-    list-style: none;
-  }
-  .education-dates {
-    margin-top: var(--space-1);
-    font-variant-numeric: tabular-nums;
-  }
+  .education-list,
   .about-detail ul {
     margin: 0;
     padding: 0;
     list-style: none;
   }
-  .about-detail li + li {
-    margin-top: var(--space-2);
+  .education-list {
+    display: grid;
+    gap: var(--space-4);
+  }
+  .education-dates {
+    margin-top: var(--space-1);
+    font-variant-numeric: tabular-nums;
+  }
+  .about-detail ul li + li {
+    margin-top: var(--space-1);
+  }
+  .about--without-details .about__intro,
+  .about--without-details .about__body {
+    grid-column: 2 / -1;
   }
   @media (width < 64rem) {
     .about.portfolio-section {
-      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
-      gap: var(--space-8);
-    }
-    .about__body {
-      grid-column: 1 / -1;
-    }
-    .approach-list {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.7fr);
       gap: var(--space-6);
     }
+    .about__details {
+      grid-column: 1 / -1;
+      grid-row: 4;
+      grid-template-columns: repeat(auto-fit, minmax(min(100%, 13rem), 1fr));
+      padding-top: var(--space-5);
+      padding-left: 0;
+      border-top: 1px solid var(--color-divider);
+      border-left: 0;
+    }
   }
-  @media (width < 40rem) {
+  @media (width < 48rem) {
     .about.portfolio-section {
       grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-8);
+      gap: var(--space-6);
+    }
+    .about__intro,
+    .about--without-details .about__intro {
+      grid-column: 1;
+      grid-row: 2;
     }
     .about__portrait {
-      aspect-ratio: 4 / 5;
+      grid-column: 1;
+      grid-row: 3;
       width: min(100%, 22rem);
-      min-height: 0;
       justify-self: center;
     }
+    .about__body,
+    .about--without-details .about__body {
+      grid-column: 1;
+      grid-row: 4;
+    }
+    .about__details {
+      grid-row: 5;
+    }
+    .about__intro h2 {
+      font-size: var(--text-h2);
+    }
+  }
+  @media (width < 25rem) {
     .approach-list {
       grid-template-columns: minmax(0, 1fr);
-      gap: var(--space-5);
     }
   }
 </style>

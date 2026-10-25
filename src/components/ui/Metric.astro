@@ -15,3 +15,31 @@ const { value, label, description, icon } = Astro.props;
   <p class="metric__label">{label}</p>
   {description && <p class="metric__description">{description}</p>}
 </div>
+
+<style>
+  @layer components {
+    .metric {
+      display: grid;
+      gap: var(--space-2);
+    }
+    .metric :global(.metric__icon) {
+      color: var(--color-primary-text);
+      margin-bottom: var(--space-2);
+    }
+    .metric__value {
+      font-size: var(--text-h2);
+      line-height: 1.1;
+      font-weight: var(--weight-semibold);
+      letter-spacing: var(--tracking-heading);
+      font-variant-numeric: tabular-nums;
+    }
+    .metric__label {
+      font-size: var(--text-small);
+      font-weight: var(--weight-semibold);
+    }
+    .metric__description {
+      font-size: var(--text-small);
+      color: var(--color-text-secondary);
+    }
+  }
+</style>

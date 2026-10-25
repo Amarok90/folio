@@ -630,6 +630,13 @@ components:
         type: string
         options:
           maxlength: 120
+      - name: currentLabel
+        label: Current position badge
+        required: true
+        type: string
+        default: Current position
+        options:
+          maxlength: 120
       - name: emptyMessage
         label: Message when no records are published
         required: true
@@ -709,6 +716,13 @@ components:
         label: Languages heading
         required: true
         type: string
+        options:
+          maxlength: 120
+      - name: interestsTitle
+        label: Interests heading
+        required: true
+        type: string
+        default: Interests
         options:
           maxlength: 120
       - name: emptyDescription
@@ -1781,13 +1795,13 @@ content:
     type: group
     items:
       - name: media
-        label: Portrait, logo & backgrounds
+        label: Portraits, logo & backgrounds
         type: file
         path: src/data/media.json
         format: json
         fields:
           - name: portrait
-            label: Shared portrait
+            label: Hero portrait
             type: object
             fields:
               - name: path
@@ -1812,12 +1826,37 @@ content:
                 required: true
             required: true
             description:
-              'Shared by Hero and About. To replace: upload a new filename, select it here, update
+              'Used by Hero, and by About when its separate photo is empty. To replace: upload a new filename, select it here, update
               its description and Temporary portrait setting, then Save. Check Pages production
               before removing the old image. Do not rename or delete a selected file. Raster limit:
               12 MiB and 40 million pixels.'
+          - name: aboutPortrait
+            label: About photograph (optional)
+            type: object
+            fields:
+              - name: path
+                label: Choose or upload About photo
+                type: image
+                required: true
+                options:
+                  media: images
+                  extensions:
+                    - png
+                    - jpg
+                    - jpeg
+                    - webp
+                    - avif
+              - name: alt
+                label: About photo description
+                type: string
+                required: true
+            description: >-
+              A separate authentic photograph for About. Select an image and describe it; both are
+              required when either is filled. Clear both fields to use the Hero portrait instead.
+              Upload a new filename before replacing a selected image. Raster limit: 12 MiB and
+              40 million pixels.
           - name: alpine
-            label: Hero and About background
+            label: Hero background
             type: object
             fields:
               - name: path

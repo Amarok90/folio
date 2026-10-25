@@ -287,6 +287,7 @@ export async function validateRepositoryContent(root = defaultRoot) {
   validateCMSConfiguration(await readFile(resolve(root, '.pages.yml'), 'utf8'));
   const imagePaths = new Set([
     media.portrait.path,
+    ...(media.aboutPortrait ? [media.aboutPortrait.path] : []),
     media.alpine.path,
     media.contact.path,
     ...(media.analytics ? [media.analytics.path] : []),

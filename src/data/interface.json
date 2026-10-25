@@ -83,14 +83,15 @@
     "emptyMessage": "Case studies are being updated. Explore the professional journey for current experience."
   },
   "journey": {
-    "eyebrow": "Experience",
-    "titleLines": ["Professional Journey"],
+    "eyebrow": "Professional journey",
+    "titleLines": ["A Career Built on Business & Technology"],
     "description": "A foundation in engineering. A career connecting business, technology and financial services.",
     "emptyDescription": "The experience behind the work. A detailed career history is being prepared for this portfolio.",
     "earlierLabel": "Earlier experience",
     "detailsLabel": "Role highlights",
     "presentLabel": "Present",
-    "emptyMessage": "Career details are being updated."
+    "emptyMessage": "Career details are being updated.",
+    "currentLabel": "Current position"
   },
   "about": {
     "eyebrow": "About me",
@@ -102,7 +103,8 @@
     "approachTitle": "My Approach",
     "educationTitle": "Education",
     "languagesTitle": "Languages",
-    "emptyDescription": "A personal introduction will be shared here soon."
+    "emptyDescription": "A personal introduction will be shared here soon.",
+    "interestsTitle": "Interests"
   },
   "contact": {
     "eyebrow": "Let’s connect",

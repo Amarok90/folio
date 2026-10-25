@@ -17,12 +17,19 @@ export function resolveImage(path: string): ImageMetadata {
 }
 
 export const mediaConfig = mediaSchema.parse(source);
+const portrait = resolveImage(mediaConfig.portrait.path);
 
 /** Owner-managed paths remain independent of the optimized, base-aware generated URLs. */
 export const media = {
-  portrait: resolveImage(mediaConfig.portrait.path),
+  portrait,
   portraitAlt: mediaConfig.portrait.alt,
   portraitTemporary: mediaConfig.portrait.temporary,
+  aboutPortrait: mediaConfig.aboutPortrait
+    ? resolveImage(mediaConfig.aboutPortrait.path)
+    : portrait,
+  aboutPortraitAlt: mediaConfig.aboutPortrait?.alt ?? mediaConfig.portrait.alt,
+  aboutPortraitTemporary:
+    !mediaConfig.aboutPortrait && mediaConfig.portrait.temporary,
   alpine: resolveImage(mediaConfig.alpine.path),
   contact: resolveImage(mediaConfig.contact.path),
   analytics: mediaConfig.analytics

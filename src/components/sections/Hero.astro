@@ -172,10 +172,14 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
   h1 span {
     display: block;
   }
+  h1 span:last-child {
+    color: var(--color-secondary);
+  }
   .hero-headline {
     font-size: clamp(1.05rem, 1.8vw, 1.45rem);
     line-height: 1.22;
     color: var(--color-primary-text);
+    font-weight: var(--weight-medium);
     max-width: 27ch;
     margin-bottom: var(--space-4);
   }
@@ -209,7 +213,9 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     bottom: var(--space-4);
     left: 50%;
     transform: translateX(-50%);
-    white-space: nowrap;
+    width: max-content;
+    max-width: calc(100% - var(--space-6));
+    text-align: center;
     color: var(--color-text-secondary);
     background: rgb(255 255 255 / 85%);
     padding: var(--space-1) var(--space-2);

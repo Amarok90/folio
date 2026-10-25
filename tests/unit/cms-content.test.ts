@@ -123,6 +123,77 @@ describe('CMS-compatible media contracts', () => {
       false,
     );
   });
+  it('supports a separate authentic About photograph with a backward-compatible empty fallback', () => {
+    const aboutPortrait = {
+      path: '/src/assets/about-dubai.jpg',
+      alt: 'Konstantin overlooking the Dubai skyline',
+    };
+    expect(
+      mediaSchema.parse({ ...mediaSource, aboutPortrait }).aboutPortrait,
+    ).toEqual(aboutPortrait);
+    for (const value of [undefined, null, '', { path: '', alt: '' }])
+      expect(
+        mediaSchema.parse({ ...mediaSource, aboutPortrait: value })
+          .aboutPortrait,
+      ).toBeNull();
+    for (const value of [
+      { ...aboutPortrait, path: 'https://example.com/photo.jpg' },
+      { ...aboutPortrait, path: '/src/assets/photo.svg' },
+      { ...aboutPortrait, alt: '' },
+      { path: '', alt: 'A partially cleared About photograph' },
+      { ...aboutPortrait, temporary: false },
+    ])
+      expect(
+        mediaSchema.safeParse({ ...mediaSource, aboutPortrait: value }).success,
+      ).toBe(false);
+  });
+  it('validates a selected About photograph before publication', async () => {
+    const fixtureRoot = mkdtempSync(join(tmpdir(), 'folio-about-media-'));
+    const repositoryRoot = new URL('../../', import.meta.url);
+    try {
+      for (const path of [
+        'src/data',
+        'src/content',
+        'src/assets',
+        'public/documents',
+        '.pages.yml',
+      ])
+        cpSync(new URL(path, repositoryRoot), join(fixtureRoot, path), {
+          recursive: true,
+        });
+      const fixtureMedia = {
+        ...mediaSource,
+        aboutPortrait: {
+          path: '/src/assets/alpine.webp',
+          alt: 'Isolated About photograph validation fixture',
+        },
+      };
+      const saveMedia = () =>
+        writeFileSync(
+          join(fixtureRoot, 'src/data/media.json'),
+          JSON.stringify(fixtureMedia),
+        );
+      saveMedia();
+      expect(
+        (await validateRepositoryContent(fixtureRoot)).media.aboutPortrait
+          ?.path,
+      ).toBe('/src/assets/alpine.webp');
+      fixtureMedia.aboutPortrait.path = '/src/assets/missing-about.jpg';
+      saveMedia();
+      await expect(validateRepositoryContent(fixtureRoot)).rejects.toThrow(
+        /ENOENT|not found/i,
+      );
+      fixtureMedia.aboutPortrait.path = '/src/assets/invalid-about.jpg';
+      writeFileSync(
+        join(fixtureRoot, 'src/assets/invalid-about.jpg'),
+        'This is not a raster image.',
+      );
+      saveMedia();
+      await expect(validateRepositoryContent(fixtureRoot)).rejects.toThrow();
+    } finally {
+      rmSync(fixtureRoot, { recursive: true, force: true });
+    }
+  });
   it('allows an optional analytics illustration without weakening image validation', () => {
     const analytics = {
       path: '/src/assets/fintech-review.webp',
@@ -459,12 +530,47 @@ describe('owner-managed website wording and actions', () => {
     expect(cmsField(config, mediaEditor.fields, 'analytics').type).toBe(
       'object',
     );
+    const aboutPortrait = cmsField(config, mediaEditor.fields, 'aboutPortrait');
+    expect(aboutPortrait.type).toBe('object');
+    expect(aboutPortrait.required).not.toBe(true);
+    expect(
+      cmsField(config, aboutPortrait.fields ?? [], 'path').options?.['media'],
+    ).toBe('images');
     skillEditor.fields.splice(
       skillEditor.fields.findIndex((field) => field.name === 'selfAssessment'),
       1,
     );
     expect(() => validateCMSConfiguration(JSON.stringify(config))).toThrow(
       /field coverage/i,
+    );
+  });
+  it('keeps new presentation labels optional in stored content and owner-editable in CMS', () => {
+    const source = structuredClone(interfaceSource);
+    const previousJourney = { ...source.journey, currentLabel: undefined };
+    const previousAbout = { ...source.about, interestsTitle: undefined };
+    const parsed = interfaceSchema.parse({
+      ...source,
+      journey: previousJourney,
+      about: previousAbout,
+    });
+    expect(parsed.journey.currentLabel).toBe('Current position');
+    expect(parsed.about.interestsTitle).toBe('Interests');
+    const config = loadCMSConfiguration();
+    const journey = cmsField(
+      config,
+      cmsEditor(config, 'journey_wording').fields,
+      'journey',
+    );
+    const about = cmsField(
+      config,
+      cmsEditor(config, 'about_wording').fields,
+      'about',
+    );
+    expect(cmsField(config, journey.fields ?? [], 'currentLabel').type).toBe(
+      'string',
+    );
+    expect(cmsField(config, about.fields ?? [], 'interestsTitle').type).toBe(
+      'string',
     );
   });
   it('rejects a string control for numeric self-assessments instead of accepting incompatible saves', () => {

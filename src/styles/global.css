@@ -256,46 +256,6 @@
     font-weight: var(--weight-medium);
     font-size: 0.6875rem;
   }
-  .card {
-    min-width: 0;
-    padding: var(--card-padding);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    background: var(--color-surface);
-    box-shadow: var(--shadow-card);
-  }
-  .card--elevated {
-    box-shadow: var(--shadow-elevated);
-  }
-  .card--tinted {
-    background: var(--color-background-secondary);
-  }
-  .card p {
-    color: var(--color-text-secondary);
-  }
-  .metric {
-    display: grid;
-    gap: var(--space-2);
-  }
-  .metric__icon {
-    color: var(--color-primary-text);
-    margin-bottom: var(--space-2);
-  }
-  .metric__value {
-    font-size: var(--text-h2);
-    line-height: 1.1;
-    font-weight: var(--weight-semibold);
-    letter-spacing: var(--tracking-heading);
-    font-variant-numeric: tabular-nums;
-  }
-  .metric__label {
-    font-size: var(--text-small);
-    font-weight: var(--weight-semibold);
-  }
-  .metric__description {
-    font-size: var(--text-small);
-    color: var(--color-text-secondary);
-  }
   .responsive-image {
     display: block;
     width: 100%;
@@ -527,45 +487,6 @@
     font-size: 0.75rem;
     border-radius: var(--radius-button);
   }
-  .language-control {
-    position: relative;
-    font-size: 0.75rem;
-  }
-  .language-control summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: var(--touch-target);
-    list-style: none;
-    cursor: pointer;
-  }
-  .language-control summary::-webkit-details-marker {
-    display: none;
-  }
-  .language-control summary .icon:last-child {
-    width: 0.75rem;
-  }
-  .language-panel {
-    position: absolute;
-    top: calc(100% + var(--space-2));
-    right: 0;
-    z-index: var(--z-menu);
-    width: 14rem;
-    padding: var(--space-4);
-    background: var(--color-surface);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-card);
-    box-shadow: var(--shadow-elevated);
-  }
-  .language-panel strong {
-    display: flex;
-    justify-content: space-between;
-    color: var(--color-text);
-  }
-  .language-panel p {
-    color: var(--color-text-muted);
-    margin-top: var(--space-2);
-  }
   .review-note {
     display: flex;
     justify-content: center;
@@ -743,9 +664,6 @@
   }
   .brand {
     font-size: 1.05rem;
-  }
-  .language-control summary > .icon:first-child {
-    display: none;
   }
   .footer-inner {
     margin-inline: var(--space-5);

@@ -242,7 +242,7 @@ for (const width of [
     for (const [headingSelector, contentSelector] of [
       ['#projects-title', '#projects .section-body'],
       ['#experience-title', '#experience .section-body'],
-      ['#about-title', '#about .about__portrait'],
+      ['#about-title', '#about .about__intro > p'],
     ]) {
       const heading = await page.locator(headingSelector!).boundingBox();
       const content = await page.locator(contentSelector!).boundingBox();
@@ -300,10 +300,10 @@ for (const width of [
         const portrait = document
           .querySelector('#about .about__portrait')!
           .getBoundingClientRect();
-        const story = document
-          .querySelector('#about .about__intro')!
+        const approach = document
+          .querySelector('#about .about__body')!
           .getBoundingClientRect();
-        return story.top - portrait.bottom;
+        return approach.top - portrait.bottom;
       });
       expect(mobileAboutGap).toBeGreaterThanOrEqual(15);
     }
@@ -612,9 +612,17 @@ test('career preserves published facts, real dates and editorial ordering', asyn
     const details = step.locator('details');
     const hasDisclosure = (await details.count()) > 0;
     if (hasDisclosure) {
-      await expect(details).not.toHaveAttribute('open');
       await details.locator('summary').focus();
-      await page.keyboard.press('Enter');
+      if (entry.current) {
+        await expect(details).toHaveAttribute('open', '');
+        await expect(step).toContainText(ui.journey.currentLabel);
+        await page.keyboard.press('Enter');
+        await expect(details).not.toHaveAttribute('open');
+        await page.keyboard.press('Enter');
+      } else {
+        await expect(details).not.toHaveAttribute('open');
+        await page.keyboard.press('Enter');
+      }
       await expect(details).toHaveAttribute('open', '');
     }
     if (entry.summary) {
@@ -823,6 +831,14 @@ test('responsive images reserve space and load locally without broken sources', 
   page,
 }) => {
   await openPreview(page);
+  await expect(page.locator('#home .hero-person')).toHaveAttribute(
+    'alt',
+    mediaSource.portrait.alt,
+  );
+  await expect(page.locator('#about .about__person')).toHaveAttribute(
+    'alt',
+    (mediaSource.aboutPortrait ?? mediaSource.portrait).alt,
+  );
   const images = page.locator('main img');
   expect(await images.count()).toBeGreaterThanOrEqual(3);
   for (const image of await images.all()) {
@@ -843,6 +859,49 @@ test('responsive images reserve space and load locally without broken sources', 
     );
     expect(new URL(source).origin).toBe(new URL(page.url()).origin);
     expect(source).not.toMatch(/folio\.png|Desktop/);
+  }
+});
+
+test('touch navigation, expertise tabs and career disclosures work on a narrow screen', async ({
+  browser,
+}) => {
+  const page = await browser.newPage({
+    viewport: { width: 390, height: 844 },
+    hasTouch: true,
+    isMobile: true,
+  });
+  try {
+    await openPreview(page);
+    await page.getByRole('button', { name: 'Open menu', exact: true }).tap();
+    const nav = page.getByRole('navigation', {
+      name: 'Main navigation',
+      exact: true,
+    });
+    await nav.getByRole('link', { name: navigation[0]![0], exact: true }).tap();
+    await expect(
+      page.getByRole('button', { name: 'Open menu', exact: true }),
+    ).toBeVisible();
+    const tabs = page.locator('#expertise').getByRole('tab');
+    if ((await tabs.count()) > 1) {
+      await tabs.nth(1).tap();
+      await expect(tabs.nth(1)).toHaveAttribute('aria-selected', 'true');
+    }
+    const details = page.locator('#experience details').first();
+    if (await details.count()) {
+      const wasOpen = await details.evaluate((element) =>
+        element.hasAttribute('open'),
+      );
+      await details.locator('summary').tap();
+      await expect
+        .poll(() => details.evaluate((element) => element.hasAttribute('open')))
+        .toBe(!wasOpen);
+      await details.locator('summary').tap();
+      await expect
+        .poll(() => details.evaluate((element) => element.hasAttribute('open')))
+        .toBe(wasOpen);
+    }
+  } finally {
+    await page.close();
   }
 });
 

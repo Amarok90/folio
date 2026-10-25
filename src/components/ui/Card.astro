@@ -10,3 +10,25 @@ const { variant = 'default', class: className, ...attributes } = Astro.props;
 <div {...attributes} class:list={['card', `card--${variant}`, className]}>
   <slot />
 </div>
+
+<style>
+  @layer components {
+    .card {
+      min-width: 0;
+      padding: var(--card-padding);
+      border: 1px solid var(--color-border);
+      border-radius: var(--radius-card);
+      background: var(--color-surface);
+      box-shadow: var(--shadow-card);
+    }
+    .card--elevated {
+      box-shadow: var(--shadow-elevated);
+    }
+    .card--tinted {
+      background: var(--color-background-secondary);
+    }
+    .card :global(p) {
+      color: var(--color-text-secondary);
+    }
+  }
+</style>
