@@ -5,7 +5,7 @@
     "status": "published",
     "visible": true,
     "value": "10+",
-    "label": "Years across IT",
+    "label": "Years in IT",
     "context": "From software engineering to banking analysis"
   },
   {
@@ -14,7 +14,7 @@
     "status": "published",
     "visible": true,
     "value": "2019",
-    "label": "Business Analysis since",
+    "label": "Started in business analysis",
     "context": "Creditstar Group and Luminor Group"
   },
   {
@@ -24,7 +24,7 @@
     "visible": true,
     "value": "≈3 min",
     "label": "Loan processing",
-    "context": "From approximately 2 hours"
+    "context": "Reduced from approximately 2 hours"
   },
   {
     "id": "core-expertise",

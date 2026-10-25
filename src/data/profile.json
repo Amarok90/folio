@@ -6,33 +6,33 @@
     "jobTitle": "Senior IT Business Analyst"
   },
   "hero": {
-    "headline": "Bridging business and technology to deliver real value.",
-    "summary": "I translate complex business needs into clear requirements and dependable digital solutions, combining banking and lending expertise with hands-on engineering experience.",
+    "headline": "Bridging business and technology to create real value.",
+    "summary": "I help teams turn business needs into clear requirements and reliable digital solutions. I bring experience in banking, lending and software engineering.",
     "approach": [
       "Understand business needs",
-      "Analyze and design solutions",
+      "Analyse and design solutions",
       "Collaborate with teams",
       "Deliver measurable business value"
     ]
   },
   "about": {
-    "summary": "I like to make complex things clear. My engineering background gives me a practical perspective: understand what people need, ask the right questions, and shape a solution that works in the real world. I value thoughtful collaboration, clear communication and the discipline to follow an idea through to delivery. Based in Estonia, I am open to my next opportunity in Switzerland.",
+    "summary": "I like making complex things clear. My engineering background helps me understand what people need, ask the right questions and turn ideas into practical solutions. I value clear communication, teamwork and seeing work through to delivery. Based in Estonia, I am open to opportunities across Europe.",
     "approach": [
       {
         "title": "Understand the Business",
-        "description": "Structured analysis of business needs and requirements."
+        "description": "I clarify business needs and turn them into clear requirements."
       },
       {
-        "title": "Analyze & Design",
-        "description": "Clear specifications that connect business and technology."
+        "title": "Analyse & Design",
+        "description": "I turn requirements into clear, practical specifications."
       },
       {
         "title": "Collaborate",
-        "description": "Clear communication with stakeholders and delivery teams."
+        "description": "I help business and technical teams work together through clear communication."
       },
       {
         "title": "Deliver Real Value",
-        "description": "Focus on quality, practical outcomes, and reliable production."
+        "description": "I focus on quality, useful results and solutions that work reliably."
       }
     ]
   },
@@ -40,7 +40,7 @@
     "email": "konstantin.arutjunov@gmail.com",
     "location": "Estonia",
     "openToRelocation": false,
-    "availability": "Open to opportunities in Switzerland",
+    "availability": "Open to opportunities across Europe",
     "links": [
       {
         "label": "LinkedIn",
@@ -57,6 +57,6 @@
   "cvPreviewUrl": "https://www.linkedin.com/in/konstantin-arutjunov/overlay/1753005451683/single-media-viewer/?profileId=ACoAABmyyD0B2egZyOVt5zRFatDd-ssMM7VpIxA",
   "seo": {
     "title": "Konstantin Arutjunov — Senior IT Business Analyst",
-    "description": "Senior IT Business Analyst with 10+ years across banking, lending and financial services. Based in Estonia and open to opportunities in Switzerland."
+    "description": "Senior IT Business Analyst with 10+ years in IT and experience in banking and lending. Based in Estonia and open to opportunities across Europe."
   }
 }

@@ -2,16 +2,16 @@
   {
     "id": "business-analytical",
     "order": 1,
-    "title": "Business & Analytical",
-    "description": "Understand business needs, structure requirements and shape effective solutions.",
+    "title": "Business & Analytical Skills",
+    "description": "Understand business needs, define clear requirements and design practical solutions.",
     "status": "published",
     "visible": true
   },
   {
     "id": "technical-tools",
     "order": 2,
-    "title": "Technical & Tools",
-    "description": "APIs, data and integration analysis, complemented by Google Cloud Services, RPA automation and AI-assisted tools.",
+    "title": "Technical Skills & Tools",
+    "description": "APIs, data and integration analysis, with Google Cloud Services, RPA automation and AI-assisted tools.",
     "status": "published",
     "visible": true
   },
@@ -19,7 +19,7 @@
     "id": "methodologies",
     "order": 3,
     "title": "Methodologies",
-    "description": "Support delivery through collaboration, testing, investigation and controlled change.",
+    "description": "Work with teams to test solutions, investigate issues and manage change.",
     "status": "published",
     "visible": true
   },
@@ -27,7 +27,7 @@
     "id": "industry-knowledge",
     "order": 4,
     "title": "Industry Knowledge",
-    "description": "Experience across banking, lending, financial services and related digital processes.",
+    "description": "Experience in banking, lending, financial services and digital processes.",
     "status": "published",
     "visible": true
   }

@@ -4,6 +4,7 @@ import { getCollection } from 'astro:content';
 import { Image } from 'astro:assets';
 import type { ImageMetadata } from 'astro';
 import Icon from '../ui/Icon.astro';
+import Badge from '../ui/Badge.astro';
 import { publishedEntries } from '../../lib/content';
 import { resolveImage } from '../../config/media';
 
@@ -12,6 +13,12 @@ interface Props {
 }
 const { thumbnails = [] } = Astro.props;
 const projects = publishedEntries(await getCollection('caseStudies'));
+const skills = new Map(
+  publishedEntries(await getCollection('skills')).map(({ id, data }) => [
+    id,
+    data.name,
+  ]),
+);
 ---
 
 <section
@@ -35,94 +42,109 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     {projects.length > 0 && (
       <div class="project-grid">
         {projects.map((project, index) => (
-          <article class="project-card" aria-labelledby={`${project.id}-title`}>
-            <div class="project-image-wrap">
-              {project.data.image ? (
-                <Image
-                  src={resolveImage(project.data.image.path)}
-                  alt={project.data.image.alt}
-                  widths={[320, 480, 720]}
-                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 44vw, (max-width: 80rem) 30vw, 364px"
-                  width={720}
-                  loading="lazy"
-                  decoding="async"
-                  class="project-image"
-                />
-              ) : thumbnails[index] ? (
-                <Image
-                  src={thumbnails[index]}
-                  alt=""
-                  widths={[320, 480, 720]}
-                  sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 44vw, (max-width: 80rem) 30vw, 364px"
-                  width={720}
-                  loading="lazy"
-                  class="project-image"
-                />
-              ) : (
-                <div class="project-image-placeholder" aria-hidden="true">
-                  <Icon name="layers" />
-                </div>
-              )}
-              {project.data.sector && (
-                <span class="project-sector">{project.data.sector}</span>
-              )}
-              {(project.data.image?.illustrative ||
-                (!project.data.image && thumbnails[index])) && (
-                <span class="project-image-caption">
-                  {ui.projects.illustrativeCaption}
-                </span>
-              )}
-            </div>
-            <div class="project-content">
-              <h3 id={`${project.id}-title`}>{project.data.title}</h3>
-              <p class="project-summary">{project.data.summary}</p>
+          <details
+            class="project-card"
+            data-card-disclosure
+            aria-labelledby={`${project.id}-title`}
+          >
+            <summary class="project-overview">
+              <span class="project-image-wrap">
+                {project.data.image ? (
+                  <Image
+                    src={resolveImage(project.data.image.path)}
+                    alt={project.data.image.alt}
+                    widths={[320, 480, 720]}
+                    sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 44vw, (max-width: 80rem) 30vw, 364px"
+                    width={720}
+                    loading="lazy"
+                    decoding="async"
+                    class="project-image"
+                  />
+                ) : thumbnails[index] ? (
+                  <Image
+                    src={thumbnails[index]}
+                    alt=""
+                    widths={[320, 480, 720]}
+                    sizes="(max-width: 47.99rem) 90vw, (max-width: 63.99rem) 44vw, (max-width: 80rem) 30vw, 364px"
+                    width={720}
+                    loading="lazy"
+                    class="project-image"
+                  />
+                ) : (
+                  <span class="project-image-placeholder" aria-hidden="true">
+                    <Icon name="layers" />
+                  </span>
+                )}
+                {project.data.sector && (
+                  <span class="project-sector">{project.data.sector}</span>
+                )}
+                {(project.data.image?.illustrative ||
+                  (!project.data.image && thumbnails[index])) && (
+                  <span class="project-image-caption">
+                    {ui.projects.illustrativeCaption}
+                  </span>
+                )}
+              </span>
+              <h3 class="project-heading" id={`${project.id}-title`}>
+                <span>{project.data.title}</span>
+                <Icon name="chevron" class="project-chevron" />
+              </h3>
+              <span class="project-summary">{project.data.summary}</span>
               {project.data.outcomes.length > 0 && (
-                <ul class="project-points" aria-label="Project outcomes">
+                <span class="project-points" role="list">
                   {project.data.outcomes.map((outcome) => (
-                    <li>
+                    <span role="listitem">
                       <Icon name="complete" />
                       <span>{outcome}</span>
-                    </li>
+                    </span>
                   ))}
-                </ul>
+                </span>
               )}
-              <details class="project-details">
-                <summary>
-                  {ui.projects.detailsLabel} <Icon name="arrow" />
-                </summary>
-                <div class="project-details-body">
-                  <h4>{ui.projects.challengeHeading}</h4>
-                  <p>{project.data.challenge}</p>
-                  <h4>{ui.projects.contributionHeading}</h4>
-                  <p>{project.data.contribution}</p>
-                  {project.data.limitations.length > 0 && (
-                    <>
-                      <h4>{ui.projects.limitationsHeading}</h4>
-                      <ul>
-                        {project.data.limitations.map((limitation) => (
-                          <li>{limitation}</li>
-                        ))}
-                      </ul>
-                    </>
-                  )}
-                  {project.data.link && (
-                    <a
-                      class="project-external"
-                      href={project.data.link}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      {project.data.link.startsWith('https://www.linkedin.com/')
-                        ? ui.projects.linkedInSourceLabel
-                        : ui.projects.sourceLabel}
-                      <Icon name="external" />
-                      <span class="sr-only"> (opens in a new tab)</span>
-                    </a>
+              <span class="sr-only" id={`${project.id}-details-label`}>
+                {ui.projects.detailsLabel}
+              </span>
+            </summary>
+            <div class="project-details-body">
+              <h4>{ui.projects.challengeHeading}</h4>
+              <p>{project.data.challenge}</p>
+              <h4>{ui.projects.contributionHeading}</h4>
+              <p>{project.data.contribution}</p>
+              {project.data.skillIds.length > 0 && (
+                <div class="project-skills" aria-label="Skills used">
+                  {project.data.skillIds.map(
+                    (skillId) =>
+                      skills.has(skillId) && (
+                        <Badge>{skills.get(skillId)}</Badge>
+                      ),
                   )}
                 </div>
-              </details>
+              )}
+              {project.data.limitations.length > 0 && (
+                <>
+                  <h4>{ui.projects.limitationsHeading}</h4>
+                  <ul>
+                    {project.data.limitations.map((limitation) => (
+                      <li>{limitation}</li>
+                    ))}
+                  </ul>
+                </>
+              )}
+              {project.data.link && (
+                <a
+                  class="project-external"
+                  href={project.data.link}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  {project.data.link.startsWith('https://www.linkedin.com/')
+                    ? ui.projects.linkedInSourceLabel
+                    : ui.projects.sourceLabel}
+                  <Icon name="external" />
+                  <span class="sr-only"> (opens in a new tab)</span>
+                </a>
+              )}
             </div>
-          </article>
+          </details>
         ))}
       </div>
     )}
@@ -136,12 +158,10 @@ const projects = publishedEntries(await getCollection('caseStudies'));
   .project-grid {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    align-items: stretch;
+    align-items: start;
     gap: var(--space-4);
   }
   .project-card {
-    display: flex;
-    flex-direction: column;
     min-width: 0;
     overflow: clip;
     border: 1px solid var(--color-divider);
@@ -167,7 +187,40 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     border-color: var(--color-primary-text);
     box-shadow: var(--shadow-elevated);
   }
+  .project-overview {
+    display: block;
+    padding-bottom: var(--space-5);
+    list-style: none;
+    cursor: pointer;
+  }
+  .project-overview::-webkit-details-marker {
+    display: none;
+  }
+  .project-overview:focus-visible {
+    outline-offset: -4px;
+  }
+  .project-heading {
+    display: flex;
+    align-items: start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin: var(--space-5) var(--space-5) 0;
+    font-size: 1rem;
+    line-height: 1.35;
+    letter-spacing: -0.025em;
+  }
+  .project-heading :global(.project-chevron) {
+    width: var(--space-4);
+    height: var(--space-4);
+    margin-top: var(--space-1);
+    color: var(--color-primary-text);
+    transition: transform var(--duration-fast) var(--ease-standard);
+  }
+  .project-card[open] :global(.project-chevron) {
+    transform: rotate(180deg);
+  }
   .project-image-wrap {
+    display: block;
     position: relative;
     overflow: hidden;
     background: var(--color-background-secondary);
@@ -221,23 +274,15 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     font-size: 0.625rem;
     line-height: 1.4;
   }
-  .project-content {
-    flex: 1;
-    padding: var(--space-5);
-  }
   .project-status {
     margin-bottom: var(--space-2);
     color: var(--color-text-muted);
     font-size: 0.625rem;
     line-height: 1.5;
   }
-  .project-content h3 {
-    font-size: 1rem;
-    line-height: 1.35;
-    letter-spacing: -0.025em;
-  }
   .project-summary {
-    margin-top: var(--space-2);
+    display: block;
+    margin: var(--space-2) var(--space-5) 0;
     color: var(--color-text-secondary);
     font-size: var(--text-small);
     line-height: 1.6;
@@ -246,10 +291,9 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     display: grid;
     gap: var(--space-2);
     padding: 0;
-    margin: var(--space-3) 0 var(--space-1);
-    list-style: none;
+    margin: var(--space-3) var(--space-5) 0;
   }
-  .project-points li {
+  .project-points [role='listitem'] {
     display: flex;
     align-items: start;
     gap: var(--space-2);
@@ -263,39 +307,10 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     margin-top: 0.125rem;
     color: var(--color-primary-text);
   }
-  .project-details summary {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-height: var(--touch-target);
-    width: fit-content;
-    border-radius: var(--radius-small);
-    list-style: none;
-    color: var(--color-primary-text);
-    font-size: var(--text-caption);
-    font-weight: var(--weight-semibold);
-    cursor: pointer;
-    text-underline-offset: 0.25em;
-  }
-  .project-details summary::-webkit-details-marker {
-    display: none;
-  }
-  .project-details summary:hover {
-    color: var(--color-hover);
-    text-decoration: underline;
-  }
-  .project-details summary :global(.icon) {
-    width: 1rem;
-    height: 1rem;
-    transition: transform var(--duration-fast) var(--ease-standard);
-  }
-  .project-details[open] summary :global(.icon) {
-    transform: rotate(90deg);
-  }
   .project-details-body {
     display: grid;
     gap: var(--space-2);
-    padding-block: var(--space-3) var(--space-1);
+    padding: var(--space-5);
     border-top: 1px solid var(--color-divider);
     font-size: var(--text-caption);
     line-height: 1.65;
@@ -310,6 +325,12 @@ const projects = publishedEntries(await getCollection('caseStudies'));
   .project-details-body ul {
     padding-left: var(--space-4);
     margin: 0;
+  }
+  .project-skills {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    padding-block: var(--space-2);
   }
   .project-image-note {
     margin-top: var(--space-2);
@@ -340,12 +361,29 @@ const projects = publishedEntries(await getCollection('caseStudies'));
     }
     .project-card:last-child:nth-child(odd) {
       grid-column: 1 / -1;
+    }
+    .project-card:last-child:nth-child(odd) > .project-overview {
       display: grid;
       grid-template-columns: 1fr 1fr;
+      padding-bottom: 0;
     }
     .project-card:last-child:nth-child(odd) .project-image-wrap {
+      grid-column: 1;
+      grid-row: 1 / 4;
       aspect-ratio: auto;
       min-height: 100%;
+    }
+    .project-card:last-child:nth-child(odd) .project-heading,
+    .project-card:last-child:nth-child(odd) .project-summary,
+    .project-card:last-child:nth-child(odd) .project-points {
+      grid-column: 2;
+    }
+    .project-card:last-child:nth-child(odd) .project-summary,
+    .project-card:last-child:nth-child(odd) .project-points {
+      margin-bottom: var(--space-5);
+    }
+    .project-card:last-child:nth-child(odd) .project-points {
+      margin-top: 0;
     }
   }
   @media (width < 48rem) {
@@ -353,15 +391,11 @@ const projects = publishedEntries(await getCollection('caseStudies'));
       grid-template-columns: minmax(0, 1fr);
       gap: var(--space-5);
     }
-    .project-content {
-      padding: var(--space-5);
-    }
-    .project-content h3 {
+    .project-heading {
       font-size: var(--text-h4);
     }
     .project-summary,
-    .project-points li,
-    .project-details summary {
+    .project-points [role='listitem'] {
       font-size: var(--text-small);
     }
     .project-status {

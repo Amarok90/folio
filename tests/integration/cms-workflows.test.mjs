@@ -589,13 +589,20 @@ test(
     await validateRepositoryContent(fixture);
     const html = build();
     assert.match(html, /alt="CMS integration project image"/);
-    const positions = [...projects]
-      .reverse()
-      .map((project) => html.indexOf(`>${escapedText(project.title)}</h3>`));
-    assert.ok(
-      positions.every((position) => position >= 0),
-      'Edited project titles were not rendered.',
-    );
+    const headings = [
+      ...html.matchAll(/<h3\b[^>]*\bid="([^"]+)"[^>]*>([\s\S]*?)<\/h3>/g),
+    ];
+    const positions = [...projects].reverse().map((project) => {
+      const heading = headings.find(
+        (match) => match[1] === `${project.id}-title`,
+      );
+      assert.ok(heading, `Missing edited project heading: ${project.id}`);
+      assert.ok(
+        heading[2].includes(escapedText(project.title)),
+        'Edited project title was not rendered in its heading.',
+      );
+      return heading.index;
+    });
     assert.deepEqual(
       positions,
       [...positions].sort((left, right) => left - right),
@@ -604,7 +611,7 @@ test(
     saveJSON('src/content/case-studies.json', projects);
     await validateRepositoryContent(fixture);
     const hiddenHTML = build();
-    assert.ok(!/<article\b[^>]*class="project-card"/.test(hiddenHTML));
+    assert.ok(!/<details\b[^>]*class="project-card"/.test(hiddenHTML));
     assert.ok(
       hiddenHTML.includes(
         escapedText(readJSON('src/data/interface.json').projects.emptyMessage),

@@ -214,6 +214,16 @@ for (const width of [
       const portrait = document
         .querySelector('#home .hero-portrait')!
         .getBoundingClientRect();
+      const photoWindow = document.querySelector('#home .hero-photo-window')!;
+      const photo = document.querySelector('#home .hero-person')!;
+      const imageBounds = photo.getBoundingClientRect();
+      const cropBounds = photoWindow.getBoundingClientRect();
+      const availability = document
+        .querySelector('#home .hero-availability')!
+        .getBoundingClientRect();
+      const highlights = document
+        .querySelector('#highlights')!
+        .getBoundingClientRect();
       return {
         gap: hero.top - header.bottom,
         alignment:
@@ -223,6 +233,33 @@ for (const width of [
         portraitShare: portrait.width / hero.width,
         portraitInside:
           portrait.top >= hero.top && portrait.bottom <= hero.bottom,
+        availabilityGap: highlights.top - availability.bottom,
+        cropEndFraction:
+          (cropBounds.bottom - imageBounds.top) / imageBounds.height,
+        photoTreatment: [
+          photo,
+          photoWindow,
+          document.querySelector('#home .hero-portrait')!,
+        ].map((element) => ({
+          opacity: getComputedStyle(element).opacity,
+          filter: getComputedStyle(element).filter,
+          mask: getComputedStyle(element).maskImage,
+          blend: getComputedStyle(element).mixBlendMode,
+        })),
+        portraitSurface: {
+          background: getComputedStyle(
+            document.querySelector('#home .hero-person')!,
+          ).backgroundColor,
+          border: getComputedStyle(
+            document.querySelector('#home .hero-person')!,
+          ).borderTopWidth,
+          radius: getComputedStyle(
+            document.querySelector('#home .hero-person')!,
+          ).borderTopLeftRadius,
+          shadow: getComputedStyle(
+            document.querySelector('#home .hero-person')!,
+          ).boxShadow,
+        },
         skillsSurface: getComputedStyle(document.querySelector('#expertise')!)
           .backgroundColor,
         projectsSurface: getComputedStyle(document.querySelector('#projects')!)
@@ -231,11 +268,28 @@ for (const width of [
     });
     expect(Math.abs(firstScreen.gap)).toBeLessThanOrEqual(1);
     expect(firstScreen.alignment).toBeLessThanOrEqual(2);
-    expect(firstScreen.portraitWidth).toBeLessThanOrEqual(337);
     expect(firstScreen.portraitShare).toBeLessThanOrEqual(
-      width >= 768 ? 0.35 : 0.8,
+      width >= 1024 ? 0.55 : 1,
     );
+    if (width >= 1024)
+      expect(firstScreen.portraitShare).toBeGreaterThanOrEqual(0.48);
+    expect(firstScreen.portraitSurface).toEqual({
+      background: 'rgba(0, 0, 0, 0)',
+      border: '0px',
+      radius: '0px',
+      shadow: 'none',
+    });
     expect(firstScreen.portraitInside).toBe(true);
+    expect(firstScreen.availabilityGap).toBeGreaterThanOrEqual(10);
+    expect(firstScreen.cropEndFraction).toBeLessThanOrEqual(0.535);
+    expect(firstScreen.photoTreatment).toEqual(
+      Array.from({ length: 3 }, () => ({
+        opacity: '1',
+        filter: 'none',
+        mask: 'none',
+        blend: 'normal',
+      })),
+    );
     expect(firstScreen.skillsSurface).toBe('rgb(255, 255, 255)');
     expect(firstScreen.skillsSurface).toBe(firstScreen.projectsSurface);
     await expect(page.locator('#expertise img')).toHaveCount(0);
@@ -334,6 +388,13 @@ for (const width of [
         window.scrollTo({ top: 0, behavior: 'instant' }),
       );
       await expect.poll(() => page.evaluate(() => window.scrollY)).toBe(0);
+      // The large crop source must never scroll the Hero's own contents.
+      expect(
+        await page.locator('#home').evaluate((hero) => ({
+          top: hero.scrollTop,
+          left: hero.scrollLeft,
+        })),
+      ).toEqual({ top: 0, left: 0 });
       await page.screenshot({
         path: join(evidenceDirectory, `folio-${width}.png`),
         fullPage: true,
@@ -570,6 +631,27 @@ test('case studies disclose real challenges, contributions and limitations with 
       ).toBeVisible();
     await page.keyboard.press('Enter');
     await expect(disclosure).not.toHaveAttribute('open');
+    await disclosure.locator('.project-image-wrap').click();
+    await expect(disclosure).toHaveAttribute('open', '');
+    const paragraph = disclosure.locator('.project-details-body > p').first();
+    await paragraph.scrollIntoViewIfNeeded();
+    const textBounds = (await paragraph.boundingBox())!;
+    await page.mouse.move(textBounds.x + 2, textBounds.y + 9);
+    await page.mouse.down();
+    await page.mouse.move(textBounds.x + 100, textBounds.y + 9, { steps: 10 });
+    await page.mouse.up();
+    expect(await page.evaluate(() => window.getSelection()?.isCollapsed)).toBe(
+      false,
+    );
+    await expect(disclosure).toHaveAttribute('open', '');
+    await page.evaluate(() => window.getSelection()?.removeAllRanges());
+    await disclosure.locator('.project-details-body > p').first().click();
+    await expect(disclosure).not.toHaveAttribute('open');
+    await summary.focus();
+    await page.keyboard.press('Space');
+    await expect(disclosure).toHaveAttribute('open', '');
+    await page.keyboard.press('Space');
+    await expect(disclosure).not.toHaveAttribute('open');
   }
 });
 
@@ -642,6 +724,12 @@ test('career preserves published facts, real dates and editorial ordering', asyn
     }
     if (hasDisclosure) {
       await page.keyboard.press('Enter');
+      await expect(details).not.toHaveAttribute('open');
+      await details.locator('summary').click();
+      await expect(details).toHaveAttribute('open', '');
+      await details
+        .locator('.career-step__body')
+        .click({ position: { x: 8, y: 8 } });
       await expect(details).not.toHaveAttribute('open');
     }
   }
@@ -729,7 +817,7 @@ test('expanded portfolio interactions retain WCAG 2.2 AA semantics and contrast'
   expect(results.violations).toEqual([]);
 });
 
-test('CV and contact controls use real destinations while the header shows truthful availability', async ({
+test('CV viewing opens separately, downloads remain available, and the header stays uncluttered', async ({
   page,
 }) => {
   await openPreview(page);
@@ -739,6 +827,15 @@ test('CV and contact controls use real destinations while the header shows truth
     contact: { email: string | null };
   };
   if (currentProfile.cv) {
+    const heroPreview = page.locator('#home a[data-analytics-event="cv_view"]');
+    await expect(heroPreview).toHaveCount(1);
+    await expect(heroPreview).toHaveAttribute('target', '_blank');
+    await expect(heroPreview).not.toHaveAttribute('download');
+    const popupPromise = page.waitForEvent('popup');
+    await heroPreview.click();
+    const popup = await popupPromise;
+    await expect.poll(() => popup.url()).toContain(currentProfile.cv.path);
+    await popup.close();
     const preview = page.locator('#contact a[data-analytics-event="cv_view"]');
     await expect(preview).toHaveCount(1);
     await expect(preview).toHaveAttribute(
@@ -820,11 +917,13 @@ test('CV and contact controls use real destinations while the header shows truth
   } else await expect(page.locator('a[href^="mailto:"]')).toHaveCount(0);
   await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
   await expect(page.getByLabel(/^Language:/)).toHaveCount(0);
-  const availability = page.locator('header .header-availability');
-  if (profileSource.contact.availability) {
-    await expect(availability).toHaveText(profileSource.contact.availability);
-    await expect(availability).toBeVisible();
-  } else await expect(availability).toHaveCount(0);
+  await expect(page.locator('header .header-availability')).toHaveCount(0);
+  await expect(
+    page.locator('header [data-analytics-event="cv_view"]'),
+  ).toHaveCount(0);
+  await expect(
+    page.locator('#experience [data-analytics-event^="cv_"]'),
+  ).toHaveCount(0);
 });
 
 test('responsive images reserve space and load locally without broken sources', async ({

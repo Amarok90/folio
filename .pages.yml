@@ -5,7 +5,7 @@
 # Save commits to main; Pages production validates before automatic publication.
 media:
   - name: images
-    label: Website images
+    label: Website images (under 2 MiB recommended)
     input: src/assets
     output: /src/assets
     rename: safe
@@ -16,7 +16,7 @@ media:
       - webp
       - avif
   - name: documents
-    label: Public CV documents
+    label: Public CV documents (under 2 MiB recommended)
     input: public/documents
     output: /documents
     rename: safe
@@ -219,6 +219,9 @@ components:
         label: Choose or upload PDF
         type: file
         required: true
+        description:
+          Use a PDF under 2 MiB for hosted Pages CMS uploads. Larger uploads may be rejected
+          by Pages CMS (HTTP 413).
         options:
           media: documents
           extensions:
@@ -246,7 +249,8 @@ components:
     description:
       'Optional. To replace: upload a new PDF filename, select it here and complete all four
       fields, then Save. Check Pages production before deleting the old PDF. Upload alone does not
-      select it. Limit: 10 MiB. Clear all four fields together to restore the external View CV
+      select it. Hosted upload recommendation: under 2 MiB. Larger uploads may be rejected by
+      Pages CMS (HTTP 413). Repository safety limit: 10 MiB. Clear all four fields together to restore the external View CV
       fallback.'
   profile_cvPreviewUrl:
     type: string
@@ -289,7 +293,10 @@ components:
             label: Social image description
             type: string
             required: true
-        description: A wide image around 1200 × 630. An optimized Alpine image is used when empty.
+        description: >-
+          A wide image around 1200 × 630. An optimized Alpine image is used when empty.
+          Use an image under 2 MiB for hosted Pages CMS uploads. Larger uploads may be rejected
+          by Pages CMS (HTTP 413). Repository safety limit: 12 MiB and 40 million pixels.
     required: true
   wording_hero:
     label: Hero labels and primary button
@@ -1330,10 +1337,11 @@ content:
                 type: boolean
                 default: true
                 description: Keep on for representative imagery that is not an actual project photo.
-            description:
+            description: >-
               Upload a new filename, select it and enter a meaningful description, then Save. Do not
               rename or delete the old selected file before Pages production succeeds. PNG, JPEG,
-              WebP or AVIF; at most 12 MiB and 40 million pixels. The image stays attached when this
+              WebP or AVIF. Use an image under 2 MiB for hosted Pages CMS uploads. Larger uploads
+              may be rejected by Pages CMS (HTTP 413). Repository safety limit: 12 MiB and 40 million pixels. The image stays attached when this
               project is reordered. Clear both image and description to remove it. If either is
               filled, both are required for publication.
           - name: link
@@ -1828,7 +1836,9 @@ content:
             description:
               'Used by Hero, and by About when its separate photo is empty. To replace: upload a new filename, select it here, update
               its description and Temporary portrait setting, then Save. Check Pages production
-              before removing the old image. Do not rename or delete a selected file. Raster limit:
+              before removing the old image. Do not rename or delete a selected file. Use an image
+              under 2 MiB for hosted Pages CMS uploads. Larger uploads may be rejected by Pages CMS
+              (HTTP 413). Repository safety limit:
               12 MiB and 40 million pixels.'
           - name: aboutPortrait
             label: About photograph (optional)
@@ -1853,7 +1863,9 @@ content:
             description: >-
               A separate authentic photograph for About. Select an image and describe it; both are
               required when either is filled. Clear both fields to use the Hero portrait instead.
-              Upload a new filename before replacing a selected image. Raster limit: 12 MiB and
+              Upload a new filename before replacing a selected image. Use an image under 2 MiB for
+              hosted Pages CMS uploads. Larger uploads may be rejected by Pages CMS (HTTP 413).
+              Repository safety limit: 12 MiB and
               40 million pixels.
           - name: alpine
             label: Hero background
@@ -1872,6 +1884,9 @@ content:
                     - webp
                     - avif
             required: true
+            description: >-
+              Use an image under 2 MiB for hosted Pages CMS uploads. Larger uploads may be rejected
+              by Pages CMS (HTTP 413). Repository safety limit: 12 MiB and 40 million pixels.
           - name: contact
             label: Contact background
             type: object
@@ -1889,6 +1904,9 @@ content:
                     - webp
                     - avif
             required: true
+            description: >-
+              Use an image under 2 MiB for hosted Pages CMS uploads. Larger uploads may be rejected
+              by Pages CMS (HTTP 413). Repository safety limit: 12 MiB and 40 million pixels.
           - name: logo
             label: Brand symbol (optional)
             type: object
@@ -1909,11 +1927,13 @@ content:
                 label: Logo description
                 type: string
                 required: true
-            description:
+            description: >-
               A square transparent PNG works best. The FOLIO wordmark remains text. Leave empty to
               use the existing symbol. SVG uploads are intentionally excluded.
+              Use an image under 2 MiB for hosted Pages CMS uploads. Larger uploads may be rejected
+              by Pages CMS (HTTP 413). Repository safety limit: 12 MiB and 40 million pixels.
           - name: analytics
-            label: Skills & analytics illustration (optional)
+            label: Retained legacy illustration
             type: object
             fields:
               - name: path
@@ -1936,11 +1956,9 @@ content:
                 label: Illustrative image
                 type: boolean
                 default: true
-            description:
-              Optional artwork for Skills & Technologies. Keep Illustrative image on for conceptual
-              charts. Do not upload confidential client data or imply sample charts are verified
-              results. Clear the image and description together to remove it. Clear both image and
-              description to remove it. If either is filled, both are required for publication.
+            description: >-
+              Preserved for compatibility with existing content. This illustration is not displayed
+              in Skills & Technologies.
           - name: projects
             label: Fallback project imagery
             type: object
@@ -1974,10 +1992,12 @@ content:
               collapsible:
                 collapsed: true
                 summary: '{alt}'
-            description:
+            description: >-
               Only used when a project has no selected image. Prefer selecting its image in Featured
               Projects. Remove an entire fallback item to remove it; every remaining item needs an
               image and description.
+              Use an image under 2 MiB for hosted Pages CMS uploads. Larger uploads may be rejected
+              by Pages CMS (HTTP 413). Repository safety limit: 12 MiB and 40 million pixels.
         operations:
           create: false
           rename: false

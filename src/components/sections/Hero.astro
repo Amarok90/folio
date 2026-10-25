@@ -21,7 +21,7 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     quality={65}
     fetchpriority="high"
     widths={[640, 960, 1280, 1600]}
-    sizes="(max-width: 767px) 100vw, 1200px"
+    sizes="(max-width: 767px) 1280px, 1200px"
     format="webp"
     loading="eager"
     decoding="async"
@@ -37,17 +37,19 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     <p class="hero-description">{profile.hero.summary}</p>
   </div>
   <div class="hero-portrait">
-    <Image
-      src={media.portrait}
-      alt={media.portraitAlt}
-      widths={[240, 320, 480, 640]}
-      sizes="(max-width: 575px) 220px, (max-width: 767px) 288px, (max-width: 1023px) 32vw, 336px"
-      class="hero-person"
-      format="webp"
-      loading="eager"
-      fetchpriority="auto"
-      decoding="async"
-    />
+    <div class="hero-photo-window">
+      <Image
+        src={media.portrait}
+        alt={media.portraitAlt}
+        widths={[320, 480, 640, 900, 1200]}
+        sizes="(max-width: 767px) 600px, 900px"
+        class="hero-person"
+        format="webp"
+        loading="eager"
+        fetchpriority="auto"
+        decoding="async"
+      />
+    </div>
     {media.portraitTemporary && (
       <span class="portrait-note">{ui.common.portraitNote}</span>
     )}
@@ -78,7 +80,7 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     >
       {ui.hero.primaryAction.label}
     </Button>
-    <CVAction />
+    <CVAction showPreview />
   </div>
   <ul class="hero-availability" aria-label="Location and availability">
     {profile.contact.location && (
@@ -116,12 +118,12 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
   .hero {
     position: relative;
     isolation: isolate;
-    overflow: hidden;
-    min-height: 32rem;
+    overflow: clip;
+    min-height: 28rem;
     border: 1px solid var(--color-divider);
     border-top: 0;
     border-radius: 0 0 var(--radius-section) var(--radius-section);
-    padding: var(--space-12) var(--section-padding) var(--space-20);
+    padding: clamp(2rem, 3.6vw, 3rem) clamp(2rem, 4vw, 3rem) var(--space-12);
     background: var(--color-background-secondary);
   }
   .hero-landscape {
@@ -150,7 +152,7 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
   .hero-copy {
     position: relative;
     z-index: 2;
-    width: 54%;
+    width: 50%;
     max-width: 37rem;
   }
   .hero-copy .eyebrow::before {
@@ -163,11 +165,11 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     background: var(--color-accent);
   }
   h1 {
-    font-size: clamp(2.6rem, 5.2vw, 4.1rem);
+    font-size: clamp(2.6rem, 5.5vw, 4.3rem);
     font-weight: var(--weight-bold);
     line-height: 0.96;
     letter-spacing: -0.05em;
-    margin-block: var(--space-4);
+    margin-block: var(--space-3);
   }
   h1 span {
     display: block;
@@ -176,37 +178,42 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     color: var(--color-secondary);
   }
   .hero-headline {
-    font-size: clamp(1.05rem, 1.8vw, 1.45rem);
+    font-size: clamp(1.1rem, 2.05vw, 1.5rem);
     line-height: 1.22;
-    color: var(--color-primary-text);
+    color: var(--color-text);
     font-weight: var(--weight-medium);
     max-width: 27ch;
-    margin-bottom: var(--space-4);
+    margin-bottom: var(--space-3);
   }
   .hero-description {
     color: var(--color-text-secondary);
-    font-size: 0.9375rem;
+    font-size: 0.875rem;
     line-height: 1.45;
-    max-width: 43ch;
+    max-width: 52ch;
   }
   .hero-portrait {
     position: absolute;
     z-index: -1;
-    right: var(--space-16);
-    top: var(--space-10);
-    width: 32%;
-    max-width: 21rem;
-    aspect-ratio: 4 / 5;
+    right: 5%;
+    bottom: 0;
+    height: calc(100% - var(--space-4));
+    width: 50%;
+  }
+  .hero-photo-window {
+    position: absolute;
+    inset: 0;
+    /* Source y≈200–1150; the original raised hand begins below y≈1180.
+       This is only a viewing crop: original pixels and proportions stay intact. */
+    clip-path: inset(0 -50%);
   }
   .hero-person {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    object-position: var(--portrait-position);
-    border: 6px solid rgb(255 255 255 / 88%);
-    border-radius: 48% 48% 1.75rem 1.75rem / 38% 38% 1.75rem 1.75rem;
-    background: var(--color-background-secondary);
-    box-shadow: var(--shadow-elevated);
+    position: absolute;
+    top: -21.0526%;
+    left: 50%;
+    width: auto;
+    max-width: none;
+    height: 227.3684%;
+    transform: translateX(-50%);
   }
   .portrait-note {
     position: absolute;
@@ -224,9 +231,9 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
   }
   .hero-signature {
     position: absolute;
-    top: var(--space-10);
-    right: -3rem;
-    color: var(--color-secondary);
+    top: var(--space-16);
+    right: -6%;
+    color: var(--color-text);
     font-family: var(--font-handwriting);
     font-size: clamp(1.5rem, 2.7vw, 2.15rem);
     line-height: 0.88;
@@ -249,8 +256,8 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     flex-wrap: wrap;
     align-items: center;
     gap: var(--space-4);
-    margin-top: var(--space-5);
-    max-width: 52%;
+    margin-top: var(--space-4);
+    max-width: 58%;
   }
   .hero-availability {
     position: relative;
@@ -260,7 +267,7 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     gap: var(--space-3) var(--space-6);
     list-style: none;
     padding: 0;
-    margin: var(--space-5) 0 0;
+    margin: var(--space-4) 0 0;
     max-width: 62%;
   }
   .hero-availability li {
@@ -283,42 +290,49 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
     max-width: 54%;
     text-align: left;
   }
+  @media (width >= 64rem) and (width < 80rem) {
+    .hero-actions {
+      gap: var(--space-3);
+    }
+    .hero-actions :global(.button) {
+      padding-inline: var(--space-4);
+    }
+  }
   @media (width < 64rem) {
     .hero {
-      min-height: 31rem;
-    }
-    .hero-portrait {
-      right: var(--space-8);
-      width: 32%;
+      min-height: 28rem;
     }
     .hero-signature {
-      right: -1.5rem;
+      right: -4%;
       top: var(--space-8);
     }
     .hero-description {
       max-width: 39ch;
     }
   }
-  @media (width < 48rem) {
+  @media (width < 64rem) {
     .hero {
       display: grid;
       grid-template-columns: minmax(0, 1fr);
-      padding: var(--space-6) var(--space-5) var(--space-5);
+      padding: var(--space-6) var(--space-5) 0;
       min-height: auto;
     }
     .hero-landscape {
+      inset: auto 0 0;
+      height: 42%;
       object-position: 65% bottom;
     }
     .hero-mist {
       background: linear-gradient(
         180deg,
         rgb(249 253 255 / 99%) 0%,
-        rgb(246 252 255 / 96%) 31%,
-        rgb(243 250 254 / 10%) 58%,
-        var(--color-background) 88%
+        rgb(246 252 255 / 98%) 62%,
+        rgb(243 250 254 / 35%) 78%,
+        transparent 100%
       );
     }
     .hero-copy {
+      order: 1;
       width: 100%;
       max-width: 31rem;
     }
@@ -335,36 +349,40 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
       max-width: 48ch;
     }
     .hero-portrait {
+      order: 4;
       position: relative;
       top: auto;
       bottom: auto;
       right: auto;
-      width: 76%;
-      max-width: 16rem;
-      margin: var(--space-5) auto var(--space-6);
+      width: 100%;
+      max-width: 26rem;
+      height: 20rem;
+      margin: var(--space-5) auto 0;
       z-index: 0;
     }
     .hero-person {
-      width: 100%;
+      left: 43%;
     }
     .hero-signature {
       top: var(--space-3);
       bottom: auto;
-      right: -2rem;
+      right: 0;
       font-size: 1.55rem;
       z-index: 1;
     }
     .hero-actions {
+      order: 2;
       max-width: 100%;
       flex-direction: column;
       align-items: stretch;
-      margin-top: 0;
+      margin-top: var(--space-5);
       gap: var(--space-3);
     }
     .hero-actions :global(.button) {
       width: 100%;
     }
     .hero-availability {
+      order: 3;
       max-width: 100%;
       display: grid;
       gap: var(--space-2);
@@ -379,13 +397,19 @@ const [givenName, ...familyName] = profile.identity.name.split(' ');
       margin-bottom: var(--space-5);
     }
   }
-  @media (width >= 36rem) and (width < 48rem) {
+  @media (width >= 36rem) and (width < 64rem) {
+    .hero-actions {
+      flex-direction: row;
+    }
+    .hero-actions :global(.button) {
+      width: auto;
+    }
     .hero-portrait {
-      max-width: 18rem;
+      height: 23rem;
     }
     .hero-signature {
       top: var(--space-6);
-      right: -2rem;
+      right: 0;
     }
   }
   .hero-signature--custom {

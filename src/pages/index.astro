@@ -27,3 +27,23 @@ import { profile } from '../data/profile';
   <About />
   <Contact image={media.contact} />
 </SiteLayout>
+
+<script>
+  // Summary remains the native keyboard/no-JS control. The expanded content and
+  // card border are also clickable, without hijacking links or text selection.
+  document
+    .querySelectorAll<HTMLDetailsElement>('details[data-card-disclosure]')
+    .forEach((card) => {
+      card.addEventListener('click', (event) => {
+        if (
+          !(event.target instanceof Element) ||
+          event.target.closest(
+            'summary, a, button, input, textarea, select, label',
+          ) ||
+          window.getSelection()?.isCollapsed === false
+        )
+          return;
+        card.open = !card.open;
+      });
+    });
+</script>

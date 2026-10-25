@@ -5,7 +5,6 @@ import CVAction from '../ui/CVAction.astro';
 import { Image } from 'astro:assets';
 import { media } from '../../config/media';
 import { site } from '../../config/site';
-import { profile } from '../../data/profile';
 import { withBasePath } from '../../lib/urls';
 const homeURL = withBasePath('/', import.meta.env.BASE_URL);
 interface Props {
@@ -50,12 +49,6 @@ const { connected = false } = Astro.props;
       ))}
     </nav>
     <div class="header-actions">
-      {profile.contact.availability && (
-        <span class="header-availability">
-          <Icon name="complete" />
-          <span>{profile.contact.availability}</span>
-        </span>
-      )}
       <CVAction variant="primary" class="header-cv" />
     </div>
   </Container>
@@ -146,6 +139,10 @@ const { connected = false } = Astro.props;
     border-radius: 0;
     box-shadow: none;
   }
+  .header-shell--connected .header-inner {
+    min-height: 3.5rem;
+    padding-block: var(--space-1);
+  }
   .brand {
     min-width: 0;
     max-width: 12rem;
@@ -176,25 +173,6 @@ const { connected = false } = Astro.props;
     }
   }
 
-  .header-availability {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    max-width: 12rem;
-    font-size: 0.6875rem;
-    line-height: 1.45;
-    color: var(--color-text-secondary);
-  }
-  .header-availability :global(.icon) {
-    width: 0.875rem;
-    height: 0.875rem;
-    color: var(--color-primary-text);
-  }
-  @media (width < 68rem) {
-    .header-availability {
-      display: none;
-    }
-  }
   .brand-wordmark {
     min-width: 0;
     overflow-wrap: anywhere;

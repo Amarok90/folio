@@ -6,9 +6,9 @@
     "visible": true,
     "title": "Consumer Loan Origination",
     "sector": "Banking",
-    "summary": "Business and systems analysis for automated consumer loan origination at Luminor Group.",
-    "challenge": "A consumer loan origination process involved approximately 2 hours of processing.",
-    "contribution": "Contributed business and systems analysis to the design of an automated consumer loan origination process.",
+    "summary": "Business and systems analysis to automate consumer loan processing at Luminor Group.",
+    "challenge": "The consumer loan process involved approximately 2 hours of processing.",
+    "contribution": "Provided business and systems analysis for the design of an automated consumer loan process.",
     "outcomes": [
       "Processing time reduced from approximately 2 hours to 3 minutes."
     ],
@@ -35,9 +35,9 @@
     "visible": true,
     "title": "External Bank Statements",
     "sector": "FinTech",
-    "summary": "Requirements and API integration for collecting external bank account statements at Luminor Group.",
-    "challenge": "Lending decisions required bank account statements from external banks.",
-    "contribution": "Defined requirements and supported API integration for retrieving bank account statements from external banks.",
+    "summary": "Requirements and API integration to collect external bank statements at Luminor Group.",
+    "challenge": "Lending decisions required account statements from other banks.",
+    "contribution": "Defined requirements and supported API integration to collect account statements from other banks.",
     "outcomes": [
       "API-based collection of bank account statements from external banks."
     ],
@@ -66,7 +66,7 @@
     "sector": "Insurance",
     "summary": "Automated insurance renewal notifications supporting collateral coverage at Luminor Group.",
     "challenge": "Collateral insurance coverage was approximately 65%.",
-    "contribution": "Contributed analysis for automated insurance renewal notifications.",
+    "contribution": "Provided analysis for automated insurance renewal notifications.",
     "outcomes": [
       "Collateral insurance coverage increased from approximately 65% to 90%."
     ],

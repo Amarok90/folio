@@ -29,7 +29,7 @@
   },
   "common": {
     "portraitNote": "Temporary portrait",
-    "relocationLabel": "Open to Relocation",
+    "relocationLabel": "Open to relocation",
     "pendingLabel": "Details pending",
     "ongoingLabel": "In progress",
     "locationLabel": "Location",
@@ -53,24 +53,24 @@
   "expertise": {
     "eyebrow": "Expertise",
     "titleLines": ["Skills &", "Technologies"],
-    "description": "Business analysis, from understanding the need to shaping the solution.",
+    "description": "From understanding business needs to designing practical solutions.",
     "action": {
       "label": "Explore case studies",
       "href": "#projects"
     },
     "emptyMessage": "Expertise details are being updated.",
-    "emptySkillsMessage": "Skills for this category will appear after review and publication.",
+    "emptySkillsMessage": "Skills in this area are being updated.",
     "footnote": "Selected skills from my professional experience.",
-    "proficiencyNote": "Proficiency levels are not specified.",
-    "partialProficiencyNote": "Proficiency is shown only where specified; no level is implied for other skills."
+    "proficiencyNote": "Skill levels have not been specified.",
+    "partialProficiencyNote": "Levels are shown only where provided. No level is implied for unrated skills."
   },
   "projects": {
     "eyebrow": "Featured projects",
     "titleLines": ["Selected", "Case Studies"],
-    "description": "Real projects. Clear challenges. Thoughtful solutions.",
-    "emptyDescription": "The context. The challenge. The contribution. The result.",
+    "description": "Projects from my work in banking, lending and financial services.",
+    "emptyDescription": "Selected examples of my work will be added here.",
     "action": {
-      "label": "Explore the journey",
+      "label": "Explore my experience",
       "href": "#experience"
     },
     "detailsLabel": "View project details",
@@ -85,7 +85,7 @@
   "journey": {
     "eyebrow": "Professional journey",
     "titleLines": ["A Career Built on Business & Technology"],
-    "description": "A foundation in engineering. A career connecting business, technology and financial services.",
+    "description": "Experience in software engineering, business analysis and financial services.",
     "emptyDescription": "The experience behind the work. A detailed career history is being prepared for this portfolio.",
     "earlierLabel": "Earlier experience",
     "detailsLabel": "Role highlights",
@@ -110,13 +110,13 @@
     "eyebrow": "Let’s connect",
     "titleLines": ["Let’s Build Something", "Great Together"],
     "descriptionLines": [
-      "Open to my next Senior IT Business Analyst opportunity.",
-      "Let’s discuss how my banking expertise and technical experience can contribute to your team."
+      "Open to Senior IT Business Analyst opportunities across Europe.",
+      "Let’s talk about how my experience in banking, lending and technology can support your team."
     ],
     "primaryActionLabel": "Get in Touch",
     "preferredChannel": "email",
     "linkedInActionLabel": "Connect on LinkedIn",
-    "missingMessage": "Contact details are being confirmed. Please check back for a direct email address and professional profile links."
+    "missingMessage": "Contact details are being updated. Please check back soon."
   },
   "footer": {
     "copyrightNotice": "All rights reserved.",
