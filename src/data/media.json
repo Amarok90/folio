@@ -1,6 +1,6 @@
 {
   "portrait": {
-    "path": "/src/assets/my.jpeg",
+    "path": "/src/assets/portrait.png",
     "alt": "Temporary professional portrait, to be replaced with Konstantin’s own photo",
     "temporary": true
   },
