@@ -1,1 +1,10 @@
-[]
+[
+  {
+    "id": "cms-language-check",
+    "order": 0,
+    "status": "draft",
+    "visible": false,
+    "name": "English",
+    "code": "en"
+  }
+]
