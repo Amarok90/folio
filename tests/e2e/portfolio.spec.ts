@@ -831,11 +831,35 @@ test('CV viewing opens separately, downloads remain available, and the header st
     await expect(heroPreview).toHaveCount(1);
     await expect(heroPreview).toHaveAttribute('target', '_blank');
     await expect(heroPreview).not.toHaveAttribute('download');
+    const originalURL = page.url();
+    const previewURL = new URL(
+      (await heroPreview.getAttribute('href'))!,
+      originalURL,
+    ).href;
+    expect(previewURL).toContain(currentProfile.cv.path);
     const popupPromise = page.waitForEvent('popup');
+    const pdfResponsePromise = page
+      .context()
+      .waitForEvent(
+        'response',
+        (response) =>
+          response.url() === previewURL &&
+          response.request().isNavigationRequest(),
+      );
     await heroPreview.click();
-    const popup = await popupPromise;
-    await expect.poll(() => popup.url()).toContain(currentProfile.cv.path);
-    await popup.close();
+    const [popup, previewResponse] = await Promise.all([
+      popupPromise,
+      pdfResponsePromise,
+    ]);
+    expect(popup).not.toBe(page);
+    expect(page.url()).toBe(originalURL);
+    expect(previewResponse.status()).toBe(200);
+    expect(previewResponse.headers()['content-type']).toMatch(
+      /application\/pdf/i,
+    );
+    // Headless Chromium does not expose PDF viewer navigation as a page URL.
+    // The real click must still create a new page and receive the correct PDF.
+    if (!popup.isClosed()) await popup.close();
     const preview = page.locator('#contact a[data-analytics-event="cv_view"]');
     await expect(preview).toHaveCount(1);
     await expect(preview).toHaveAttribute(

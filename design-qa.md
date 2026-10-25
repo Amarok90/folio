@@ -33,4 +33,6 @@ Local evidence: 187 unit tests, 10 isolated CMS integration tests, 40 project-ba
 
 Real portrait upload and selection published successfully in 102 and 105 seconds respectively. PDF upload and selection seven seconds apart cancelled the older publication and published the newer snapshot. These are hosted CMS/GitHub evidence, not local simulations.
 
+The first full remote gate safely rejected an E2E assertion against the headless Chromium PDF viewer URL. The test now verifies the real click, separate popup, HTTP 200 PDF response, valid PDF bytes and actual download. Both complete 40-test browser suites pass in the supported Chromium Headless 156, and the focused CV test also passes in Opera. Production PDF behaviour was not changed.
+
 Current result: local candidate passed; final code publication and live-host verification pending.
