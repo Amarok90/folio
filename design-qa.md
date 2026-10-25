@@ -1,50 +1,39 @@
-# FOLIO release verification
+# FOLIO release verification — 25 October 2026
 
-25 October 2026. Actual Opera executable; isolated browser profiles.
+Public website: https://amarok90.github.io/folio/. Main branch only; no additional infrastructure or dependencies.
 
-The earlier visual PASS was withdrawn after owner review. The framed portrait and the subsequent faded portrait did not match the approved composition. Neither is accepted as final evidence.
+## Design and recruiter copy
 
-## Current visual contract
+The rejected framed and faded portraits were replaced with the supplied authentic cutout over the Alpine landscape. The viewing crop ends before the hands. No opacity, filter, image mask, blend effect, retouching or frame is applied. The original photographs remain unchanged. A full-resolution lossless WebP uploaded through the real CMS has zero differences in visible pixel channels or alpha from the original PNG.
 
-- Header and Hero meet without a gap. Header has Download CV and no availability message.
-- The original transparent portrait is displayed over the Alpine photograph with its original proportions. No image filter, opacity, blend mode, mask or fading is used. A hard viewing crop shows source y approximately 200–1150, before the raised hand begins near y1182. The crop ends at the Hero boundary.
-- Hero offers Explore My Work, View CV in a new tab, and Download CV. On narrow screens, actions precede the portrait so they remain easy to find.
-- Skills has a white surface and no decorative computer image.
-- Whole project cards use native summary/details controls. Enter, Space, image clicks and expanded-body clicks are tested. Selecting text and following links must preserve normal browser behaviour.
-- Career entries retain native disclosure controls; the redundant Journey CV action is removed.
-- Employers, roles, dates, project outcomes and numeric achievements are preserved. Recruiter copy uses clear English and Europe-wide availability.
+Header and Hero meet without a gap. Header retains Download CV and omits availability text. Hero provides View CV in a separate tab and Download CV. Tablet/mobile actions precede the portrait. Skills uses a white surface without the laptop illustration. Native project and career disclosures support whole-card activation, keyboard controls and text selection. Journey omits the redundant CV action.
 
-## Evidence
+All public copy was reviewed for clear, friendly recruiter English and Europe-wide opportunities. Dates, employers, roles and numeric achievements were preserved. SEO correctly states 10+ years in IT. Independent visual reviews checked the reference and actual Opera screenshots from 320 to 1920px; the result is an approximate composition following the owner's later crop requirements, not a claim of pixel-identical fidelity or new owner approval.
 
-- Owner reference: `codex-clipboard-7e541fba-1b00-4fce-b982-4172f3d24fe3.png` and the later Hero composition supplied at 15:18.
-- Rejected production evidence: `artifacts/diamond-release/production/`.
-- Current local screenshots: `artifacts/diamond-release/final-local/{home,projects,experience,about}-{320,390,768,1024,1440,1920}.png`.
-- Original portrait and About photographs remain byte-identical to the supplied files. Astro generates responsive web assets.
-- Live authenticated Pages CMS previously saved Hero text and skill values 90/100 successfully. Value 101 was rejected by the real editor. Those reversible test changes are restored in this candidate.
-- A newer owner-uploaded PDF and its selected CMS path were fast-forwarded from remote main before release preparation.
-- Real Pages CMS upload of the 4,822,278-byte original PNG returned HTTP 413 before any commit. The same original was encoded as a full-resolution lossless WebP (860,456 bytes), with zero differences in visible pixel channels or alpha. Upload and selection through the real editor succeeded; GitHub bytes match the local file. The PNG original remains untouched. The production media reference now uses the successfully uploaded WebP.
-- Native Media Save and exact alt-text restoration succeeded with the optional logo empty. No speculative change to optional-field validation was made.
+## Confirmed CMS corrections
 
-Local quality gates, final screenshots, production publication and remaining live CMS media tests are tracked separately. Local fixtures are not proof of hosted CMS uploads or production publication.
+- CMS JSON serialization is excluded only for the ten known content files from the code formatter. Strict content, media, schema and reference validation remains mandatory.
+- Tailwind scans application code and excludes content JSON. An isolated valid About edit containing `shadow` otherwise increased CSS from 66,870 to 68,509 bytes and failed the unchanged 68,000-byte budget. Excluding JSON kept the same valid text and restored 66,870 bytes. A real-build regression protects this data/code boundary.
+- Real Pages CMS deletion of the last Language item produced a zero-byte file. A single collection parser recognises trim-empty files as empty lists for the seven collections. Required singleton objects, malformed nonempty JSON, missing files, invalid records, duplicate IDs and broken references still fail. All seven collections are validated before Astro can skip a failed loader.
+- A real Education save exposed an optional end-month regex rejecting the existing current course. Optional end months, project HTTPS links, contact email and external CV URL now accept empty or valid values. Required patterns remain strict.
+- The PDF test observes the actual new popup and HTTP PDF response, valid bytes and real download, rather than depending on unsupported headless PDF viewer navigation.
 
-Independent visual review found no P0/P1/P2 issue in the current desktop, tablet and mobile screenshots. The approximately matched composition follows the owner’s later opaque-photo and no-hands requirements; it is not claimed as an exact replica or new owner approval.
+## Executed evidence
 
-Local evidence: 199 unit tests, 11 isolated CMS integration tests, 40 project-base browser checks, 40 normal browser checks and 19 analytics/consent checks passed in Opera. Type checking, lint, formatting, dependency audit, content validation, static build and automated WCAG checks passed. Local Lighthouse: mobile performance 97, other categories 100; desktop all categories 100. The complete gate passed again after incorporating the real uploaded photo. A final CMS configuration check also passed after clarifying the retained legacy illustration.
+Local and full remote gates passed: typecheck, lint, format, **208 unit tests, 12 CMS integration tests, 40 project-base browser checks, 40 E2E checks and 19 analytics/consent checks**. Dependency audit found zero vulnerabilities. Automated WCAG checks passed. CSS remains 66,870 bytes, JavaScript 11,079 bytes and fonts 57,484 bytes.
 
-Real portrait upload and selection published successfully in 102 and 105 seconds respectively. PDF upload and selection seven seconds apart cancelled the older publication and published the newer snapshot. These are hosted CMS/GitHub evidence, not local simulations.
+Public Opera passed the full 34-test production suite and later real PDF/project checks. Headed Opera opened the three-page CV in a separate tab. Production PDF bytes matched the owner-uploaded 802,056-byte file. Actual-host Lighthouse measured mobile **99/100/100/100**, desktop **100/100/100/100**; later full CI retained these targets.
 
-The first full remote gate safely rejected an E2E assertion against the headless Chromium PDF viewer URL. The test now verifies the real click, separate popup, HTTP 200 PDF response, valid PDF bytes and actual download. Both complete 40-test browser suites pass in the supported Chromium Headless 156, and the focused CV test also passes in Opera. Production PDF behaviour was not changed.
+Authenticated hosted CMS saves verified Hero text, skills 90 and 100 (101 rejected), Media/photo upload and replacement, Education, Languages including empty optional values and deletion of the last item, Journey, achievements, project image upload, a hidden project, ordering and visibility, and PDF upload/replacement/view/download. Rapid consecutive saves and cancellation of older deployments were observed. The last healthy deployment remained available whenever validation failed.
 
-Release 8c1a222 passed the full remote gate and deployed. Public Opera passed 34 E2E checks at 320–1920px; real-host Lighthouse scored mobile 99/100/100/100 and desktop 100/100/100/100. Headed Opera opened the selected three-page PDF in a separate tab, and its 802,056 production bytes matched the owner-uploaded file.
+All temporary records and punctuation probes were restored through the real CMS. An independent pinned-commit comparison confirmed all ten canonical CMS files equal the pre-test baseline after schema normalization. The two unreferenced test upload copies were removed after the original CV and project references were restored and publicly verified. Originals and Git history are preserved.
 
-A further authenticated Languages test exposed an upstream Pages CMS serializer defect: saving after removing the last list item produced a zero-byte file (commit 78478df), rather than JSON []. Its deployment was safely blocked. The correction recognises trim-empty input only for the seven list collections, routes all list readers through the same parser and validates every collection before Astro can silently skip a failed loader. Required singleton objects, malformed nonempty JSON, invalid records, missing files and invalid references remain rejected. The real CMS-generated zero-byte source is retained as verification evidence, without manufacturing a replacement [].
+Full code gates: https://github.com/Amarok90/folio/actions/runs/40210951556 . Real empty-file publication: https://github.com/Amarok90/folio/actions/runs/40208598024 . Restored owner data publication: https://github.com/Amarok90/folio/actions/runs/40213997250 . Local evidence is stored under `artifacts/diamond-release/`, including production screenshots and Lighthouse reports.
 
-The new integration scenario passes with all seven lists blank or whitespace, three blank singleton objects rejected, malformed and non-array lists rejected, and a missing list rejected. Direct Astro builds share these boundaries.
+## Platform limits
 
-The final correction passed all gates in Opera: typecheck, lint, format, 199 unit tests, 11 CMS integration tests, 40 project-base checks, 40 E2E checks, 19 consent/analytics checks, audit, content validation and build. Lighthouse remained mobile 97/100/100/100 and desktop all 100. An independent code review confirmed that collection-only compatibility preserves strict singleton, record, identifier and reference validation.
+Hosted Pages CMS rejected the 4.6 MiB PNG with HTTP 413 before any commit. The lossless 840 KiB WebP succeeded; uploads under 2 MiB are recommended. Repository safety limits remain 12 MiB/40 million pixels for raster images and 10 MiB for PDFs.
 
-Current result: final parser correction passed locally; remote publication verification pending.
+Use sequential saves in one editor. Pages CMS sends the loaded file SHA and rejects stale writes with HTTP 409, but background revalidation and preservation of unsaved drafts across multiple tabs are not certified. There is no unified atomic multi-editor Save. Measured content publication was usually about 83–105 seconds; full gates took around 3–4.5 minutes.
 
-## Authenticated optional-field verification
-
-A subsequent real Education save was blocked by the hosted editor at the empty end month of the existing current course. The optional field regex incorrectly required a nonempty date. Both optional end months, optional project HTTPS links, contact email and external CV URL now accept an empty value or their existing valid format. Required fields keep their previous strict patterns. Nine regression cases compare the resolved CMS controls with the canonical schema. Professional facts are unchanged; the unsaved punctuation probe was discarded.
+These results describe executed checks and the stated limits, not a promise that every possible CMS/browser combination is flawless.

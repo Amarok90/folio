@@ -6,6 +6,7 @@ import {
   mkdirSync,
   mkdtempSync,
   readFileSync,
+  readdirSync,
   rmSync,
   symlinkSync,
   writeFileSync,
@@ -37,6 +38,7 @@ const astroBinary = join(
 );
 let fixture;
 let baselineHTML;
+let baselineCSS;
 const originals = new Map();
 const uploaded = [];
 const collectionPaths = [
@@ -69,6 +71,13 @@ const readJSON = (path) => {
     ? parseCollectionJSON(raw)
     : JSON.parse(raw);
 };
+const readStylesheets = () =>
+  Object.fromEntries(
+    readdirSync(pathFor('dist'), { recursive: true })
+      .filter((path) => extname(path) === '.css')
+      .sort()
+      .map((path) => [path, readFileSync(pathFor(join('dist', path)))]),
+  );
 function saveJSON(path, value) {
   // Match the observed Pages CMS commit serialization, including no final newline.
   writeFileSync(pathFor(path), JSON.stringify(value, null, 2));
@@ -137,6 +146,7 @@ before(
       originals.set(path, readFileSync(pathFor(path)));
     await validateRepositoryContent(fixture);
     baselineHTML = build();
+    baselineCSS = readStylesheets();
   },
   { timeout: 120_000 },
 );
@@ -290,6 +300,28 @@ test(
     );
     build(false);
     writeFileSync(pathFor(missingPath), originals.get(missingPath));
+  },
+);
+
+test(
+  'CMS prose: ordinary utility words render without changing stylesheet bytes or breaking release budgets',
+  { timeout: 120_000 },
+  async () => {
+    const profile = readJSON('src/data/profile.json');
+    profile.about.summary = `${profile.about.summary ?? ''} A shadow falls across the landscape.`;
+    saveJSON('src/data/profile.json', profile);
+    await validateRepositoryContent(fixture);
+    const html = build(true, true);
+    assert.ok(html.includes(escapedText(profile.about.summary)));
+    assert.ok(
+      Object.keys(baselineCSS).length > 0,
+      'Baseline must include stylesheets.',
+    );
+    assert.deepEqual(
+      readStylesheets(),
+      baselineCSS,
+      'Ordinary CMS prose must not generate utilities or change delivered CSS bytes.',
+    );
   },
 );
 

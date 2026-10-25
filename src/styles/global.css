@@ -1,5 +1,6 @@
 @import 'tailwindcss' source('../');
 @import './tokens.css';
+@source not '../**/*.json';
 
 @font-face {
   font-family: 'Inter Variable';
