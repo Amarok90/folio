@@ -2,7 +2,7 @@
   {
     "id": "ru",
     "order": 0,
-    "status": "draft",
+    "status": "published",
     "visible": true,
     "name": "Russian",
     "code": "en",
@@ -20,7 +20,7 @@
   {
     "id": "2",
     "order": 2,
-    "status": "draft",
+    "status": "published",
     "visible": true,
     "name": "German",
     "code": "de",
@@ -29,7 +29,7 @@
   {
     "id": "et",
     "order": 3,
-    "status": "draft",
+    "status": "published",
     "visible": true,
     "name": "Estonian",
     "code": "et"
