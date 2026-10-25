@@ -7,10 +7,9 @@
     "role": "Senior IT Business Analyst",
     "organization": "Luminor Group",
     "location": "Tallinn, Estonia",
+    "summary": "Business and systems analysis for retail lending",
     "startDate": "2021-08",
-    "endDate": null,
     "current": true,
-    "summary": "Business and systems analysis for retail lending.",
     "achievements": [
       "Lead business and systems analysis for retail lending processes.",
       "Contributed to the design of an automated consumer loan process that reduced processing time from approximately 2 hours to 3 minutes.",
@@ -38,10 +37,10 @@
     "role": "IT Business Analyst",
     "organization": "Creditstar Group AS",
     "location": "Tallinn, Estonia",
+    "summary": "Analysis and delivery support for web and mobile lending platforms.",
     "startDate": "2019-08",
     "endDate": "2021-08",
     "current": false,
-    "summary": "Analysis and delivery support for web and mobile lending platforms.",
     "achievements": [
       "Analysed requirements for lending, credit risk and digital onboarding.",
       "Documented workflows and requirements with stakeholders, vendors and development teams.",
@@ -67,10 +66,10 @@
     "role": "System Engineer",
     "organization": "Kuehne + Nagel",
     "location": "Tallinn, Estonia",
+    "summary": "System analysis and third-line support for enterprise printing and document management.",
     "startDate": "2017-09",
     "endDate": "2019-08",
     "current": false,
-    "summary": "System analysis and third-line support for enterprise printing and document management.",
     "achievements": [
       "Analysed requirements and prepared Jira tasks and system specifications.",
       "Created XML / XSLT document models and supported a new document storage solution.",
@@ -93,10 +92,10 @@
     "role": "Front-end developer (Internet Banking)",
     "organization": "SEB",
     "location": "Tallinn, Estonia",
+    "summary": "Developed internet banking features and resolved production issues.",
     "startDate": "2015-12",
     "endDate": "2017-05",
     "current": false,
-    "summary": "Developed internet banking features and resolved production issues.",
     "achievements": [
       "Contributed to digital banking serving 600,000+ customers.",
       "Developed functionality with Progress ABL, JavaScript, CSS and XSLT.",
@@ -118,14 +117,17 @@
     "role": "PHP Developer (Trainee)",
     "organization": "Spin TEK AS",
     "location": "Tallinn, Estonia",
+    "summary": "Developed and tested software for the government sector.",
     "startDate": "2013-11",
     "endDate": "2014-05",
     "current": false,
-    "summary": "Developed and tested software for the government sector.",
     "achievements": [
       "Developed features and fixed bugs using PHP, MySQL, JavaScript, HTML and CSS.",
       "Tested changes and used SVN and CVS for version control."
     ],
-    "skillIds": ["javascript", "functional-testing"]
+    "skillIds": [
+      "javascript",
+      "functional-testing"
+    ]
   }
 ]
