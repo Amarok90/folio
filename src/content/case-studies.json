@@ -5,8 +5,8 @@
     "status": "published",
     "visible": true,
     "title": "Consumer Loan Origination",
-    "sector": "Banking",
     "summary": "Business and systems analysis to automate consumer loan processing at Luminor Group.",
+    "sector": "Banking",
     "challenge": "The consumer loan process involved approximately 2 hours of processing.",
     "contribution": "Provided business and systems analysis for the design of an automated consumer loan process.",
     "outcomes": [
@@ -34,8 +34,8 @@
     "status": "published",
     "visible": true,
     "title": "External Bank Statements",
-    "sector": "FinTech",
     "summary": "Requirements and API integration to collect external bank statements at Luminor Group.",
+    "sector": "FinTech",
     "challenge": "Lending decisions required account statements from other banks.",
     "contribution": "Defined requirements and supported API integration to collect account statements from other banks.",
     "outcomes": [
@@ -63,8 +63,8 @@
     "status": "published",
     "visible": true,
     "title": "Insurance Renewal Automation",
-    "sector": "Insurance",
     "summary": "Automated insurance renewal notifications supporting collateral coverage at Luminor Group.",
+    "sector": "Insurance",
     "challenge": "Collateral insurance coverage was approximately 65%.",
     "contribution": "Provided analysis for automated insurance renewal notifications.",
     "outcomes": [
@@ -85,5 +85,20 @@
       "illustrative": true
     },
     "link": "https://www.linkedin.com/in/konstantin-arutjunov/"
+  },
+  {
+    "id": "cms-project-check",
+    "order": 0,
+    "status": "draft",
+    "visible": false,
+    "title": "CMS verification record",
+    "summary": "Temporary hidden record for CMS workflow verification.",
+    "challenge": "Verify image upload and optional fields.",
+    "contribution": "Temporary verification; removed after testing.",
+    "image": {
+      "path": "/src/assets/folio-project-upload.webp",
+      "alt": "Illustrative contemporary banking office building",
+      "illustrative": true
+    }
   }
 ]
