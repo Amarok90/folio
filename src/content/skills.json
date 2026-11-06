@@ -6,34 +6,25 @@
     "visible": true,
     "name": "Business Analysis",
     "categoryId": "business-analytical",
-    "selfAssessment": 96
+    "selfAssessment": 95
   },
   {
     "id": "system-analysis",
-    "order": 3,
+    "order": 2,
     "status": "published",
     "visible": true,
     "name": "System Analysis",
     "categoryId": "business-analytical",
-    "selfAssessment": 100
+    "selfAssessment": 90
   },
   {
     "id": "requirements-engineering",
-    "order": 2,
+    "order": 3,
     "status": "published",
     "visible": true,
     "name": "Requirements Engineering",
     "categoryId": "business-analytical",
-    "selfAssessment": 100
-  },
-  {
-    "id": "requirements-elicitation",
-    "order": 7,
-    "status": "published",
-    "visible": true,
-    "name": "Requirements Elicitation",
-    "categoryId": "business-analytical",
-    "selfAssessment": 93
+    "selfAssessment": 95
   },
   {
     "id": "user-stories-use-cases",
@@ -42,7 +33,7 @@
     "visible": true,
     "name": "User Stories & Use Cases",
     "categoryId": "business-analytical",
-    "selfAssessment": 100
+    "selfAssessment": 95
   },
   {
     "id": "bpmn-process-modelling",
@@ -51,7 +42,7 @@
     "visible": true,
     "name": "BPMN & Process Modelling",
     "categoryId": "business-analytical",
-    "selfAssessment": 88
+    "selfAssessment": 90
   },
   {
     "id": "stakeholder-management",
@@ -68,7 +59,8 @@
     "status": "published",
     "visible": true,
     "name": "Requirements Workshops",
-    "categoryId": "business-analytical"
+    "categoryId": "business-analytical",
+    "selfAssessment": 85
   },
   {
     "id": "rest-soap-apis",
@@ -86,7 +78,7 @@
     "visible": true,
     "name": "SQL & Data Analysis",
     "categoryId": "technical-tools",
-    "selfAssessment": 88
+    "selfAssessment": 75
   },
   {
     "id": "excel",
@@ -94,7 +86,8 @@
     "status": "published",
     "visible": true,
     "name": "Excel",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "selfAssessment": 75
   },
   {
     "id": "tableau",
@@ -102,7 +95,8 @@
     "status": "published",
     "visible": true,
     "name": "Tableau",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "selfAssessment": 60
   },
   {
     "id": "swagger",
@@ -110,7 +104,8 @@
     "status": "published",
     "visible": true,
     "name": "Swagger",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "selfAssessment": 88
   },
   {
     "id": "postman",
@@ -118,7 +113,8 @@
     "status": "published",
     "visible": true,
     "name": "Postman",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "selfAssessment": 90
   },
   {
     "id": "soapui",
@@ -126,7 +122,8 @@
     "status": "published",
     "visible": true,
     "name": "SoapUI",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "selfAssessment": 85
   },
   {
     "id": "javascript",
@@ -134,7 +131,8 @@
     "status": "published",
     "visible": true,
     "name": "JavaScript",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "selfAssessment": 50
   },
   {
     "id": "xml-xslt",
@@ -142,7 +140,8 @@
     "status": "published",
     "visible": true,
     "name": "XML / XSLT",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "selfAssessment": 50
   },
   {
     "id": "agile-delivery",
@@ -150,7 +149,8 @@
     "status": "published",
     "visible": true,
     "name": "Agile Delivery",
-    "categoryId": "methodologies"
+    "categoryId": "methodologies",
+    "selfAssessment": 74
   },
   {
     "id": "scrum",
@@ -158,7 +158,8 @@
     "status": "published",
     "visible": true,
     "name": "Scrum",
-    "categoryId": "methodologies"
+    "categoryId": "methodologies",
+    "selfAssessment": 75
   },
   {
     "id": "functional-testing",
@@ -166,7 +167,8 @@
     "status": "published",
     "visible": true,
     "name": "Functional Testing",
-    "categoryId": "methodologies"
+    "categoryId": "methodologies",
+    "selfAssessment": 85
   },
   {
     "id": "integration-testing",
@@ -174,7 +176,8 @@
     "status": "published",
     "visible": true,
     "name": "Integration Testing",
-    "categoryId": "methodologies"
+    "categoryId": "methodologies",
+    "selfAssessment": 81
   },
   {
     "id": "uat",
@@ -182,7 +185,8 @@
     "status": "published",
     "visible": true,
     "name": "User Acceptance Testing",
-    "categoryId": "methodologies"
+    "categoryId": "methodologies",
+    "selfAssessment": 85
   },
   {
     "id": "root-cause-analysis",
@@ -190,7 +194,8 @@
     "status": "published",
     "visible": true,
     "name": "Root Cause Analysis",
-    "categoryId": "methodologies"
+    "categoryId": "methodologies",
+    "selfAssessment": 90
   },
   {
     "id": "change-management",
@@ -198,7 +203,8 @@
     "status": "published",
     "visible": true,
     "name": "Change Management",
-    "categoryId": "methodologies"
+    "categoryId": "methodologies",
+    "selfAssessment": 80
   },
   {
     "id": "digital-banking",
@@ -206,7 +212,8 @@
     "status": "published",
     "visible": true,
     "name": "Digital Banking",
-    "categoryId": "industry-knowledge"
+    "categoryId": "industry-knowledge",
+    "selfAssessment": 80
   },
   {
     "id": "lending",
@@ -214,7 +221,8 @@
     "status": "published",
     "visible": true,
     "name": "Lending",
-    "categoryId": "industry-knowledge"
+    "categoryId": "industry-knowledge",
+    "selfAssessment": 90
   },
   {
     "id": "credit-risk",
@@ -222,7 +230,8 @@
     "status": "published",
     "visible": true,
     "name": "Credit Risk",
-    "categoryId": "industry-knowledge"
+    "categoryId": "industry-knowledge",
+    "proficiency": "working"
   },
   {
     "id": "early-warning-systems",
@@ -230,7 +239,9 @@
     "status": "published",
     "visible": true,
     "name": "Early Warning Systems",
-    "categoryId": "industry-knowledge"
+    "categoryId": "industry-knowledge",
+    "proficiency": "advanced",
+    "selfAssessment": 90
   },
   {
     "id": "insurance",
@@ -238,7 +249,8 @@
     "status": "published",
     "visible": true,
     "name": "Insurance",
-    "categoryId": "industry-knowledge"
+    "categoryId": "industry-knowledge",
+    "proficiency": "working"
   },
   {
     "id": "digital-onboarding-kyc",
@@ -246,15 +258,8 @@
     "status": "published",
     "visible": true,
     "name": "Digital Onboarding & KYC",
-    "categoryId": "industry-knowledge"
-  },
-  {
-    "id": "payments",
-    "order": 7,
-    "status": "published",
-    "visible": true,
-    "name": "Payments",
-    "categoryId": "industry-knowledge"
+    "categoryId": "industry-knowledge",
+    "proficiency": "working"
   },
   {
     "id": "crm",
@@ -262,7 +267,8 @@
     "status": "published",
     "visible": true,
     "name": "CRM",
-    "categoryId": "industry-knowledge"
+    "categoryId": "industry-knowledge",
+    "proficiency": "working"
   },
   {
     "id": "google-cloud-services",
@@ -270,7 +276,9 @@
     "status": "published",
     "visible": true,
     "name": "Google Cloud Services",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "proficiency": "advanced",
+    "selfAssessment": 80
   },
   {
     "id": "rpa-automation",
@@ -278,7 +286,9 @@
     "status": "published",
     "visible": true,
     "name": "RPA Automation",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "proficiency": "working",
+    "selfAssessment": 65
   },
   {
     "id": "chatgpt",
@@ -286,7 +296,9 @@
     "status": "published",
     "visible": true,
     "name": "ChatGPT",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "proficiency": "expert",
+    "selfAssessment": 95
   },
   {
     "id": "copilot",
@@ -294,7 +306,9 @@
     "status": "published",
     "visible": true,
     "name": "Copilot",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "proficiency": "expert",
+    "selfAssessment": 90
   },
   {
     "id": "codex",
@@ -302,7 +316,9 @@
     "status": "published",
     "visible": true,
     "name": "Codex",
-    "categoryId": "technical-tools"
+    "categoryId": "technical-tools",
+    "proficiency": "expert",
+    "selfAssessment": 95
   },
   {
     "id": "solution-design",
@@ -311,6 +327,7 @@
     "visible": true,
     "name": "Solution Design",
     "categoryId": "business-analytical",
+    "proficiency": "working",
     "selfAssessment": 87
   },
   {
