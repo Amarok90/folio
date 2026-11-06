@@ -4,27 +4,27 @@
     "order": 1,
     "status": "published",
     "visible": true,
-    "value": "10+",
+    "value": "12+",
     "label": "Years in IT",
-    "context": "From software engineering to banking analysis"
+    "context": "From software developer -> Senior IT Analyst "
   },
   {
     "id": "business-analysis-since",
     "order": 2,
     "status": "published",
     "visible": true,
-    "value": "2019",
-    "label": "Started in business analysis",
-    "context": "Creditstar Group and Luminor Group"
+    "value": "6+",
+    "label": "Years as IT Business analyst",
+    "context": "Business Analyst \nLuminor Group"
   },
   {
-    "id": "loan-processing",
+    "id": "skill-range",
     "order": 3,
     "status": "published",
     "visible": true,
-    "value": "≈3 min",
-    "label": "Loan processing",
-    "context": "Reduced from approximately 2 hours"
+    "value": "Expert skills",
+    "label": "Full-stack skills",
+    "context": "Extended skills in different IT domains"
   },
   {
     "id": "core-expertise",
@@ -33,6 +33,6 @@
     "visible": true,
     "value": "Banking & FinTech",
     "label": "Core expertise",
-    "context": "Lending, credit risk and digital banking"
+    "context": "Digital banking, Lending, Startups, IT systems, E-commerce"
   }
 ]
