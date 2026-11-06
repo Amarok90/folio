@@ -6,6 +6,7 @@
     "visible": true,
     "name": "Business Analysis",
     "categoryId": "business-analytical",
+    "proficiency": "expert",
     "selfAssessment": 95
   },
   {
@@ -15,6 +16,7 @@
     "visible": true,
     "name": "System Analysis",
     "categoryId": "business-analytical",
+    "proficiency": "expert",
     "selfAssessment": 90
   },
   {
@@ -24,6 +26,7 @@
     "visible": true,
     "name": "Requirements Engineering",
     "categoryId": "business-analytical",
+    "proficiency": "expert",
     "selfAssessment": 95
   },
   {
@@ -33,6 +36,7 @@
     "visible": true,
     "name": "User Stories & Use Cases",
     "categoryId": "business-analytical",
+    "proficiency": "expert",
     "selfAssessment": 95
   },
   {
@@ -42,6 +46,7 @@
     "visible": true,
     "name": "BPMN & Process Modelling",
     "categoryId": "business-analytical",
+    "proficiency": "expert",
     "selfAssessment": 90
   },
   {
@@ -51,6 +56,7 @@
     "visible": true,
     "name": "Stakeholder Management",
     "categoryId": "business-analytical",
+    "proficiency": "advanced",
     "selfAssessment": 90
   },
   {
@@ -60,6 +66,7 @@
     "visible": true,
     "name": "Requirements Workshops",
     "categoryId": "business-analytical",
+    "proficiency": "advanced",
     "selfAssessment": 85
   },
   {
@@ -69,6 +76,7 @@
     "visible": true,
     "name": "REST / SOAP APIs",
     "categoryId": "technical-tools",
+    "proficiency": "advanced",
     "selfAssessment": 85
   },
   {
@@ -78,7 +86,8 @@
     "visible": true,
     "name": "SQL & Data Analysis",
     "categoryId": "technical-tools",
-    "selfAssessment": 75
+    "proficiency": "working",
+    "selfAssessment": 70
   },
   {
     "id": "excel",
@@ -87,6 +96,7 @@
     "visible": true,
     "name": "Excel",
     "categoryId": "technical-tools",
+    "proficiency": "working",
     "selfAssessment": 75
   },
   {
@@ -96,7 +106,8 @@
     "visible": true,
     "name": "Tableau",
     "categoryId": "technical-tools",
-    "selfAssessment": 60
+    "proficiency": "foundational",
+    "selfAssessment": 50
   },
   {
     "id": "swagger",
@@ -105,6 +116,7 @@
     "visible": true,
     "name": "Swagger",
     "categoryId": "technical-tools",
+    "proficiency": "advanced",
     "selfAssessment": 88
   },
   {
@@ -114,6 +126,7 @@
     "visible": true,
     "name": "Postman",
     "categoryId": "technical-tools",
+    "proficiency": "advanced",
     "selfAssessment": 90
   },
   {
@@ -123,6 +136,7 @@
     "visible": true,
     "name": "SoapUI",
     "categoryId": "technical-tools",
+    "proficiency": "advanced",
     "selfAssessment": 85
   },
   {
@@ -132,6 +146,7 @@
     "visible": true,
     "name": "JavaScript",
     "categoryId": "technical-tools",
+    "proficiency": "foundational",
     "selfAssessment": 50
   },
   {
@@ -141,6 +156,7 @@
     "visible": true,
     "name": "XML / XSLT",
     "categoryId": "technical-tools",
+    "proficiency": "foundational",
     "selfAssessment": 50
   },
   {
@@ -159,6 +175,7 @@
     "visible": true,
     "name": "Scrum",
     "categoryId": "methodologies",
+    "proficiency": "working",
     "selfAssessment": 75
   },
   {
@@ -177,7 +194,8 @@
     "visible": true,
     "name": "Integration Testing",
     "categoryId": "methodologies",
-    "selfAssessment": 81
+    "proficiency": "working",
+    "selfAssessment": 76
   },
   {
     "id": "uat",
@@ -186,6 +204,7 @@
     "visible": true,
     "name": "User Acceptance Testing",
     "categoryId": "methodologies",
+    "proficiency": "advanced",
     "selfAssessment": 85
   },
   {
@@ -195,6 +214,7 @@
     "visible": true,
     "name": "Root Cause Analysis",
     "categoryId": "methodologies",
+    "proficiency": "advanced",
     "selfAssessment": 90
   },
   {
@@ -204,6 +224,7 @@
     "visible": true,
     "name": "Change Management",
     "categoryId": "methodologies",
+    "proficiency": "working",
     "selfAssessment": 80
   },
   {
@@ -213,6 +234,7 @@
     "visible": true,
     "name": "Digital Banking",
     "categoryId": "industry-knowledge",
+    "proficiency": "working",
     "selfAssessment": 80
   },
   {
@@ -222,6 +244,7 @@
     "visible": true,
     "name": "Lending",
     "categoryId": "industry-knowledge",
+    "proficiency": "advanced",
     "selfAssessment": 90
   },
   {
@@ -231,7 +254,8 @@
     "visible": true,
     "name": "Credit Risk",
     "categoryId": "industry-knowledge",
-    "proficiency": "working"
+    "proficiency": "working",
+    "selfAssessment": 50
   },
   {
     "id": "early-warning-systems",
@@ -250,7 +274,8 @@
     "visible": true,
     "name": "Insurance",
     "categoryId": "industry-knowledge",
-    "proficiency": "working"
+    "proficiency": "working",
+    "selfAssessment": 75
   },
   {
     "id": "digital-onboarding-kyc",
@@ -259,7 +284,8 @@
     "visible": true,
     "name": "Digital Onboarding & KYC",
     "categoryId": "industry-knowledge",
-    "proficiency": "working"
+    "proficiency": "advanced",
+    "selfAssessment": 75
   },
   {
     "id": "crm",
@@ -268,7 +294,8 @@
     "visible": true,
     "name": "CRM",
     "categoryId": "industry-knowledge",
-    "proficiency": "working"
+    "proficiency": "working",
+    "selfAssessment": 60
   },
   {
     "id": "google-cloud-services",
@@ -337,7 +364,8 @@
     "visible": true,
     "name": "JSON / XML",
     "categoryId": "technical-tools",
-    "selfAssessment": 83
+    "proficiency": "advanced",
+    "selfAssessment": 85
   },
   {
     "id": "jira-confluence",
@@ -364,6 +392,7 @@
     "visible": true,
     "name": "Integration Analysis",
     "categoryId": "technical-tools",
-    "selfAssessment": 86
+    "proficiency": "advanced",
+    "selfAssessment": 85
   }
 ]
