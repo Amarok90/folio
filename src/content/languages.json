@@ -6,7 +6,7 @@
     "visible": true,
     "name": "Russian",
     "code": "en",
-    "proficiency": "professional"
+    "proficiency": "native"
   },
   {
     "id": "en",
@@ -32,6 +32,7 @@
     "status": "published",
     "visible": true,
     "name": "Estonian",
-    "code": "et"
+    "code": "et",
+    "proficiency": "professional"
   }
 ]
